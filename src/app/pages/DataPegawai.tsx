@@ -1,0 +1,426 @@
+import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router';
+import { Search, Plus, Filter, Eye, Edit2, Trash2, Download, Upload, Users, ChevronDown, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
+import { Pegawai } from '../types';
+import { UNIT_KERJA } from '../data/mockData';
+import { toast } from 'sonner';
+
+const ITEMS_PER_PAGE = 10;
+
+const golonganList = ['I/a','I/b','I/c','I/d','II/a','II/b','II/c','II/d','III/a','III/b','III/c','III/d','IV/a','IV/b','IV/c','IV/d','IV/e'];
+
+const EMPTY_FORM: Omit<Pegawai, 'id'> = {
+  nip: '', nama: '', gelarDepan: '', gelarBelakang: '', jenisKelamin: 'L',
+  tempatLahir: '', tanggalLahir: '', agama: 'Islam', statusPerkawinan: 'Belum Kawin',
+  alamat: '', noTelp: '', email: '', jabatan: '', jabatanFungsional: '',
+  unitKerja: '', golongan: 'III/a', pangkat: 'Penata Muda', tmtGolongan: '',
+  tmtJabatan: '', statusPegawai: 'PNS', statusAktif: 'Aktif',
+  pendidikanTerakhir: 'S1', jurusan: '', institusi: '', tahunLulus: 2020,
+  tanggalMasuk: '', batasPensiun: '', masaKerja: '',
+};
+
+export default function DataPegawai() {
+  const navigate = useNavigate();
+  const { pegawai: dataPegawai, addPegawai, updatePegawai, deletePegawai } = useAppContext();
+  const [search, setSearch] = useState('');
+  const [filterUnit, setFilterUnit] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterJenis, setFilterJenis] = useState('');
+  const [filterGolongan, setFilterGolongan] = useState('');
+  const [showFilter, setShowFilter] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [editData, setEditData] = useState<Pegawai | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [form, setForm] = useState<Omit<Pegawai, 'id'>>({ ...EMPTY_FORM });
+  const [activeFormTab, setActiveFormTab] = useState<'dasar' | 'jabatan' | 'pendidikan'>('dasar');
+
+  const filtered = useMemo(() => {
+    return dataPegawai.filter(p => {
+      const fullName = `${p.gelarDepan || ''} ${p.nama}${p.gelarBelakang ? ', ' + p.gelarBelakang : ''}`.toLowerCase();
+      const matchSearch = !search || fullName.includes(search.toLowerCase()) || p.nip.includes(search) || p.jabatan.toLowerCase().includes(search.toLowerCase());
+      const matchUnit = !filterUnit || p.unitKerja === filterUnit;
+      const matchStatus = !filterStatus || p.statusAktif === filterStatus;
+      const matchJenis = !filterJenis || p.statusPegawai === filterJenis;
+      const matchGolongan = !filterGolongan || p.golongan.startsWith(filterGolongan);
+      return matchSearch && matchUnit && matchStatus && matchJenis && matchGolongan;
+    });
+  }, [dataPegawai, search, filterUnit, filterStatus, filterJenis, filterGolongan]);
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginatedData = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  const resetFilters = () => {
+    setFilterUnit(''); setFilterStatus(''); setFilterJenis(''); setFilterGolongan(''); setSearch(''); setCurrentPage(1);
+  };
+  const activeFilterCount = [filterUnit, filterStatus, filterJenis, filterGolongan].filter(Boolean).length;
+  const getInitial = (nama: string) => nama.charAt(0).toUpperCase();
+  const getFullName = (p: Pegawai) => `${p.gelarDepan || ''} ${p.nama}${p.gelarBelakang ? ', ' + p.gelarBelakang : ''}`.trim();
+
+  const golonganColor: Record<string, string> = {
+    'I': 'text-gray-600 bg-gray-100', 'II': 'text-yellow-700 bg-yellow-100',
+    'III': 'text-blue-700 bg-blue-100', 'IV': 'text-purple-700 bg-purple-100',
+  };
+  const getGolonganColor = (g: string) => golonganColor[g.charAt(0)] || 'text-gray-600 bg-gray-100';
+
+  const totalPNS = dataPegawai.filter(p => p.statusPegawai === 'PNS').length;
+  const totalPPPK = dataPegawai.filter(p => p.statusPegawai === 'PPPK').length;
+  const totalHonorer = dataPegawai.filter(p => p.statusPegawai === 'Honorer').length;
+
+  const openAdd = () => {
+    setEditData(null);
+    setForm({ ...EMPTY_FORM });
+    setActiveFormTab('dasar');
+    setShowModal(true);
+  };
+
+  const openEdit = (p: Pegawai) => {
+    setEditData(p);
+    setForm({ ...p });
+    setActiveFormTab('dasar');
+    setShowModal(true);
+  };
+
+  const handleSave = () => {
+    if (!form.nama || !form.nip) { toast.error('Nama dan NIP wajib diisi'); return; }
+    if (editData) {
+      updatePegawai({ ...editData, ...form });
+      toast.success('Data pegawai berhasil diperbarui');
+    } else {
+      addPegawai(form);
+      toast.success('Pegawai baru berhasil ditambahkan');
+    }
+    setShowModal(false);
+  };
+
+  const handleDelete = (id: string) => {
+    deletePegawai(id);
+    setShowDeleteConfirm(null);
+    toast.success('Data pegawai berhasil dihapus');
+  };
+
+  const inputCls = "w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500";
+  const labelCls = "text-xs font-medium text-gray-700 mb-1 block";
+
+  return (
+    <div className="p-4 lg:p-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-gray-800">Data Pegawai</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Pengelolaan data ASN RSUD Abdul Moeloek</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+            <Upload className="w-4 h-4" /> Import
+          </button>
+          <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+            <Download className="w-4 h-4" /> Export
+          </button>
+          <button onClick={openAdd} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors">
+            <Plus className="w-4 h-4" /> Tambah Pegawai
+          </button>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+        {[
+          { label: 'Total Pegawai', value: dataPegawai.length, icon: <Users className="w-5 h-5 text-blue-600" />, bg: 'bg-blue-50' },
+          { label: 'PNS', value: totalPNS, icon: <span className="text-xs font-bold text-blue-600">PNS</span>, bg: 'bg-blue-50' },
+          { label: 'PPPK', value: totalPPPK, icon: <span className="text-xs font-bold text-purple-600">P3K</span>, bg: 'bg-purple-50' },
+          { label: 'Honorer', value: totalHonorer, icon: <span className="text-xs font-bold text-orange-600">HON</span>, bg: 'bg-orange-50' },
+        ].map(s => (
+          <div key={s.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${s.bg}`}>{s.icon}</div>
+            <div><p className="text-2xl font-semibold text-gray-800">{s.value}</p><p className="text-xs text-gray-500">{s.label}</p></div>
+          </div>
+        ))}
+      </div>
+
+      {/* Search & Filter */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-4">
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input type="text" placeholder="Cari nama, NIP, atau jabatan..." value={search}
+              onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
+              className="pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <button onClick={() => setShowFilter(!showFilter)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm border transition-colors ${activeFilterCount > 0 ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+            <Filter className="w-4 h-4" /> Filter
+            {activeFilterCount > 0 && <span className="w-5 h-5 rounded-full bg-white text-blue-600 text-xs font-bold flex items-center justify-center">{activeFilterCount}</span>}
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showFilter ? 'rotate-180' : ''}`} />
+          </button>
+          {activeFilterCount > 0 && (
+            <button onClick={resetFilters} className="flex items-center gap-1.5 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition-colors">
+              <X className="w-3.5 h-3.5" /> Reset
+            </button>
+          )}
+        </div>
+        {showFilter && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 pt-4 border-t border-gray-100">
+            {[
+              { label: 'Status Pegawai', val: filterJenis, set: setFilterJenis, opts: [['PNS','PNS'],['PPPK','PPPK'],['Honorer','Honorer']] },
+              { label: 'Status Aktif', val: filterStatus, set: setFilterStatus, opts: [['Aktif','Aktif'],['Pensiun','Pensiun'],['Diberhentikan','Diberhentikan']] },
+              { label: 'Golongan', val: filterGolongan, set: setFilterGolongan, opts: [['I','Gol. I'],['II','Gol. II'],['III','Gol. III'],['IV','Gol. IV']] },
+            ].map(f => (
+              <div key={f.label}>
+                <label className="text-xs text-gray-500 mb-1 block">{f.label}</label>
+                <select value={f.val} onChange={e => { f.set(e.target.value); setCurrentPage(1); }}
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">Semua</option>
+                  {f.opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </div>
+            ))}
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">Unit Kerja</label>
+              <select value={filterUnit} onChange={e => { setFilterUnit(e.target.value); setCurrentPage(1); }}
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Semua Unit</option>
+                {UNIT_KERJA.map(u => <option key={u} value={u}>{u}</option>)}
+              </select>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+          <p className="text-sm text-gray-500">Menampilkan <span className="font-semibold text-gray-800">{paginatedData.length}</span> dari <span className="font-semibold text-gray-800">{filtered.length}</span> pegawai{activeFilterCount > 0 && ' (terfilter)'}</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-100">
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Pegawai</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">NIP</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden lg:table-cell">Jabatan / Unit</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Gol.</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden sm:table-cell">Jenis</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {paginatedData.length === 0 ? (
+                <tr><td colSpan={7} className="text-center py-12 text-gray-400 text-sm">
+                  <Users className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                  <p>Tidak ada pegawai yang sesuai filter</p>
+                </td></tr>
+              ) : paginatedData.map(p => (
+                <tr key={p.id} className="hover:bg-blue-50/30 transition-colors cursor-pointer" onClick={() => navigate(`/pegawai/${p.id}`)}>
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">{getInitial(p.nama)}</div>
+                      <div>
+                        <p className="font-medium text-gray-800 text-sm leading-tight">{getFullName(p)}</p>
+                        <p className="text-xs text-gray-400 mt-0.5 md:hidden">{p.nip}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3.5 hidden md:table-cell"><p className="text-xs text-gray-500 font-mono">{p.nip}</p></td>
+                  <td className="px-4 py-3.5 hidden lg:table-cell">
+                    <p className="text-sm text-gray-700 leading-tight">{p.jabatan}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{p.unitKerja}</p>
+                  </td>
+                  <td className="px-4 py-3.5 text-center">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${getGolonganColor(p.golongan)}`}>{p.golongan}</span>
+                  </td>
+                  <td className="px-4 py-3.5 text-center hidden sm:table-cell">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${p.statusPegawai === 'PNS' ? 'bg-blue-100 text-blue-700' : p.statusPegawai === 'PPPK' ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700'}`}>{p.statusPegawai}</span>
+                  </td>
+                  <td className="px-4 py-3.5 text-center">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${p.statusAktif === 'Aktif' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>{p.statusAktif}</span>
+                  </td>
+                  <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-center gap-1">
+                      <button onClick={() => navigate(`/pegawai/${p.id}`)} className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Detail"><Eye className="w-4 h-4" /></button>
+                      <button onClick={() => openEdit(p)} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors" title="Edit"><Edit2 className="w-4 h-4" /></button>
+                      <button onClick={() => setShowDeleteConfirm(p.id)} className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors" title="Hapus"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="px-5 py-3.5 border-t border-gray-100 flex items-center justify-between">
+            <p className="text-xs text-gray-500">Halaman {currentPage} dari {totalPages}</p>
+            <div className="flex items-center gap-1">
+              <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
+                className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                const page = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
+                if (page < 1 || page > totalPages) return null;
+                return (
+                  <button key={page} onClick={() => setCurrentPage(page)}
+                    className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors ${currentPage === page ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
+                    {page}
+                  </button>
+                );
+              })}
+              <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
+                className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ─── Add/Edit Pegawai Modal ─── */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
+              <h2 className="font-semibold text-gray-800">{editData ? 'Edit Data Pegawai' : 'Tambah Pegawai Baru'}</h2>
+              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors"><X className="w-5 h-5" /></button>
+            </div>
+
+            {/* Tab Navigation */}
+            <div className="flex border-b border-gray-100 px-6">
+              {(['dasar', 'jabatan', 'pendidikan'] as const).map(tab => (
+                <button key={tab} onClick={() => setActiveFormTab(tab)}
+                  className={`px-4 py-3 text-sm border-b-2 transition-colors capitalize ${activeFormTab === tab ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+                  {tab === 'dasar' ? 'Data Pribadi' : tab === 'jabatan' ? 'Jabatan & Kepegawaian' : 'Pendidikan'}
+                </button>
+              ))}
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* ─ Tab: Data Pribadi ─ */}
+              {activeFormTab === 'dasar' && (
+                <div className="contents">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div><label className={labelCls}>Gelar Depan</label><input type="text" value={form.gelarDepan || ''} onChange={e => setForm(f => ({ ...f, gelarDepan: e.target.value }))} placeholder="dr. / Ns." className={inputCls} /></div>
+                    <div><label className={labelCls}>Nama Lengkap *</label><input type="text" value={form.nama} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} placeholder="Nama tanpa gelar" className={inputCls} /></div>
+                    <div><label className={labelCls}>Gelar Belakang</label><input type="text" value={form.gelarBelakang || ''} onChange={e => setForm(f => ({ ...f, gelarBelakang: e.target.value }))} placeholder="S.Ked / M.Kes" className={inputCls} /></div>
+                  </div>
+                  <div><label className={labelCls}>NIP *</label><input type="text" value={form.nip} onChange={e => setForm(f => ({ ...f, nip: e.target.value }))} placeholder="18 digit NIP" maxLength={18} className={`${inputCls} font-mono`} /></div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div><label className={labelCls}>Jenis Kelamin</label>
+                      <select value={form.jenisKelamin} onChange={e => setForm(f => ({ ...f, jenisKelamin: e.target.value as any }))} className={inputCls}>
+                        <option value="L">Laki-laki</option><option value="P">Perempuan</option>
+                      </select>
+                    </div>
+                    <div><label className={labelCls}>Agama</label>
+                      <select value={form.agama} onChange={e => setForm(f => ({ ...f, agama: e.target.value }))} className={inputCls}>
+                        {['Islam','Kristen','Katolik','Hindu','Budha','Konghucu'].map(a => <option key={a} value={a}>{a}</option>)}
+                      </select>
+                    </div>
+                    <div><label className={labelCls}>Tempat Lahir</label><input type="text" value={form.tempatLahir} onChange={e => setForm(f => ({ ...f, tempatLahir: e.target.value }))} className={inputCls} /></div>
+                    <div><label className={labelCls}>Tanggal Lahir</label><input type="date" value={form.tanggalLahir} onChange={e => setForm(f => ({ ...f, tanggalLahir: e.target.value }))} className={inputCls} /></div>
+                    <div><label className={labelCls}>Status Perkawinan</label>
+                      <select value={form.statusPerkawinan} onChange={e => setForm(f => ({ ...f, statusPerkawinan: e.target.value }))} className={inputCls}>
+                        {['Belum Kawin','Kawin','Cerai Hidup','Cerai Mati'].map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </div>
+                    <div><label className={labelCls}>No. Telp</label><input type="text" value={form.noTelp} onChange={e => setForm(f => ({ ...f, noTelp: e.target.value }))} placeholder="08..." className={inputCls} /></div>
+                  </div>
+                  <div><label className={labelCls}>Email</label><input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className={inputCls} /></div>
+                  <div><label className={labelCls}>Alamat</label><textarea rows={2} value={form.alamat} onChange={e => setForm(f => ({ ...f, alamat: e.target.value }))} className={`${inputCls} resize-none`} /></div>
+                </div>
+              )}
+
+              {/* ─ Tab: Jabatan ─ */}
+              {activeFormTab === 'jabatan' && (
+                <div className="contents">
+                  <div><label className={labelCls}>Jabatan</label><input type="text" value={form.jabatan} onChange={e => setForm(f => ({ ...f, jabatan: e.target.value }))} placeholder="Nama jabatan" className={inputCls} /></div>
+                  <div><label className={labelCls}>Jabatan Fungsional</label><input type="text" value={form.jabatanFungsional} onChange={e => setForm(f => ({ ...f, jabatanFungsional: e.target.value }))} placeholder="Nama jabatan fungsional" className={inputCls} /></div>
+                  <div><label className={labelCls}>Unit Kerja</label>
+                    <select value={form.unitKerja} onChange={e => setForm(f => ({ ...f, unitKerja: e.target.value }))} className={inputCls}>
+                      <option value="">Pilih Unit Kerja</option>
+                      {UNIT_KERJA.map(u => <option key={u} value={u}>{u}</option>)}
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div><label className={labelCls}>Status Pegawai</label>
+                      <select value={form.statusPegawai} onChange={e => setForm(f => ({ ...f, statusPegawai: e.target.value as any }))} className={inputCls}>
+                        <option value="PNS">PNS</option><option value="PPPK">PPPK</option><option value="Honorer">Honorer</option>
+                      </select>
+                    </div>
+                    <div><label className={labelCls}>Status Aktif</label>
+                      <select value={form.statusAktif} onChange={e => setForm(f => ({ ...f, statusAktif: e.target.value as any }))} className={inputCls}>
+                        <option value="Aktif">Aktif</option><option value="Pensiun">Pensiun</option><option value="Diberhentikan">Diberhentikan</option>
+                      </select>
+                    </div>
+                    <div><label className={labelCls}>Golongan</label>
+                      <select value={form.golongan} onChange={e => setForm(f => ({ ...f, golongan: e.target.value }))} className={inputCls}>
+                        {golonganList.map(g => <option key={g} value={g}>{g}</option>)}
+                      </select>
+                    </div>
+                    <div><label className={labelCls}>TMT Golongan</label><input type="date" value={form.tmtGolongan} onChange={e => setForm(f => ({ ...f, tmtGolongan: e.target.value }))} className={inputCls} /></div>
+                    <div><label className={labelCls}>Tanggal Masuk</label><input type="date" value={form.tanggalMasuk} onChange={e => setForm(f => ({ ...f, tanggalMasuk: e.target.value }))} className={inputCls} /></div>
+                    <div><label className={labelCls}>Batas Pensiun</label><input type="date" value={form.batasPensiun} onChange={e => setForm(f => ({ ...f, batasPensiun: e.target.value }))} className={inputCls} /></div>
+                  </div>
+                </div>
+              )}
+
+              {/* ─ Tab: Pendidikan ─ */}
+              {activeFormTab === 'pendidikan' && (
+                <div className="contents">
+                  <div><label className={labelCls}>Pendidikan Terakhir</label>
+                    <select value={form.pendidikanTerakhir} onChange={e => setForm(f => ({ ...f, pendidikanTerakhir: e.target.value }))} className={inputCls}>
+                      {['SMA/SMK','D3','D4','S1','Profesi','Spesialis','S2','S3'].map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                  </div>
+                  <div><label className={labelCls}>Jurusan / Program Studi</label><input type="text" value={form.jurusan} onChange={e => setForm(f => ({ ...f, jurusan: e.target.value }))} placeholder="Ilmu Kedokteran / Keperawatan" className={inputCls} /></div>
+                  <div><label className={labelCls}>Institusi / Universitas</label><input type="text" value={form.institusi} onChange={e => setForm(f => ({ ...f, institusi: e.target.value }))} placeholder="Nama universitas" className={inputCls} /></div>
+                  <div><label className={labelCls}>Tahun Lulus</label><input type="number" value={form.tahunLulus} onChange={e => setForm(f => ({ ...f, tahunLulus: parseInt(e.target.value) || 0 }))} placeholder="2020" className={inputCls} /></div>
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center">
+              <div className="flex gap-2">
+                {(['dasar', 'jabatan', 'pendidikan'] as const).map((tab, i) => (
+                  <div key={tab} className={`w-2 h-2 rounded-full ${activeFormTab === tab ? 'bg-blue-600' : 'bg-gray-200'}`} />
+                ))}
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => setShowModal(false)} className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Batal</button>
+                {activeFormTab !== 'pendidikan' ? (
+                  <button onClick={() => setActiveFormTab(activeFormTab === 'dasar' ? 'jabatan' : 'pendidikan')}
+                    className="px-4 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                    Lanjut →
+                  </button>
+                ) : (
+                  <button onClick={handleSave} className="px-4 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                    {editData ? 'Perbarui' : 'Simpan Pegawai'}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirm */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowDeleteConfirm(null)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"><Trash2 className="w-6 h-6 text-red-600" /></div>
+            <h3 className="text-center font-semibold text-gray-800 mb-2">Hapus Data Pegawai?</h3>
+            <p className="text-center text-sm text-gray-500 mb-6">Data pegawai ini akan dihapus secara permanen beserta semua riwayatnya.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">Batal</button>
+              <button onClick={() => handleDelete(showDeleteConfirm)} className="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700">Hapus</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

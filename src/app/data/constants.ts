@@ -1,0 +1,52 @@
+// Constants untuk HR APP - file ringan yang sering dipakai
+export const PANGKAT_GOLONGAN: Record<string, string> = {
+  'I/a': 'Juru Muda',
+  'I/b': 'Juru Muda Tingkat I',
+  'I/c': 'Juru',
+  'I/d': 'Juru Tingkat I',
+  'II/a': 'Pengatur Muda',
+  'II/b': 'Pengatur Muda Tingkat I',
+  'II/c': 'Pengatur',
+  'II/d': 'Pengatur Tingkat I',
+  'III/a': 'Penata Muda',
+  'III/b': 'Penata Muda Tingkat I',
+  'III/c': 'Penata',
+  'III/d': 'Penata Tingkat I',
+  'IV/a': 'Pembina',
+  'IV/b': 'Pembina Tingkat I',
+  'IV/c': 'Pembina Utama Muda',
+  'IV/d': 'Pembina Utama Madya',
+  'IV/e': 'Pembina Utama',
+};
+
+export const JENIS_CUTI = [
+  { value: 'Cuti Tahunan', label: 'Cuti Tahunan', kuota: 12, dasar: 'PP No. 11 Tahun 2017' },
+  { value: 'Cuti Sakit', label: 'Cuti Sakit', kuota: 14, dasar: 'PP No. 11 Tahun 2017' },
+  { value: 'Cuti Melahirkan', label: 'Cuti Melahirkan', kuota: 90, dasar: 'PP No. 11 Tahun 2017' },
+  { value: 'Cuti Besar', label: 'Cuti Besar', kuota: 90, dasar: 'PP No. 11 Tahun 2017' },
+  { value: 'Cuti Alasan Penting', label: 'Cuti Alasan Penting', kuota: 30, dasar: 'PP No. 11 Tahun 2017' },
+  { value: 'CLTN', label: 'Cuti di Luar Tanggungan Negara', kuota: 365, dasar: 'PP No. 11 Tahun 2017' },
+];
+
+export const UNIT_KERJA = [
+  'Instalasi Gawat Darurat (IGD)',
+  'Instalasi Rawat Inap',
+  'Instalasi Rawat Jalan',
+  'Instalasi Bedah Sentral (IBS)',
+  'Instalasi Farmasi',
+  'Instalasi Laboratorium',
+  'Instalasi Radiologi',
+  'Instalasi Gizi',
+  'Instalasi Rekam Medis',
+  'Instalasi CSSD',
+  'Instalasi ICU/ICCU',
+  'Instalasi Kebidanan & Kandungan',
+  'Instalasi Rehabilitasi Medis',
+  'Bidang Pelayanan Medis',
+  'Bidang Keperawatan',
+  'Bidang Penunjang Medis',
+  'Bagian Tata Usaha',
+  'Sub Bagian Kepegawaian & Umum',
+  'Sub Bagian Keuangan',
+  'IPSRS',
+];
