@@ -56,13 +56,13 @@ const RechartsWrapper: React.FC<RechartsWrapperProps> = ({
       return (
         <ResponsiveContainer width="100%" height={chartHeight}>
           <BarChart data={data} layout="vertical" margin={margin}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
-            <XAxis type="number" tick={{ fontSize: 11 }} />
-            <YAxis dataKey={yKey as string} type="category" tick={{ fontSize: 12 }} width={40} />
-            <Tooltip formatter={tooltipFormatter} />
-            <Bar dataKey={xKey} fill={colors[0] || '#3b82f6'} radius={radius}>
+            <CartesianGrid key="grid" strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+            <XAxis key="xaxis" type="number" tick={{ fontSize: 11 }} />
+            <YAxis key="yaxis" dataKey={yKey as string} type="category" tick={{ fontSize: 12 }} width={40} />
+            <Tooltip key="tooltip" formatter={tooltipFormatter} />
+            <Bar key={xKey || 'bar'} dataKey={xKey} fill={colors[0] || '#3b82f6'} radius={radius}>
               {data.map((_, i) => (
-                <Cell key={i} fill={colors[i] || colors[0] || '#3b82f6'} />
+                <Cell key={`cell-${i}`} fill={colors[i] || colors[0] || '#3b82f6'} />
               ))}
             </Bar>
           </BarChart>
@@ -74,11 +74,11 @@ const RechartsWrapper: React.FC<RechartsWrapperProps> = ({
     return (
       <ResponsiveContainer width="100%" height={chartHeight}>
         <BarChart data={data} margin={margin}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey={xKey} tick={{ fontSize: 11 }} />
-          <YAxis tick={{ fontSize: 11 }} />
-          <Tooltip formatter={tooltipFormatter} />
-          <Legend formatter={legendFormatter} iconSize={iconSize} />
+          <CartesianGrid key="grid" strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis key="xaxis" dataKey={xKey} tick={{ fontSize: 11 }} />
+          <YAxis key="yaxis" tick={{ fontSize: 11 }} />
+          <Tooltip key="tooltip" formatter={tooltipFormatter} />
+          <Legend key="legend" formatter={legendFormatter} iconSize={iconSize} />
           {Array.isArray(yKey) ? (
             yKey.map((key, idx) => (
               <Bar
@@ -89,7 +89,11 @@ const RechartsWrapper: React.FC<RechartsWrapperProps> = ({
               />
             ))
           ) : (
-            <Bar dataKey={yKey} fill={colors[0] || '#3b82f6'} radius={radius} />
+            <Bar key={yKey || 'bar'} dataKey={yKey} fill={colors[0] || '#3b82f6'} radius={radius}>
+              {colors.length > 1 && data.map((_, i) => (
+                <Cell key={`cell-${i}`} fill={colors[i % colors.length] || colors[0]} />
+              ))}
+            </Bar>
           )}
         </BarChart>
       </ResponsiveContainer>
@@ -102,6 +106,7 @@ const RechartsWrapper: React.FC<RechartsWrapperProps> = ({
       <ResponsiveContainer width="100%" height={chartHeight}>
         <PieChart>
           <Pie
+            key="pie"
             data={data}
             cx={cx}
             cy={cy}
@@ -115,8 +120,8 @@ const RechartsWrapper: React.FC<RechartsWrapperProps> = ({
               <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
             ))}
           </Pie>
-          <Tooltip formatter={tooltipFormatter} />
-          <Legend formatter={legendFormatter} iconSize={iconSize} />
+          <Tooltip key="tooltip" formatter={tooltipFormatter} />
+          <Legend key="legend" formatter={legendFormatter} iconSize={iconSize} />
         </PieChart>
       </ResponsiveContainer>
     );
@@ -136,14 +141,14 @@ const RechartsWrapper: React.FC<RechartsWrapperProps> = ({
     return (
       <ResponsiveContainer width="100%" height={chartHeight}>
         <LineChart data={data} margin={margin}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey={xKey} tick={{ fontSize: 11 }} />
-          <YAxis tick={{ fontSize: 11 }} />
-          <Tooltip formatter={tooltipFormatter} />
-          <Legend formatter={legendFormatter} iconSize={iconSize} />
+          <CartesianGrid key="grid" strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis key="xaxis" dataKey={xKey} tick={{ fontSize: 11 }} />
+          <YAxis key="yaxis" tick={{ fontSize: 11 }} />
+          <Tooltip key="tooltip" formatter={tooltipFormatter} />
+          <Legend key="legend" formatter={legendFormatter} iconSize={iconSize} />
           {lineConfigs.map((lc, idx) => (
             <Line
-              key={lc.dataKey}
+              key={`line-${lc.dataKey}-${idx}`}
               type="monotone"
               dataKey={lc.dataKey}
               stroke={lc.stroke || colors[idx] || '#3b82f6'}
