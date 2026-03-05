@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useCallback } from 'react';
 import {
   Pegawai, CutiRecord, AbsensiRecord, SKPRecord, RiwayatJabatan,
   KenaikanPangkat, DisiplinRecord, DiklatRecord, AppUser
@@ -6,11 +6,198 @@ import {
 import {
   dataPegawai as initialPegawai,
   dataCuti as initialCuti,
-  dataAbsensi as initialAbsensi,
   dataSKP as initialSKP,
   dataRiwayatJabatan as initialRiwayatJabatan,
   dataKenaikanPangkat as initialKenaikanPangkat,
 } from '../data/mockData';
+
+// ─── Generator: Absensi Maret 2026 ────────────────────────────────────────────
+function generateInitialAbsensi(): AbsensiRecord[] {
+  const records: AbsensiRecord[] = [];
+  const pids = Array.from({ length: 20 }, (_, i) => `P${String(i + 1).padStart(3, '0')}`);
+
+  // Special overrides per date per pegawai
+  type SpecialEntry = { status: AbsensiRecord['status']; jamMasuk?: string; jamKeluar?: string; keterangan?: string };
+  const specials: Record<string, Record<string, SpecialEntry>> = {
+    '2026-03-02': {
+      P001: { status: 'Hadir', jamMasuk: '07:45', jamKeluar: '16:00' },
+      P002: { status: 'Hadir', jamMasuk: '07:50', jamKeluar: '16:10' },
+      P003: { status: 'Hadir', jamMasuk: '07:30', jamKeluar: '15:45' },
+      P004: { status: 'Hadir', jamMasuk: '08:00', jamKeluar: '16:00' },
+      P005: { status: 'Cuti', keterangan: 'Cuti Tahunan' },
+      P006: { status: 'Hadir', jamMasuk: '07:55', jamKeluar: '16:05' },
+      P007: { status: 'Hadir', jamMasuk: '08:10', jamKeluar: '16:15' },
+      P008: { status: 'Sakit', keterangan: 'Surat Dokter No. SK-001/2026' },
+      P009: { status: 'Hadir', jamMasuk: '07:40', jamKeluar: '15:50' },
+      P010: { status: 'Hadir', jamMasuk: '07:58', jamKeluar: '16:00' },
+      P011: { status: 'Hadir', jamMasuk: '08:05', jamKeluar: '16:00' },
+      P012: { status: 'Hadir', jamMasuk: '07:35', jamKeluar: '15:40' },
+      P013: { status: 'Dinas Luar', keterangan: 'Pelatihan K3RS Jakarta' },
+      P014: { status: 'Hadir', jamMasuk: '08:02', jamKeluar: '16:00' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+      P016: { status: 'Hadir', jamMasuk: '07:30', jamKeluar: '16:30' },
+      P017: { status: 'Hadir', jamMasuk: '07:55', jamKeluar: '16:10' },
+      P018: { status: 'Hadir', jamMasuk: '07:50', jamKeluar: '16:00' },
+      P019: { status: 'Hadir', jamMasuk: '08:00', jamKeluar: '16:00' },
+      P020: { status: 'Alpha', keterangan: 'Tidak ada keterangan' },
+    },
+    '2026-03-03': {
+      P005: { status: 'Cuti', keterangan: 'Cuti Tahunan' },
+      P008: { status: 'Sakit', keterangan: 'Surat Dokter No. SK-001/2026' },
+      P013: { status: 'Dinas Luar', keterangan: 'Pelatihan K3RS Jakarta' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+      P017: { status: 'Izin', keterangan: 'Keperluan keluarga mendesak' },
+    },
+    '2026-03-04': {
+      P005: { status: 'Cuti', keterangan: 'Cuti Tahunan' },
+      P008: { status: 'Sakit', keterangan: 'Surat Dokter No. SK-001/2026' },
+      P010: { status: 'Sakit', keterangan: 'Surat Dokter RS Harapan Ibu' },
+      P013: { status: 'Dinas Luar', keterangan: 'Pelatihan K3RS Jakarta' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+    },
+    '2026-03-05': {
+      P005: { status: 'Cuti', keterangan: 'Cuti Tahunan' },
+      P010: { status: 'Sakit', keterangan: 'Surat Dokter RS Harapan Ibu' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+      P019: { status: 'Alpha', keterangan: 'Tidak ada keterangan' },
+    },
+    '2026-03-06': {
+      P005: { status: 'Cuti', keterangan: 'Cuti Tahunan' },
+      P012: { status: 'Izin', keterangan: 'Urusan Pribadi' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+    },
+    '2026-03-09': {
+      P007: { status: 'Sakit', keterangan: 'Surat Dokter RSUD' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+      P020: { status: 'Alpha', keterangan: 'Tidak ada keterangan' },
+    },
+    '2026-03-10': {
+      P006: { status: 'Dinas Luar', keterangan: 'PKT III – LAN RI Jakarta' },
+      P007: { status: 'Sakit', keterangan: 'Surat Dokter RSUD' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+    },
+    '2026-03-11': {
+      P006: { status: 'Dinas Luar', keterangan: 'PKT III – LAN RI Jakarta' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+      P018: { status: 'Izin', keterangan: 'Izin Pernikahan Saudara' },
+    },
+    '2026-03-12': {
+      P006: { status: 'Dinas Luar', keterangan: 'PKT III – LAN RI Jakarta' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+      P018: { status: 'Izin', keterangan: 'Izin Pernikahan Saudara' },
+    },
+    '2026-03-13': {
+      P006: { status: 'Dinas Luar', keterangan: 'PKT III – LAN RI Jakarta' },
+      P014: { status: 'Sakit', keterangan: 'Surat Dokter' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+    },
+    '2026-03-16': {
+      P006: { status: 'Dinas Luar', keterangan: 'PKT III – LAN RI Jakarta' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+      P020: { status: 'Izin', keterangan: 'Keperluan administrasi' },
+    },
+    '2026-03-17': {
+      P006: { status: 'Dinas Luar', keterangan: 'PKT III – LAN RI Jakarta' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+    },
+    '2026-03-18': {
+      P006: { status: 'Dinas Luar', keterangan: 'PKT III – LAN RI Jakarta' },
+      P003: { status: 'Cuti', keterangan: 'Cuti Tahunan' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+    },
+    '2026-03-19': {
+      P006: { status: 'Dinas Luar', keterangan: 'PKT III – LAN RI Jakarta' },
+      P003: { status: 'Cuti', keterangan: 'Cuti Tahunan' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+    },
+    '2026-03-20': {
+      P006: { status: 'Dinas Luar', keterangan: 'PKT III – LAN RI Jakarta' },
+      P003: { status: 'Cuti', keterangan: 'Cuti Tahunan' },
+      P011: { status: 'Sakit', keterangan: 'Surat Dokter' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+    },
+    '2026-03-23': {
+      P006: { status: 'Dinas Luar', keterangan: 'PKT III – LAN RI Jakarta' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+    },
+    '2026-03-24': {
+      P006: { status: 'Dinas Luar', keterangan: 'PKT III – LAN RI Jakarta' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+      P009: { status: 'Izin', keterangan: 'Keperluan Pribadi' },
+    },
+    '2026-03-25': {
+      P006: { status: 'Dinas Luar', keterangan: 'PKT III – LAN RI Jakarta' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+    },
+    '2026-03-26': {
+      P006: { status: 'Dinas Luar', keterangan: 'PKT III – LAN RI Jakarta' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+      P016: { status: 'Sakit', keterangan: 'Surat Dokter' },
+    },
+    '2026-03-27': {
+      P006: { status: 'Dinas Luar', keterangan: 'PKT III – LAN RI Jakarta' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+      P016: { status: 'Sakit', keterangan: 'Surat Dokter' },
+    },
+    '2026-03-30': {
+      P006: { status: 'Dinas Luar', keterangan: 'PKT III – LAN RI Jakarta' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+      P013: { status: 'Dinas Luar', keterangan: 'Supervisi Mutu Pelayanan' },
+    },
+    '2026-03-31': {
+      P006: { status: 'Dinas Luar', keterangan: 'PKT III – LAN RI Jakarta' },
+      P015: { status: 'Cuti', keterangan: 'Cuti Melahirkan' },
+      P013: { status: 'Dinas Luar', keterangan: 'Supervisi Mutu Pelayanan' },
+      P020: { status: 'Alpha', keterangan: 'Tidak ada keterangan' },
+    },
+  };
+
+  let ctr = 1;
+  for (let day = 1; day <= 31; day++) {
+    const dow = new Date(2026, 2, day).getDay();
+    if (dow === 0 || dow === 6) continue; // skip weekends
+    const ds = `2026-03-${String(day).padStart(2, '0')}`;
+    const daySpecials = specials[ds] || {};
+
+    pids.forEach(pid => {
+      const sp = daySpecials[pid];
+      if (sp) {
+        const needsTime = sp.status === 'Hadir' || sp.status === 'Dinas Luar';
+        records.push({
+          id: `A${ctr++}`,
+          pegawaiId: pid,
+          tanggal: ds,
+          status: sp.status,
+          ...(needsTime && sp.jamMasuk ? { jamMasuk: sp.jamMasuk } : {}),
+          ...(needsTime && sp.jamKeluar ? { jamKeluar: sp.jamKeluar } : {}),
+          ...(sp.keterangan ? { keterangan: sp.keterangan } : {}),
+        });
+      } else {
+        // Deterministic variation for "Hadir"
+        const n = parseInt(pid.slice(1));
+        const seed = (n * 13 + day * 7) % 100;
+        const isLate = seed < 12;
+        const lateMin = (seed % 45) + 1;
+        const earlyMin = (seed % 28) + 30;
+        const jamMasuk = isLate
+          ? `08:${String(lateMin).padStart(2, '0')}`
+          : `07:${String(earlyMin).padStart(2, '0')}`;
+        records.push({
+          id: `A${ctr++}`,
+          pegawaiId: pid,
+          tanggal: ds,
+          status: 'Hadir',
+          jamMasuk,
+          jamKeluar: '16:00',
+        });
+      }
+    });
+  }
+  return records;
+}
+
+// Pre-compute initial absensi ONCE at module level (not inside the component)
+const INITIAL_ABSENSI_DATA = generateInitialAbsensi();
 
 // ─── Mock Data: Disiplin ───────────────────────────────────────────────────────
 const initialDisiplin: DisiplinRecord[] = [
@@ -190,6 +377,11 @@ type Action =
   | { type: 'DELETE_CUTI'; id: string }
   | { type: 'APPROVE_CUTI'; id: string; level: number; nama: string; catatan?: string }
   | { type: 'REJECT_CUTI'; id: string; level: number; nama: string; catatan?: string }
+  // Absensi CRUD
+  | { type: 'ADD_ABSENSI'; absensi: AbsensiRecord }
+  | { type: 'UPDATE_ABSENSI'; absensi: AbsensiRecord }
+  | { type: 'DELETE_ABSENSI'; id: string }
+  | { type: 'BULK_INPUT_ABSENSI'; records: AbsensiRecord[] }
   // SKP CRUD
   | { type: 'ADD_SKP'; skp: SKPRecord }
   | { type: 'UPDATE_SKP'; skp: SKPRecord }
@@ -271,6 +463,19 @@ function reducer(state: AppState, action: Action): AppState {
       };
     }
 
+    // Absensi
+    case 'ADD_ABSENSI':
+      return { ...state, absensi: [...state.absensi, action.absensi] };
+    case 'UPDATE_ABSENSI':
+      return { ...state, absensi: state.absensi.map(a => a.id === action.absensi.id ? action.absensi : a) };
+    case 'DELETE_ABSENSI':
+      return { ...state, absensi: state.absensi.filter(a => a.id !== action.id) };
+    case 'BULK_INPUT_ABSENSI': {
+      const newDates = new Set(action.records.map(r => r.tanggal));
+      const kept = state.absensi.filter(a => !newDates.has(a.tanggal));
+      return { ...state, absensi: [...kept, ...action.records] };
+    }
+
     // SKP
     case 'ADD_SKP':
       return { ...state, skp: [...state.skp, action.skp] };
@@ -316,7 +521,7 @@ function reducer(state: AppState, action: Action): AppState {
   }
 }
 
-// ─── Context ──────────────────────────────────────────────────────────────────
+// ─── Context Value Interface ──────────────────────────────────────────────────
 interface AppContextValue extends AppState {
   dispatch: React.Dispatch<Action>;
   login: (username: string, password: string) => boolean;
@@ -331,6 +536,11 @@ interface AppContextValue extends AppState {
   deleteCuti: (id: string) => void;
   approveCuti: (id: string, level: number, nama: string, catatan?: string) => void;
   rejectCuti: (id: string, level: number, nama: string, catatan?: string) => void;
+  // Absensi helpers
+  addAbsensi: (a: Omit<AbsensiRecord, 'id'>) => void;
+  updateAbsensi: (a: AbsensiRecord) => void;
+  deleteAbsensi: (id: string) => void;
+  bulkInputAbsensi: (records: Omit<AbsensiRecord, 'id'>[]) => void;
   // SKP
   addSKP: (s: Omit<SKPRecord, 'id'>) => void;
   updateSKP: (s: SKPRecord) => void;
@@ -353,7 +563,17 @@ interface AppContextValue extends AppState {
   deleteRiwayatJabatan: (id: string) => void;
 }
 
-const AppContext = createContext<AppContextValue | null>(null);
+// ─── Context ──────────────────────────────────────────────────────────────────
+// Use a stable globalThis singleton so HMR hot-reloads don't create a new
+// context object (which would cause Provider / Consumer reference mismatch).
+type AppCtxType = React.Context<AppContextValue | null>;
+const AppContext: AppCtxType =
+  (globalThis as Record<string, unknown>).__hrAppCtx as AppCtxType ??
+  (() => {
+    const ctx = createContext<AppContextValue | null>(null);
+    (globalThis as Record<string, unknown>).__hrAppCtx = ctx;
+    return ctx;
+  })();
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   // Enrich cuti data with multi-level approval structure
@@ -388,7 +608,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, {
     pegawai: initialPegawai,
     cuti: enrichedCuti,
-    absensi: initialAbsensi,
+    absensi: INITIAL_ABSENSI_DATA,
     skp: initialSKP,
     riwayatJabatan: initialRiwayatJabatan,
     kenaikanPangkat: initialKenaikanPangkat,
@@ -437,6 +657,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const approveCuti = useCallback((id: string, level: number, nama: string, catatan?: string) => dispatch({ type: 'APPROVE_CUTI', id, level, nama, catatan }), []);
   const rejectCuti = useCallback((id: string, level: number, nama: string, catatan?: string) => dispatch({ type: 'REJECT_CUTI', id, level, nama, catatan }), []);
 
+  // Absensi CRUD
+  const addAbsensi = useCallback((a: Omit<AbsensiRecord, 'id'>) => dispatch({ type: 'ADD_ABSENSI', absensi: { ...a, id: genId('AB') } }), []);
+  const updateAbsensi = useCallback((a: AbsensiRecord) => dispatch({ type: 'UPDATE_ABSENSI', absensi: a }), []);
+  const deleteAbsensi = useCallback((id: string) => dispatch({ type: 'DELETE_ABSENSI', id }), []);
+  const bulkInputAbsensi = useCallback((records: Omit<AbsensiRecord, 'id'>[]) => {
+    const withIds: AbsensiRecord[] = records.map((r, i) => ({ ...r, id: `AB${Date.now()}${i}` }));
+    dispatch({ type: 'BULK_INPUT_ABSENSI', records: withIds });
+  }, []);
+
   const addSKP = useCallback((s: Omit<SKPRecord, 'id'>) => dispatch({ type: 'ADD_SKP', skp: { ...s, id: genId('S') } }), []);
   const updateSKP = useCallback((s: SKPRecord) => dispatch({ type: 'UPDATE_SKP', skp: s }), []);
   const deleteSKP = useCallback((id: string) => dispatch({ type: 'DELETE_SKP', id }), []);
@@ -463,6 +692,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     login, logout,
     addPegawai, updatePegawai, deletePegawai,
     addCuti, updateCuti, deleteCuti, approveCuti, rejectCuti,
+    addAbsensi, updateAbsensi, deleteAbsensi, bulkInputAbsensi,
     addSKP, updateSKP, deleteSKP,
     addKP, updateKP, deleteKP,
     addDisiplin, updateDisiplin, deleteDisiplin,
