@@ -5,8 +5,6 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [
-    // The React and Tailwind plugins are both required for Make, even if
-    // Tailwind is not being actively used – do not remove them
     react(),
     tailwindcss(),
   ],
@@ -19,7 +17,6 @@ export default defineConfig({
   assetsInclude: ['**/*.svg', '**/*.csv'],
 
   optimizeDeps: {
-    // Daftar lengkap package yang dipakai - penting untuk loading cepat
     include: [
       'react',
       'react/jsx-runtime',
@@ -29,9 +26,8 @@ export default defineConfig({
       'react-router',
       'lucide-react',
       'sonner',
-      // Recharts dan dependencies-nya (perlu di-prebundle)
+      // Recharts - hanya entry point utama, tanpa sub-path
       'recharts',
-      'recharts/es6',
       // Radix UI yang benar-benar dipakai
       '@radix-ui/react-dialog',
       '@radix-ui/react-select',
@@ -50,29 +46,22 @@ export default defineConfig({
   },
 
   build: {
-    // Target modern browsers untuk output lebih kecil
     target: 'es2020',
-    
-    // Minify dengan terser untuk hasil optimal
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true, // Hapus console.log di production
+        drop_console: true,
         drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info'], // Hapus console calls
+        pure_funcs: ['console.log', 'console.info'],
       },
     },
 
     rollupOptions: {
       output: {
         manualChunks: {
-          // Chunk vendor utama - React ecosystem
           'vendor-react': ['react', 'react-dom', 'react-router'],
-          // Chunk terpisah untuk charts (besar, jarang berubah)
           'vendor-charts': ['recharts'],
-          // Icons dalam chunk terpisah
           'vendor-icons': ['lucide-react'],
-          // Radix UI components
           'vendor-ui': [
             '@radix-ui/react-dialog',
             '@radix-ui/react-select',
@@ -80,38 +69,25 @@ export default defineConfig({
             '@radix-ui/react-dropdown-menu',
             '@radix-ui/react-slot',
           ],
-          // Utilities
           'vendor-utils': ['clsx', 'tailwind-merge', 'class-variance-authority', 'date-fns'],
         },
-        
-        // Optimasi nama file untuk better caching
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
         assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
       },
-      
-      // Tree shaking configuration
-      treeshake: {
-        moduleSideEffects: false,
-        propertyReadSideEffects: false,
-        tryCatchDeoptimization: false,
-      },
     },
-    
-    // Optimasi chunk size dan CSS
+
     cssCodeSplit: true,
-    sourcemap: false, // Disable sourcemap di production untuk ukuran lebih kecil
+    sourcemap: false,
     chunkSizeWarningLimit: 1000,
-    
-    // Reportkan compressed size untuk monitoring
     reportCompressedSize: true,
   },
 
-  // Server config untuk development yang lebih cepat
+  // Server config untuk development
   server: {
     fs: {
-      // Batasi file system access untuk performa
-      strict: true,
+      // Nonaktifkan strict mode agar Figma preview proxy berjalan lancar
+      strict: false,
     },
   },
 })
