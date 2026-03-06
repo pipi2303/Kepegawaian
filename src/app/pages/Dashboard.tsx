@@ -1,14 +1,11 @@
-import React, { lazy, Suspense } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router';
 import {
   Users, Clock, CalendarDays, TrendingUp, Target, AlertCircle,
   UserCheck, UserX, Building2, ArrowRight, ChevronRight, Award,
 } from 'lucide-react';
 import { dataPegawai, dataAbsensi, dataCuti, dataKenaikanPangkat, chartKehadiran, chartGolongan, chartUnitKerja } from '../data/mockData';
-import { ChartSkeleton } from '../components/ChartSkeleton';
-
-// Lazy load Recharts wrapper
-const RechartsWrapper = lazy(() => import('../components/RechartsWrapper'));
+import RechartsWrapper from '../components/RechartsWrapper';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -165,37 +162,33 @@ export default function Dashboard() {
         {/* Kehadiran Chart */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <h3 className="text-gray-800 mb-4">Statistik Kehadiran (6 Bulan Terakhir)</h3>
-          <Suspense fallback={<ChartSkeleton height={280} />}>
-            <RechartsWrapper
-              type="line"
-              data={chartKehadiran}
-              xKey="bulan"
-              lines={[
-                { dataKey: 'hadir', stroke: '#10b981', name: 'Hadir' },
-                { dataKey: 'cuti', stroke: '#f59e0b', name: 'Cuti' },
-                { dataKey: 'sakit', stroke: '#3b82f6', name: 'Sakit' },
-                { dataKey: 'alpha', stroke: '#ef4444', name: 'Alpha' },
-              ]}
-              height={280}
-            />
-          </Suspense>
+          <RechartsWrapper
+            type="line"
+            data={chartKehadiran}
+            xKey="bulan"
+            lines={[
+              { dataKey: 'hadir', stroke: '#10b981', name: 'Hadir' },
+              { dataKey: 'cuti', stroke: '#f59e0b', name: 'Cuti' },
+              { dataKey: 'sakit', stroke: '#3b82f6', name: 'Sakit' },
+              { dataKey: 'alpha', stroke: '#ef4444', name: 'Alpha' },
+            ]}
+            height={280}
+          />
         </div>
 
         {/* Golongan Chart */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <h3 className="text-gray-800 mb-4">Distribusi Golongan Pegawai</h3>
-          <Suspense fallback={<ChartSkeleton height={280} />}>
-            <RechartsWrapper
-              type="pie"
-              data={chartGolongan}
-              dataKey="jumlah"
-              nameKey="golongan"
-              innerRadius={60}
-              outerRadius={100}
-              colors={['#93c5fd', '#3b82f6', '#1d4ed8', '#1e3a5f']}
-              height={280}
-            />
-          </Suspense>
+          <RechartsWrapper
+            type="pie"
+            data={chartGolongan}
+            dataKey="jumlah"
+            nameKey="golongan"
+            innerRadius={60}
+            outerRadius={100}
+            colors={['#93c5fd', '#3b82f6', '#1d4ed8', '#1e3a5f']}
+            height={280}
+          />
         </div>
       </div>
 
@@ -232,17 +225,15 @@ export default function Dashboard() {
         {/* Unit Kerja Chart */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <h3 className="text-gray-800 mb-4">Distribusi Unit Kerja (Top 5)</h3>
-          <Suspense fallback={<ChartSkeleton height={280} />}>
-            <RechartsWrapper
-              type="bar"
-              data={chartUnitKerja.slice(0, 5)}
-              xKey="name"
-              yKey="value"
-              colors={['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444']}
-              height={280}
-              radius={[8, 8, 0, 0]}
-            />
-          </Suspense>
+          <RechartsWrapper
+            type="bar"
+            data={chartUnitKerja.slice(0, 5)}
+            xKey="name"
+            yKey="value"
+            colors={['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444']}
+            height={280}
+            radius={[8, 8, 0, 0]}
+          />
         </div>
       </div>
     </div>

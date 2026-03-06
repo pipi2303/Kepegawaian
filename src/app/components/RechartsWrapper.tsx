@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line,
@@ -49,20 +49,24 @@ const RechartsWrapper: React.FC<RechartsWrapperProps> = ({
   legendFormatter,
   iconSize = 10,
 }) => {
+  // Each instance gets a unique ID — recharts uses this for internal clipPath
+  // IDs and renderCursor key generation, avoiding duplicate-key warnings when
+  // multiple charts are rendered on the same page.
+  const uid = useId().replace(/:/g, '');
+
   if (type === 'bar') {
     const chartHeight = height || (layout === 'vertical' ? 160 : 220);
     if (layout === 'vertical') {
-      // Vertical bar chart (horizontal bars)
       return (
         <ResponsiveContainer width="100%" height={chartHeight}>
-          <BarChart data={data} layout="vertical" margin={margin}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
-            <XAxis type="number" tick={{ fontSize: 11 }} />
-            <YAxis dataKey={yKey as string} type="category" tick={{ fontSize: 12 }} width={40} />
-            <Tooltip formatter={tooltipFormatter} />
+          <BarChart id={`${uid}-bar-v`} data={data} layout="vertical" margin={margin}>
+            <CartesianGrid key={`${uid}-grid`} strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+            <XAxis key={`${uid}-xaxis`} type="number" tick={{ fontSize: 11 }} />
+            <YAxis key={`${uid}-yaxis`} dataKey={yKey as string} type="category" tick={{ fontSize: 12 }} width={40} />
+            <Tooltip key={`${uid}-tt`} formatter={tooltipFormatter} />
             <Bar dataKey={xKey} fill={colors[0] || '#3b82f6'} radius={radius} isAnimationActive={false}>
               {data.map((_, i) => (
-                <Cell key={`cell-${i}`} fill={colors[i] || colors[0] || '#3b82f6'} />
+                <Cell key={`cell-${uid}-${i}`} fill={colors[i] || colors[0] || '#3b82f6'} />
               ))}
             </Bar>
           </BarChart>
@@ -70,20 +74,20 @@ const RechartsWrapper: React.FC<RechartsWrapperProps> = ({
       );
     }
 
-    // Normal bar chart
+    // Normal horizontal bar chart
     return (
       <ResponsiveContainer width="100%" height={chartHeight}>
-        <BarChart data={data} margin={margin}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey={xKey} tick={{ fontSize: 11 }} />
-          <YAxis tick={{ fontSize: 11 }} />
-          <Tooltip formatter={tooltipFormatter} />
-          <Legend formatter={legendFormatter} iconSize={iconSize} />
+        <BarChart id={`${uid}-bar-h`} data={data} margin={margin}>
+          <CartesianGrid key={`${uid}-grid`} strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis key={`${uid}-xaxis`} dataKey={xKey} tick={{ fontSize: 11 }} />
+          <YAxis key={`${uid}-yaxis`} tick={{ fontSize: 11 }} />
+          <Tooltip key={`${uid}-tt`} formatter={tooltipFormatter} />
+          <Legend key={`${uid}-legend`} formatter={legendFormatter} iconSize={iconSize} />
           {Array.isArray(yKey) ? (
-            yKey.map((key, idx) => (
+            yKey.map((k, idx) => (
               <Bar
-                key={key}
-                dataKey={key}
+                key={`${uid}-bar-${k}`}
+                dataKey={k}
                 fill={colors[idx] || '#3b82f6'}
                 radius={radius}
                 isAnimationActive={false}
@@ -92,7 +96,7 @@ const RechartsWrapper: React.FC<RechartsWrapperProps> = ({
           ) : (
             <Bar dataKey={yKey} fill={colors[0] || '#3b82f6'} radius={radius} isAnimationActive={false}>
               {colors.length > 1 && data.map((_, i) => (
-                <Cell key={`cell-${i}`} fill={colors[i % colors.length] || colors[0]} />
+                <Cell key={`cell-${uid}-${i}`} fill={colors[i % colors.length] || colors[0]} />
               ))}
             </Bar>
           )}
@@ -105,7 +109,7 @@ const RechartsWrapper: React.FC<RechartsWrapperProps> = ({
     const chartHeight = height || 160;
     return (
       <ResponsiveContainer width="100%" height={chartHeight}>
-        <PieChart>
+        <PieChart id={`${uid}-pie`}>
           <Pie
             data={data}
             cx={cx}
@@ -118,11 +122,11 @@ const RechartsWrapper: React.FC<RechartsWrapperProps> = ({
             isAnimationActive={false}
           >
             {data.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+              <Cell key={`cell-${uid}-${index}`} fill={colors[index % colors.length]} />
             ))}
           </Pie>
-          <Tooltip formatter={tooltipFormatter} />
-          <Legend formatter={legendFormatter} iconSize={iconSize} />
+          <Tooltip key={`${uid}-tt`} formatter={tooltipFormatter} />
+          <Legend key={`${uid}-legend`} formatter={legendFormatter} iconSize={iconSize} />
         </PieChart>
       </ResponsiveContainer>
     );
@@ -130,26 +134,25 @@ const RechartsWrapper: React.FC<RechartsWrapperProps> = ({
 
   if (type === 'line') {
     const chartHeight = height || 220;
-    // Support both `lines` array prop and `yKey` prop
     const lineConfigs = lines && lines.length > 0
       ? lines
       : Array.isArray(yKey)
-        ? yKey.map((key, idx) => ({ dataKey: key, stroke: colors[idx] || '#3b82f6', name: key }))
+        ? yKey.map((k, idx) => ({ dataKey: k, stroke: colors[idx] || '#3b82f6', name: k }))
         : yKey
           ? [{ dataKey: yKey as string, stroke: colors[0] || '#3b82f6', name: yKey as string }]
           : [];
 
     return (
       <ResponsiveContainer width="100%" height={chartHeight}>
-        <LineChart data={data} margin={margin}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey={xKey} tick={{ fontSize: 11 }} />
-          <YAxis tick={{ fontSize: 11 }} />
-          <Tooltip formatter={tooltipFormatter} />
-          <Legend formatter={legendFormatter} iconSize={iconSize} />
+        <LineChart id={`${uid}-line`} data={data} margin={margin}>
+          <CartesianGrid key={`${uid}-grid`} strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis key={`${uid}-xaxis`} dataKey={xKey} tick={{ fontSize: 11 }} />
+          <YAxis key={`${uid}-yaxis`} tick={{ fontSize: 11 }} />
+          <Tooltip key={`${uid}-tt`} formatter={tooltipFormatter} />
+          <Legend key={`${uid}-legend`} formatter={legendFormatter} iconSize={iconSize} />
           {lineConfigs.map((lc, idx) => (
             <Line
-              key={`line-${lc.dataKey}-${idx}`}
+              key={`${uid}-line-${lc.dataKey}-${idx}`}
               type="monotone"
               dataKey={lc.dataKey}
               stroke={lc.stroke || colors[idx] || '#3b82f6'}
