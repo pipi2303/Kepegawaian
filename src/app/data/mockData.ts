@@ -1,4 +1,4 @@
-import { Pegawai, AbsensiRecord, CutiRecord, SKPRecord, RiwayatJabatan, KenaikanPangkat, SisaCuti } from '../types';
+import type { Pegawai, AbsensiRecord, CutiRecord, SKPRecord, RiwayatJabatan, KenaikanPangkat, SisaCuti } from '../types';
 
 export const PANGKAT_GOLONGAN: Record<string, string> = {
   'I/a': 'Juru Muda',
@@ -808,6 +808,7 @@ export const dataKenaikanPangkat: KenaikanPangkat[] = [
     jenisKenaikan: 'Kenaikan Pangkat Reguler',
     periodeUsulan: 'April 2024', tanggalBerlaku: '2024-04-01',
     status: 'Selesai', nomorSK: 'SK.800/KP-004/2024',
+    jabatan: 'Perawat Terampil', eselon: 'Non-Eselon',
   },
   {
     id: 'KP002', pegawaiId: 'P009',
@@ -816,6 +817,7 @@ export const dataKenaikanPangkat: KenaikanPangkat[] = [
     jenisKenaikan: 'Kenaikan Pangkat Reguler',
     periodeUsulan: 'Oktober 2024', tanggalBerlaku: '2024-10-01',
     status: 'Selesai', nomorSK: 'SK.800/KP-010/2024',
+    jabatan: 'Pranata Laboratorium Kesehatan Terampil', eselon: 'Non-Eselon',
   },
   {
     id: 'KP003', pegawaiId: 'P004',
@@ -824,6 +826,7 @@ export const dataKenaikanPangkat: KenaikanPangkat[] = [
     jenisKenaikan: 'Kenaikan Pangkat Fungsional',
     periodeUsulan: 'April 2023', tanggalBerlaku: '2023-04-01',
     status: 'Selesai', nomorSK: 'SK.800/KP-004/2023',
+    jabatan: 'Apoteker Ahli Pertama', eselon: 'Non-Eselon',
   },
   {
     id: 'KP004', pegawaiId: 'P003',
@@ -832,6 +835,7 @@ export const dataKenaikanPangkat: KenaikanPangkat[] = [
     jenisKenaikan: 'Kenaikan Pangkat Fungsional',
     periodeUsulan: 'Oktober 2022', tanggalBerlaku: '2022-10-01',
     status: 'Selesai', nomorSK: 'SK.800/KP-010/2022',
+    jabatan: 'Perawat Ahli Muda', eselon: 'Non-Eselon',
   },
   {
     id: 'KP005', pegawaiId: 'P018',
@@ -840,6 +844,7 @@ export const dataKenaikanPangkat: KenaikanPangkat[] = [
     jenisKenaikan: 'Kenaikan Pangkat Reguler',
     periodeUsulan: 'April 2026',
     status: 'Proses',
+    jabatan: 'Perawat Terampil', eselon: 'Non-Eselon',
   },
   {
     id: 'KP006', pegawaiId: 'P014',
@@ -848,6 +853,7 @@ export const dataKenaikanPangkat: KenaikanPangkat[] = [
     jenisKenaikan: 'Kenaikan Pangkat Reguler',
     periodeUsulan: 'April 2026',
     status: 'Proses',
+    jabatan: 'Perekam Medis Terampil', eselon: 'Non-Eselon',
   },
   {
     id: 'KP007', pegawaiId: 'P010',
@@ -856,6 +862,7 @@ export const dataKenaikanPangkat: KenaikanPangkat[] = [
     jenisKenaikan: 'Kenaikan Pangkat Fungsional',
     periodeUsulan: 'Oktober 2025', tanggalBerlaku: '2025-10-01',
     status: 'Selesai', nomorSK: 'SK.800/KP-010/2025',
+    jabatan: 'Perekam Medis Ahli Pertama', eselon: 'Non-Eselon',
   },
   {
     id: 'KP008', pegawaiId: 'P012',
@@ -864,6 +871,7 @@ export const dataKenaikanPangkat: KenaikanPangkat[] = [
     jenisKenaikan: 'Kenaikan Pangkat Reguler',
     periodeUsulan: 'April 2021', tanggalBerlaku: '2021-04-01',
     status: 'Selesai', nomorSK: 'SK.800/KP-004/2021',
+    jabatan: 'Bidan Terampil', eselon: 'Non-Eselon',
   },
 ];
 

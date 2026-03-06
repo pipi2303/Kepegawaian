@@ -42,6 +42,9 @@ export default function Dashboard() {
     { label: 'Cuti', icon: CalendarDays, path: '/cuti', color: 'bg-orange-600' },
     { label: 'Kenaikan Pangkat', icon: TrendingUp, path: '/kenaikan-pangkat', color: 'bg-purple-600' },
     { label: 'SKP', icon: Target, path: '/skp', color: 'bg-indigo-600' },
+    { label: 'Penggajian', icon: AlertCircle, path: '/penggajian', color: 'bg-emerald-600' },
+    { label: 'Credentialing', icon: UserCheck, path: '/credentialing', color: 'bg-teal-600' },
+    { label: 'K3RS', icon: UserX, path: '/k3rs', color: 'bg-red-600' },
   ];
 
   // Recent activities

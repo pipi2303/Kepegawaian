@@ -1,7 +1,12 @@
 import React, { createContext, useContext, useReducer, useCallback } from 'react';
-import {
+import type {
   Pegawai, CutiRecord, AbsensiRecord, SKPRecord, RiwayatJabatan,
-  KenaikanPangkat, DisiplinRecord, DiklatRecord, AppUser
+  KenaikanPangkat, DisiplinRecord, DiklatRecord, AppUser,
+  STRRecord, SIPRecord, CredentialingRecord, CPDRecord,
+  InsidenK3RS, VaksinasiRecord, MCURecord,
+  SlipGaji, JadwalShift, BPJSRecord, KontrakRecord,
+  PenghargaanRecord, MutasiRecord, AnggotaKomite, KegiatanKomite,
+  GrievanceRecord, PHKRecord,
 } from '../types';
 import {
   dataPegawai as initialPegawai,
@@ -10,6 +15,25 @@ import {
   dataRiwayatJabatan as initialRiwayatJabatan,
   dataKenaikanPangkat as initialKenaikanPangkat,
 } from '../data/mockData';
+import {
+  dataSTR as initialSTR,
+  dataSIP as initialSIP,
+  dataCredentialing as initialCredentialing,
+  dataInsidenK3RS as initialInsidenK3RS,
+  dataVaksinasi as initialVaksinasi,
+  dataMCU as initialMCU,
+  dataSlipGaji as initialSlipGaji,
+  dataJadwalShift as initialJadwalShift,
+  dataBPJS as initialBPJS,
+  dataKontrak as initialKontrak,
+  dataPenghargaan as initialPenghargaan,
+  dataMutasi as initialMutasi,
+  dataAnggotaKomite as initialAnggotaKomite,
+  dataKegiatanKomite as initialKegiatanKomite,
+  dataGrievance as initialGrievance,
+  dataPHK as initialPHK,
+  dataCPD as initialCPD,
+} from '../data/mockDataRS';
 
 // ─── Generator: Absensi Maret 2026 ────────────────────────────────────────────
 function generateInitialAbsensi(): AbsensiRecord[] {
@@ -359,11 +383,28 @@ interface AppState {
   kenaikanPangkat: KenaikanPangkat[];
   disiplin: DisiplinRecord[];
   diklat: DiklatRecord[];
+  str: STRRecord[];
+  sip: SIPRecord[];
+  credentialing: CredentialingRecord[];
+  cpd: CPDRecord[];
+  insidenK3RS: InsidenK3RS[];
+  vaksinasi: VaksinasiRecord[];
+  mcu: MCURecord[];
+  slipGaji: SlipGaji[];
+  jadwalShift: JadwalShift[];
+  bpjs: BPJSRecord[];
+  kontrak: KontrakRecord[];
+  penghargaan: PenghargaanRecord[];
+  mutasi: MutasiRecord[];
+  anggotaKomite: AnggotaKomite[];
+  kegiatanKomite: KegiatanKomite[];
+  grievance: GrievanceRecord[];
+  phk: PHKRecord[];
   currentUser: AppUser | null;
   isLoggedIn: boolean;
 }
 
-// ─── Actions ──────────────────────────────────────────────────────────────────
+// ─── Actions ───────────────────────────��──────────────────────────────────────
 type Action =
   | { type: 'LOGIN'; user: AppUser }
   | { type: 'LOGOUT' }
@@ -401,7 +442,58 @@ type Action =
   // Riwayat Jabatan CRUD
   | { type: 'ADD_RIWAYAT_JABATAN'; rj: RiwayatJabatan }
   | { type: 'UPDATE_RIWAYAT_JABATAN'; rj: RiwayatJabatan }
-  | { type: 'DELETE_RIWAYAT_JABATAN'; id: string };
+  | { type: 'DELETE_RIWAYAT_JABATAN'; id: string }
+  | { type: 'ADD_STR'; str: STRRecord }
+  | { type: 'UPDATE_STR'; str: STRRecord }
+  | { type: 'DELETE_STR'; id: string }
+  | { type: 'ADD_SIP'; sip: SIPRecord }
+  | { type: 'UPDATE_SIP'; sip: SIPRecord }
+  | { type: 'DELETE_SIP'; id: string }
+  | { type: 'ADD_CREDENTIALING'; cr: CredentialingRecord }
+  | { type: 'UPDATE_CREDENTIALING'; cr: CredentialingRecord }
+  | { type: 'DELETE_CREDENTIALING'; id: string }
+  | { type: 'ADD_CPD'; cpd: CPDRecord }
+  | { type: 'UPDATE_CPD'; cpd: CPDRecord }
+  | { type: 'DELETE_CPD'; id: string }
+  | { type: 'ADD_INSIDEN'; insiden: InsidenK3RS }
+  | { type: 'UPDATE_INSIDEN'; insiden: InsidenK3RS }
+  | { type: 'DELETE_INSIDEN'; id: string }
+  | { type: 'ADD_VAKSINASI'; vak: VaksinasiRecord }
+  | { type: 'UPDATE_VAKSINASI'; vak: VaksinasiRecord }
+  | { type: 'DELETE_VAKSINASI'; id: string }
+  | { type: 'ADD_MCU'; mcu: MCURecord }
+  | { type: 'UPDATE_MCU'; mcu: MCURecord }
+  | { type: 'DELETE_MCU'; id: string }
+  | { type: 'ADD_SLIP_GAJI'; slip: SlipGaji }
+  | { type: 'UPDATE_SLIP_GAJI'; slip: SlipGaji }
+  | { type: 'DELETE_SLIP_GAJI'; id: string }
+  | { type: 'ADD_JADWAL'; jadwal: JadwalShift }
+  | { type: 'UPDATE_JADWAL'; jadwal: JadwalShift }
+  | { type: 'DELETE_JADWAL'; id: string }
+  | { type: 'ADD_BPJS'; bpjs: BPJSRecord }
+  | { type: 'UPDATE_BPJS'; bpjs: BPJSRecord }
+  | { type: 'DELETE_BPJS'; id: string }
+  | { type: 'ADD_KONTRAK'; kontrak: KontrakRecord }
+  | { type: 'UPDATE_KONTRAK'; kontrak: KontrakRecord }
+  | { type: 'DELETE_KONTRAK'; id: string }
+  | { type: 'ADD_PENGHARGAAN'; ph: PenghargaanRecord }
+  | { type: 'UPDATE_PENGHARGAAN'; ph: PenghargaanRecord }
+  | { type: 'DELETE_PENGHARGAAN'; id: string }
+  | { type: 'ADD_MUTASI'; mutasi: MutasiRecord }
+  | { type: 'UPDATE_MUTASI'; mutasi: MutasiRecord }
+  | { type: 'DELETE_MUTASI'; id: string }
+  | { type: 'ADD_ANGGOTA_KOMITE'; ak: AnggotaKomite }
+  | { type: 'UPDATE_ANGGOTA_KOMITE'; ak: AnggotaKomite }
+  | { type: 'DELETE_ANGGOTA_KOMITE'; id: string }
+  | { type: 'ADD_KEGIATAN_KOMITE'; kk: KegiatanKomite }
+  | { type: 'UPDATE_KEGIATAN_KOMITE'; kk: KegiatanKomite }
+  | { type: 'DELETE_KEGIATAN_KOMITE'; id: string }
+  | { type: 'ADD_GRIEVANCE'; gr: GrievanceRecord }
+  | { type: 'UPDATE_GRIEVANCE'; gr: GrievanceRecord }
+  | { type: 'DELETE_GRIEVANCE'; id: string }
+  | { type: 'ADD_PHK'; phk: PHKRecord }
+  | { type: 'UPDATE_PHK'; phk: PHKRecord }
+  | { type: 'DELETE_PHK'; id: string };
 
 // ─── Reducer ─────────────────────────────────────────────────────────────────
 function reducer(state: AppState, action: Action): AppState {
@@ -516,6 +608,83 @@ function reducer(state: AppState, action: Action): AppState {
     case 'DELETE_RIWAYAT_JABATAN':
       return { ...state, riwayatJabatan: state.riwayatJabatan.filter(r => r.id !== action.id) };
 
+    // STR
+    case 'ADD_STR':
+      return { ...state, str: [...state.str, action.str] };
+    case 'UPDATE_STR':
+      return { ...state, str: state.str.map(s => s.id === action.str.id ? action.str : s) };
+    case 'DELETE_STR':
+      return { ...state, str: state.str.filter(s => s.id !== action.id) };
+
+    // SIP
+    case 'ADD_SIP':
+      return { ...state, sip: [...state.sip, action.sip] };
+    case 'UPDATE_SIP':
+      return { ...state, sip: state.sip.map(s => s.id === action.sip.id ? action.sip : s) };
+    case 'DELETE_SIP':
+      return { ...state, sip: state.sip.filter(s => s.id !== action.id) };
+
+    // Credentialing
+    case 'ADD_CREDENTIALING':
+      return { ...state, credentialing: [...state.credentialing, action.cr] };
+    case 'UPDATE_CREDENTIALING':
+      return { ...state, credentialing: state.credentialing.map(c => c.id === action.cr.id ? action.cr : c) };
+    case 'DELETE_CREDENTIALING':
+      return { ...state, credentialing: state.credentialing.filter(c => c.id !== action.id) };
+
+    // CPD
+    case 'ADD_CPD': return { ...state, cpd: [...state.cpd, action.cpd] };
+    case 'UPDATE_CPD': return { ...state, cpd: state.cpd.map(c => c.id === action.cpd.id ? action.cpd : c) };
+    case 'DELETE_CPD': return { ...state, cpd: state.cpd.filter(c => c.id !== action.id) };
+    // K3RS
+    case 'ADD_INSIDEN': return { ...state, insidenK3RS: [...state.insidenK3RS, action.insiden] };
+    case 'UPDATE_INSIDEN': return { ...state, insidenK3RS: state.insidenK3RS.map(i => i.id === action.insiden.id ? action.insiden : i) };
+    case 'DELETE_INSIDEN': return { ...state, insidenK3RS: state.insidenK3RS.filter(i => i.id !== action.id) };
+    case 'ADD_VAKSINASI': return { ...state, vaksinasi: [...state.vaksinasi, action.vak] };
+    case 'UPDATE_VAKSINASI': return { ...state, vaksinasi: state.vaksinasi.map(v => v.id === action.vak.id ? action.vak : v) };
+    case 'DELETE_VAKSINASI': return { ...state, vaksinasi: state.vaksinasi.filter(v => v.id !== action.id) };
+    case 'ADD_MCU': return { ...state, mcu: [...state.mcu, action.mcu] };
+    case 'UPDATE_MCU': return { ...state, mcu: state.mcu.map(m => m.id === action.mcu.id ? action.mcu : m) };
+    case 'DELETE_MCU': return { ...state, mcu: state.mcu.filter(m => m.id !== action.id) };
+    // Penggajian
+    case 'ADD_SLIP_GAJI': return { ...state, slipGaji: [...state.slipGaji, action.slip] };
+    case 'UPDATE_SLIP_GAJI': return { ...state, slipGaji: state.slipGaji.map(s => s.id === action.slip.id ? action.slip : s) };
+    case 'DELETE_SLIP_GAJI': return { ...state, slipGaji: state.slipGaji.filter(s => s.id !== action.id) };
+    // Jadwal
+    case 'ADD_JADWAL': return { ...state, jadwalShift: [...state.jadwalShift, action.jadwal] };
+    case 'UPDATE_JADWAL': return { ...state, jadwalShift: state.jadwalShift.map(j => j.id === action.jadwal.id ? action.jadwal : j) };
+    case 'DELETE_JADWAL': return { ...state, jadwalShift: state.jadwalShift.filter(j => j.id !== action.id) };
+    // BPJS
+    case 'ADD_BPJS': return { ...state, bpjs: [...state.bpjs, action.bpjs] };
+    case 'UPDATE_BPJS': return { ...state, bpjs: state.bpjs.map(b => b.id === action.bpjs.id ? action.bpjs : b) };
+    case 'DELETE_BPJS': return { ...state, bpjs: state.bpjs.filter(b => b.id !== action.id) };
+    // Kontrak
+    case 'ADD_KONTRAK': return { ...state, kontrak: [...state.kontrak, action.kontrak] };
+    case 'UPDATE_KONTRAK': return { ...state, kontrak: state.kontrak.map(k => k.id === action.kontrak.id ? action.kontrak : k) };
+    case 'DELETE_KONTRAK': return { ...state, kontrak: state.kontrak.filter(k => k.id !== action.id) };
+    // Penghargaan
+    case 'ADD_PENGHARGAAN': return { ...state, penghargaan: [...state.penghargaan, action.ph] };
+    case 'UPDATE_PENGHARGAAN': return { ...state, penghargaan: state.penghargaan.map(p => p.id === action.ph.id ? action.ph : p) };
+    case 'DELETE_PENGHARGAAN': return { ...state, penghargaan: state.penghargaan.filter(p => p.id !== action.id) };
+    // Mutasi
+    case 'ADD_MUTASI': return { ...state, mutasi: [...state.mutasi, action.mutasi] };
+    case 'UPDATE_MUTASI': return { ...state, mutasi: state.mutasi.map(m => m.id === action.mutasi.id ? action.mutasi : m) };
+    case 'DELETE_MUTASI': return { ...state, mutasi: state.mutasi.filter(m => m.id !== action.id) };
+    // Komite
+    case 'ADD_ANGGOTA_KOMITE': return { ...state, anggotaKomite: [...state.anggotaKomite, action.ak] };
+    case 'UPDATE_ANGGOTA_KOMITE': return { ...state, anggotaKomite: state.anggotaKomite.map(a => a.id === action.ak.id ? action.ak : a) };
+    case 'DELETE_ANGGOTA_KOMITE': return { ...state, anggotaKomite: state.anggotaKomite.filter(a => a.id !== action.id) };
+    case 'ADD_KEGIATAN_KOMITE': return { ...state, kegiatanKomite: [...state.kegiatanKomite, action.kk] };
+    case 'UPDATE_KEGIATAN_KOMITE': return { ...state, kegiatanKomite: state.kegiatanKomite.map(k => k.id === action.kk.id ? action.kk : k) };
+    case 'DELETE_KEGIATAN_KOMITE': return { ...state, kegiatanKomite: state.kegiatanKomite.filter(k => k.id !== action.id) };
+    // Hubungan Industrial
+    case 'ADD_GRIEVANCE': return { ...state, grievance: [...state.grievance, action.gr] };
+    case 'UPDATE_GRIEVANCE': return { ...state, grievance: state.grievance.map(g => g.id === action.gr.id ? action.gr : g) };
+    case 'DELETE_GRIEVANCE': return { ...state, grievance: state.grievance.filter(g => g.id !== action.id) };
+    case 'ADD_PHK': return { ...state, phk: [...state.phk, action.phk] };
+    case 'UPDATE_PHK': return { ...state, phk: state.phk.map(p => p.id === action.phk.id ? action.phk : p) };
+    case 'DELETE_PHK': return { ...state, phk: state.phk.filter(p => p.id !== action.id) };
+
     default:
       return state;
   }
@@ -526,41 +695,84 @@ interface AppContextValue extends AppState {
   dispatch: React.Dispatch<Action>;
   login: (username: string, password: string) => boolean;
   logout: () => void;
-  // Pegawai helpers
   addPegawai: (p: Omit<Pegawai, 'id'>) => void;
   updatePegawai: (p: Pegawai) => void;
   deletePegawai: (id: string) => void;
-  // Cuti helpers
   addCuti: (c: Omit<CutiRecord, 'id'>) => void;
   updateCuti: (c: CutiRecord) => void;
   deleteCuti: (id: string) => void;
   approveCuti: (id: string, level: number, nama: string, catatan?: string) => void;
   rejectCuti: (id: string, level: number, nama: string, catatan?: string) => void;
-  // Absensi helpers
   addAbsensi: (a: Omit<AbsensiRecord, 'id'>) => void;
   updateAbsensi: (a: AbsensiRecord) => void;
   deleteAbsensi: (id: string) => void;
   bulkInputAbsensi: (records: Omit<AbsensiRecord, 'id'>[]) => void;
-  // SKP
   addSKP: (s: Omit<SKPRecord, 'id'>) => void;
   updateSKP: (s: SKPRecord) => void;
   deleteSKP: (id: string) => void;
-  // KP
   addKP: (k: Omit<KenaikanPangkat, 'id'>) => void;
   updateKP: (k: KenaikanPangkat) => void;
   deleteKP: (id: string) => void;
-  // Disiplin
   addDisiplin: (d: Omit<DisiplinRecord, 'id'>) => void;
   updateDisiplin: (d: DisiplinRecord) => void;
   deleteDisiplin: (id: string) => void;
-  // Diklat
   addDiklat: (d: Omit<DiklatRecord, 'id'>) => void;
   updateDiklat: (d: DiklatRecord) => void;
   deleteDiklat: (id: string) => void;
-  // Riwayat Jabatan
   addRiwayatJabatan: (r: Omit<RiwayatJabatan, 'id'>) => void;
   updateRiwayatJabatan: (r: RiwayatJabatan) => void;
   deleteRiwayatJabatan: (id: string) => void;
+  addSTR: (s: Omit<STRRecord, 'id'>) => void;
+  updateSTR: (s: STRRecord) => void;
+  deleteSTR: (id: string) => void;
+  addSIP: (s: Omit<SIPRecord, 'id'>) => void;
+  updateSIP: (s: SIPRecord) => void;
+  deleteSIP: (id: string) => void;
+  addCredentialing: (c: Omit<CredentialingRecord, 'id'>) => void;
+  updateCredentialing: (c: CredentialingRecord) => void;
+  deleteCredentialing: (id: string) => void;
+  addCPD: (c: Omit<CPDRecord, 'id'>) => void;
+  updateCPD: (c: CPDRecord) => void;
+  deleteCPD: (id: string) => void;
+  addInsiden: (i: Omit<InsidenK3RS, 'id'>) => void;
+  updateInsiden: (i: InsidenK3RS) => void;
+  deleteInsiden: (id: string) => void;
+  addVaksinasi: (v: Omit<VaksinasiRecord, 'id'>) => void;
+  updateVaksinasi: (v: VaksinasiRecord) => void;
+  deleteVaksinasi: (id: string) => void;
+  addMCU: (m: Omit<MCURecord, 'id'>) => void;
+  updateMCU: (m: MCURecord) => void;
+  deleteMCU: (id: string) => void;
+  addSlipGaji: (s: Omit<SlipGaji, 'id'>) => void;
+  updateSlipGaji: (s: SlipGaji) => void;
+  deleteSlipGaji: (id: string) => void;
+  addJadwal: (j: Omit<JadwalShift, 'id'>) => void;
+  updateJadwal: (j: JadwalShift) => void;
+  deleteJadwal: (id: string) => void;
+  addBPJS: (b: Omit<BPJSRecord, 'id'>) => void;
+  updateBPJS: (b: BPJSRecord) => void;
+  deleteBPJS: (id: string) => void;
+  addKontrak: (k: Omit<KontrakRecord, 'id'>) => void;
+  updateKontrak: (k: KontrakRecord) => void;
+  deleteKontrak: (id: string) => void;
+  addPenghargaan: (p: Omit<PenghargaanRecord, 'id'>) => void;
+  updatePenghargaan: (p: PenghargaanRecord) => void;
+  deletePenghargaan: (id: string) => void;
+  addMutasi: (m: Omit<MutasiRecord, 'id'>) => void;
+  updateMutasi: (m: MutasiRecord) => void;
+  deleteMutasi: (id: string) => void;
+  addAnggotaKomite: (a: Omit<AnggotaKomite, 'id'>) => void;
+  updateAnggotaKomite: (a: AnggotaKomite) => void;
+  deleteAnggotaKomite: (id: string) => void;
+  addKegiatanKomite: (k: Omit<KegiatanKomite, 'id'>) => void;
+  updateKegiatanKomite: (k: KegiatanKomite) => void;
+  deleteKegiatanKomite: (id: string) => void;
+  addGrievance: (g: Omit<GrievanceRecord, 'id'>) => void;
+  updateGrievance: (g: GrievanceRecord) => void;
+  deleteGrievance: (id: string) => void;
+  addPHK: (p: Omit<PHKRecord, 'id'>) => void;
+  updatePHK: (p: PHKRecord) => void;
+  deletePHK: (id: string) => void;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -614,6 +826,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     kenaikanPangkat: initialKenaikanPangkat,
     disiplin: initialDisiplin,
     diklat: initialDiklat,
+    str: initialSTR,
+    sip: initialSIP,
+    credentialing: initialCredentialing,
+    cpd: initialCPD as CPDRecord[],
+    insidenK3RS: initialInsidenK3RS as InsidenK3RS[],
+    vaksinasi: initialVaksinasi as VaksinasiRecord[],
+    mcu: initialMCU as MCURecord[],
+    slipGaji: initialSlipGaji as SlipGaji[],
+    jadwalShift: initialJadwalShift as JadwalShift[],
+    bpjs: initialBPJS as BPJSRecord[],
+    kontrak: initialKontrak as KontrakRecord[],
+    penghargaan: initialPenghargaan as PenghargaanRecord[],
+    mutasi: initialMutasi as MutasiRecord[],
+    anggotaKomite: initialAnggotaKomite as AnggotaKomite[],
+    kegiatanKomite: initialKegiatanKomite as KegiatanKomite[],
+    grievance: initialGrievance as GrievanceRecord[],
+    phk: initialPHK as PHKRecord[],
     currentUser: savedUser,
     isLoggedIn: !!savedUser,
   });
@@ -685,6 +914,57 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const addRiwayatJabatan = useCallback((r: Omit<RiwayatJabatan, 'id'>) => dispatch({ type: 'ADD_RIWAYAT_JABATAN', rj: { ...r, id: genId('RJ') } }), []);
   const updateRiwayatJabatan = useCallback((r: RiwayatJabatan) => dispatch({ type: 'UPDATE_RIWAYAT_JABATAN', rj: r }), []);
   const deleteRiwayatJabatan = useCallback((id: string) => dispatch({ type: 'DELETE_RIWAYAT_JABATAN', id }), []);
+  const addSTR = useCallback((s: Omit<STRRecord, 'id'>) => dispatch({ type: 'ADD_STR', str: { ...s, id: genId('STR') } }), []);
+  const updateSTR = useCallback((s: STRRecord) => dispatch({ type: 'UPDATE_STR', str: s }), []);
+  const deleteSTR = useCallback((id: string) => dispatch({ type: 'DELETE_STR', id }), []);
+  const addSIP = useCallback((s: Omit<SIPRecord, 'id'>) => dispatch({ type: 'ADD_SIP', sip: { ...s, id: genId('SIP') } }), []);
+  const updateSIP = useCallback((s: SIPRecord) => dispatch({ type: 'UPDATE_SIP', sip: s }), []);
+  const deleteSIP = useCallback((id: string) => dispatch({ type: 'DELETE_SIP', id }), []);
+  const addCredentialing = useCallback((c: Omit<CredentialingRecord, 'id'>) => dispatch({ type: 'ADD_CREDENTIALING', cr: { ...c, id: genId('CR') } }), []);
+  const updateCredentialing = useCallback((c: CredentialingRecord) => dispatch({ type: 'UPDATE_CREDENTIALING', cr: c }), []);
+  const deleteCredentialing = useCallback((id: string) => dispatch({ type: 'DELETE_CREDENTIALING', id }), []);
+  const addCPD = useCallback((c: Omit<CPDRecord, 'id'>) => dispatch({ type: 'ADD_CPD', cpd: { ...c, id: genId('CPD') } }), []);
+  const updateCPD = useCallback((c: CPDRecord) => dispatch({ type: 'UPDATE_CPD', cpd: c }), []);
+  const deleteCPD = useCallback((id: string) => dispatch({ type: 'DELETE_CPD', id }), []);
+  const addInsiden = useCallback((i: Omit<InsidenK3RS, 'id'>) => dispatch({ type: 'ADD_INSIDEN', insiden: { ...i, id: genId('IK') } }), []);
+  const updateInsiden = useCallback((i: InsidenK3RS) => dispatch({ type: 'UPDATE_INSIDEN', insiden: i }), []);
+  const deleteInsiden = useCallback((id: string) => dispatch({ type: 'DELETE_INSIDEN', id }), []);
+  const addVaksinasi = useCallback((v: Omit<VaksinasiRecord, 'id'>) => dispatch({ type: 'ADD_VAKSINASI', vak: { ...v, id: genId('VAK') } }), []);
+  const updateVaksinasi = useCallback((v: VaksinasiRecord) => dispatch({ type: 'UPDATE_VAKSINASI', vak: v }), []);
+  const deleteVaksinasi = useCallback((id: string) => dispatch({ type: 'DELETE_VAKSINASI', id }), []);
+  const addMCU = useCallback((m: Omit<MCURecord, 'id'>) => dispatch({ type: 'ADD_MCU', mcu: { ...m, id: genId('MCU') } }), []);
+  const updateMCU = useCallback((m: MCURecord) => dispatch({ type: 'UPDATE_MCU', mcu: m }), []);
+  const deleteMCU = useCallback((id: string) => dispatch({ type: 'DELETE_MCU', id }), []);
+  const addSlipGaji = useCallback((s: Omit<SlipGaji, 'id'>) => dispatch({ type: 'ADD_SLIP_GAJI', slip: { ...s, id: genId('SG') } }), []);
+  const updateSlipGaji = useCallback((s: SlipGaji) => dispatch({ type: 'UPDATE_SLIP_GAJI', slip: s }), []);
+  const deleteSlipGaji = useCallback((id: string) => dispatch({ type: 'DELETE_SLIP_GAJI', id }), []);
+  const addJadwal = useCallback((j: Omit<JadwalShift, 'id'>) => dispatch({ type: 'ADD_JADWAL', jadwal: { ...j, id: genId('JS') } }), []);
+  const updateJadwal = useCallback((j: JadwalShift) => dispatch({ type: 'UPDATE_JADWAL', jadwal: j }), []);
+  const deleteJadwal = useCallback((id: string) => dispatch({ type: 'DELETE_JADWAL', id }), []);
+  const addBPJS = useCallback((b: Omit<BPJSRecord, 'id'>) => dispatch({ type: 'ADD_BPJS', bpjs: { ...b, id: genId('BPJS') } }), []);
+  const updateBPJS = useCallback((b: BPJSRecord) => dispatch({ type: 'UPDATE_BPJS', bpjs: b }), []);
+  const deleteBPJS = useCallback((id: string) => dispatch({ type: 'DELETE_BPJS', id }), []);
+  const addKontrak = useCallback((k: Omit<KontrakRecord, 'id'>) => dispatch({ type: 'ADD_KONTRAK', kontrak: { ...k, id: genId('KK') } }), []);
+  const updateKontrak = useCallback((k: KontrakRecord) => dispatch({ type: 'UPDATE_KONTRAK', kontrak: k }), []);
+  const deleteKontrak = useCallback((id: string) => dispatch({ type: 'DELETE_KONTRAK', id }), []);
+  const addPenghargaan = useCallback((p: Omit<PenghargaanRecord, 'id'>) => dispatch({ type: 'ADD_PENGHARGAAN', ph: { ...p, id: genId('PH') } }), []);
+  const updatePenghargaan = useCallback((p: PenghargaanRecord) => dispatch({ type: 'UPDATE_PENGHARGAAN', ph: p }), []);
+  const deletePenghargaan = useCallback((id: string) => dispatch({ type: 'DELETE_PENGHARGAAN', id }), []);
+  const addMutasi = useCallback((m: Omit<MutasiRecord, 'id'>) => dispatch({ type: 'ADD_MUTASI', mutasi: { ...m, id: genId('MT') } }), []);
+  const updateMutasi = useCallback((m: MutasiRecord) => dispatch({ type: 'UPDATE_MUTASI', mutasi: m }), []);
+  const deleteMutasi = useCallback((id: string) => dispatch({ type: 'DELETE_MUTASI', id }), []);
+  const addAnggotaKomite = useCallback((a: Omit<AnggotaKomite, 'id'>) => dispatch({ type: 'ADD_ANGGOTA_KOMITE', ak: { ...a, id: genId('AK') } }), []);
+  const updateAnggotaKomite = useCallback((a: AnggotaKomite) => dispatch({ type: 'UPDATE_ANGGOTA_KOMITE', ak: a }), []);
+  const deleteAnggotaKomite = useCallback((id: string) => dispatch({ type: 'DELETE_ANGGOTA_KOMITE', id }), []);
+  const addKegiatanKomite = useCallback((k: Omit<KegiatanKomite, 'id'>) => dispatch({ type: 'ADD_KEGIATAN_KOMITE', kk: { ...k, id: genId('KKG') } }), []);
+  const updateKegiatanKomite = useCallback((k: KegiatanKomite) => dispatch({ type: 'UPDATE_KEGIATAN_KOMITE', kk: k }), []);
+  const deleteKegiatanKomite = useCallback((id: string) => dispatch({ type: 'DELETE_KEGIATAN_KOMITE', id }), []);
+  const addGrievance = useCallback((g: Omit<GrievanceRecord, 'id'>) => dispatch({ type: 'ADD_GRIEVANCE', gr: { ...g, id: genId('GR') } }), []);
+  const updateGrievance = useCallback((g: GrievanceRecord) => dispatch({ type: 'UPDATE_GRIEVANCE', gr: g }), []);
+  const deleteGrievance = useCallback((id: string) => dispatch({ type: 'DELETE_GRIEVANCE', id }), []);
+  const addPHK = useCallback((p: Omit<PHKRecord, 'id'>) => dispatch({ type: 'ADD_PHK', phk: { ...p, id: genId('PHK') } }), []);
+  const updatePHK = useCallback((p: PHKRecord) => dispatch({ type: 'UPDATE_PHK', phk: p }), []);
+  const deletePHK = useCallback((id: string) => dispatch({ type: 'DELETE_PHK', id }), []);
 
   const value: AppContextValue = {
     ...state,
@@ -698,6 +978,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     addDisiplin, updateDisiplin, deleteDisiplin,
     addDiklat, updateDiklat, deleteDiklat,
     addRiwayatJabatan, updateRiwayatJabatan, deleteRiwayatJabatan,
+    addSTR, updateSTR, deleteSTR,
+    addSIP, updateSIP, deleteSIP,
+    addCredentialing, updateCredentialing, deleteCredentialing,
+    addCPD, updateCPD, deleteCPD,
+    addInsiden, updateInsiden, deleteInsiden,
+    addVaksinasi, updateVaksinasi, deleteVaksinasi,
+    addMCU, updateMCU, deleteMCU,
+    addSlipGaji, updateSlipGaji, deleteSlipGaji,
+    addJadwal, updateJadwal, deleteJadwal,
+    addBPJS, updateBPJS, deleteBPJS,
+    addKontrak, updateKontrak, deleteKontrak,
+    addPenghargaan, updatePenghargaan, deletePenghargaan,
+    addMutasi, updateMutasi, deleteMutasi,
+    addAnggotaKomite, updateAnggotaKomite, deleteAnggotaKomite,
+    addKegiatanKomite, updateKegiatanKomite, deleteKegiatanKomite,
+    addGrievance, updateGrievance, deleteGrievance,
+    addPHK, updatePHK, deletePHK,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

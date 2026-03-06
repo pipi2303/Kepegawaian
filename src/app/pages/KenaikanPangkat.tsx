@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { TrendingUp, Plus, Search, Info, X, CheckCircle, Clock, XCircle, Eye, Edit2, Trash2 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { KenaikanPangkat as KPType } from '../types';
+import type { KenaikanPangkat as KPType } from '../types';
 import { PANGKAT_GOLONGAN } from '../data/constants';
 import { toast } from 'sonner';
 
@@ -19,10 +19,22 @@ const jenisKPList = [
   'Kenaikan Pangkat Anumerta',
 ];
 
+const eselonList = [
+  'Non-Eselon',
+  'Eselon II/a',
+  'Eselon II/b',
+  'Eselon III/a',
+  'Eselon III/b',
+  'Eselon IV/a',
+  'Eselon IV/b',
+  'Eselon V/a',
+];
+
 const EMPTY_FORM = {
   pegawaiId: '', golonganLama: '', golonganBaru: '', pangkatLama: '', pangkatBaru: '',
   jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2026',
   tanggalBerlaku: '', status: 'Proses' as KPType['status'], nomorSK: '', catatan: '',
+  eselon: '', jabatan: '',
 };
 
 export default function KenaikanPangkat() {
@@ -66,6 +78,8 @@ export default function KenaikanPangkat() {
       pegawaiId: prefilledPegawaiId || '',
       golonganLama: peg?.golongan || '',
       pangkatLama: peg?.pangkat || '',
+      jabatan: peg?.jabatan || '',
+      eselon: peg?.eselon || '',
     });
     setShowModal(true);
   };
@@ -77,6 +91,7 @@ export default function KenaikanPangkat() {
       pangkatLama: k.pangkatLama, pangkatBaru: k.pangkatBaru, jenisKenaikan: k.jenisKenaikan,
       periodeUsulan: k.periodeUsulan, tanggalBerlaku: k.tanggalBerlaku || '',
       status: k.status, nomorSK: k.nomorSK || '', catatan: k.catatan || '',
+      eselon: k.eselon || '', jabatan: k.jabatan || '',
     });
     setShowModal(true);
   };
@@ -90,9 +105,26 @@ export default function KenaikanPangkat() {
     else setForm(f => ({ ...f, golonganBaru: val, pangkatBaru: pangkat }));
   };
 
+  // Auto-fill jabatan & eselon when pegawai changes
+  const handlePegawaiChange = (pegawaiId: string) => {
+    const p = getPegawai(pegawaiId);
+    setForm(f => ({
+      ...f,
+      pegawaiId,
+      golonganLama: p?.golongan || '',
+      pangkatLama: p?.pangkat || '',
+      jabatan: p?.jabatan || '',
+      eselon: p?.eselon || '',
+    }));
+  };
+
   const handleSave = () => {
     if (!form.pegawaiId || !form.golonganLama || !form.golonganBaru) {
       toast.error('Harap isi semua field yang wajib diisi');
+      return;
+    }
+    if (form.jenisKenaikan === 'Kenaikan Pangkat Pilihan' && (!form.eselon || form.eselon === 'Non-Eselon' || form.eselon === '')) {
+      toast.error('Kenaikan Pangkat Pilihan mensyaratkan jabatan struktural (Eselon). Harap pilih eselon yang sesuai.');
       return;
     }
     if (editData) {
@@ -259,6 +291,7 @@ export default function KenaikanPangkat() {
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Pegawai</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Kenaikan Pangkat</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 hidden md:table-cell">Jenis KP</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 hidden xl:table-cell">Jabatan / Eselon</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">Periode</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 hidden lg:table-cell">No. SK</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">Status</th>
@@ -267,7 +300,7 @@ export default function KenaikanPangkat() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {filtered.length === 0 ? (
-                <tr><td colSpan={7} className="py-10 text-center text-gray-400 text-sm">Tidak ada data kenaikan pangkat</td></tr>
+                <tr><td colSpan={8} className="py-10 text-center text-gray-400 text-sm">Tidak ada data kenaikan pangkat</td></tr>
               ) : filtered.map(k => {
                 const sc = statusConfig[k.status];
                 const IconComp = sc.icon;
@@ -286,6 +319,16 @@ export default function KenaikanPangkat() {
                       <p className="text-xs text-gray-500 mt-1">{k.pangkatLama} → {k.pangkatBaru}</p>
                     </td>
                     <td className="px-4 py-3.5 hidden md:table-cell text-xs text-gray-600">{k.jenisKenaikan}</td>
+                    <td className="px-4 py-3.5 hidden xl:table-cell">
+                      {k.jabatan
+                        ? <p className="text-xs text-gray-700 leading-snug">{k.jabatan}</p>
+                        : <p className="text-xs text-gray-400 italic">—</p>}
+                      {k.eselon && (
+                        <span className={`inline-block mt-1 text-xs px-2 py-0.5 rounded font-medium ${k.eselon === 'Non-Eselon' ? 'bg-gray-100 text-gray-500' : 'bg-purple-100 text-purple-700'}`}>
+                          {k.eselon}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-4 py-3.5 text-center text-xs text-gray-700 font-medium">{k.periodeUsulan}</td>
                     <td className="px-4 py-3.5 hidden lg:table-cell text-xs text-gray-500">
                       {k.nomorSK || (k.status === 'Proses' ? <span className="text-yellow-500">Belum diterbitkan</span> : '—')}
@@ -322,13 +365,27 @@ export default function KenaikanPangkat() {
             <div className="p-6 space-y-4">
               <div>
                 <label className="text-xs font-medium text-gray-700 block mb-1.5">Pegawai *</label>
-                <select value={form.pegawaiId} onChange={e => {
-                  const p = getPegawai(e.target.value);
-                  setForm(f => ({ ...f, pegawaiId: e.target.value, golonganLama: p?.golongan || '', pangkatLama: p?.pangkat || '' }));
-                }} className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select value={form.pegawaiId} onChange={e => handlePegawaiChange(e.target.value)}
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="">Pilih Pegawai</option>
                   {pegawai.map(p => <option key={p.id} value={p.id}>{p.gelarDepan || ''} {p.nama} — Gol. {p.golongan}</option>)}
                 </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-medium text-gray-700 block mb-1.5">Jabatan</label>
+                  <input type="text" value={form.jabatan} onChange={e => setForm(f => ({ ...f, jabatan: e.target.value }))}
+                    placeholder="Jabatan pegawai..."
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-700 block mb-1.5">Eselon</label>
+                  <select value={form.eselon} onChange={e => setForm(f => ({ ...f, eselon: e.target.value }))}
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Pilih Eselon</option>
+                    {eselonList.map(e => <option key={e} value={e}>{e}</option>)}
+                  </select>
+                </div>
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-700 block mb-1.5">Jenis Kenaikan Pangkat *</label>
@@ -399,6 +456,13 @@ export default function KenaikanPangkat() {
               <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
                 <p className="text-xs text-amber-800"><strong>Berkas yang diperlukan:</strong> SK CPNS/PPPK, SK KP terakhir, SKP 2 tahun terakhir, Ijazah, Surat pernyataan tidak sedang hukuman disiplin.</p>
               </div>
+              {form.jenisKenaikan === 'Kenaikan Pangkat Pilihan' && (
+                <div className="p-3 bg-purple-50 rounded-lg border border-purple-100">
+                  <p className="text-xs text-purple-800">
+                    <strong>⚠ KP Pilihan:</strong> Mensyaratkan pejabat struktural aktif (Eselon II–V). Pastikan field <em>Eselon</em> diisi dengan eselon yang sesuai jabatan struktural pegawai.
+                  </p>
+                </div>
+              )}
             </div>
             <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
               <button onClick={() => setShowModal(false)} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Batal</button>
@@ -437,6 +501,20 @@ export default function KenaikanPangkat() {
                 <div><p className="text-xs text-gray-400 mb-1">Status</p>
                   <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${statusConfig[detailData.status].bg} ${statusConfig[detailData.status].color}`}>{detailData.status}</span>
                 </div>
+                {detailData.jabatan && (
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">Jabatan saat KP</p>
+                    <p className="text-sm text-gray-800">{detailData.jabatan}</p>
+                  </div>
+                )}
+                {detailData.eselon && (
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">Eselon</p>
+                    <span className={`inline-block text-xs px-2.5 py-1 rounded-full font-medium ${detailData.eselon === 'Non-Eselon' ? 'bg-gray-100 text-gray-600' : 'bg-purple-100 text-purple-700'}`}>
+                      {detailData.eselon}
+                    </span>
+                  </div>
+                )}
                 {detailData.nomorSK && <div className="col-span-2"><p className="text-xs text-gray-400 mb-1">Nomor SK</p><p className="text-sm font-mono text-gray-800">{detailData.nomorSK}</p></div>}
                 {detailData.tanggalBerlaku && <div><p className="text-xs text-gray-400 mb-1">Tanggal Berlaku</p><p className="text-sm text-gray-800">{fmtDate(detailData.tanggalBerlaku)}</p></div>}
               </div>

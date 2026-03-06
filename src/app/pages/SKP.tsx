@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Target, Plus, Info, X, Edit2, Eye, Award, Trash2, ChevronDown, ChevronUp, Save } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { SKPRecord, SKPItem } from '../types';
+import type { SKPRecord, SKPItem } from '../types';
 import { toast } from 'sonner';
 
 const predikatConfig: Record<string, { color: string; bg: string; min: number }> = {

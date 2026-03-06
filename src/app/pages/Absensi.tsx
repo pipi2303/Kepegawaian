@@ -5,7 +5,7 @@ import {
   FileText, Search, RotateCcw, Filter, Users, TrendingUp,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { AbsensiRecord } from '../types';
+import type { AbsensiRecord } from '../types';
 import { UNIT_KERJA } from '../data/constants';
 import { toast } from 'sonner';
 

@@ -136,14 +136,14 @@ export default function Laporan() {
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
               <h3 className="text-gray-800 mb-4">Distribusi Golongan</h3>
               <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={chartGolongan}>
+                <BarChart id="chart-golongan" data={chartGolongan}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="golongan" tick={{ fontSize: 12 }} tickFormatter={v => `Gol. ${v}`} />
                   <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(val: any) => [`${val} pegawai`]} />
-                  <Bar dataKey="jumlah" radius={[4, 4, 0, 0]}>
-                    {chartGolongan.map((_, i) => (
-                      <Cell key={i} fill={['#93c5fd', '#3b82f6', '#1d4ed8', '#1e3a5f'][i]} />
+                  <Tooltip key="tt-golongan" formatter={(val: any) => [`${val} pegawai`]} />
+                  <Bar dataKey="jumlah" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                    {chartGolongan.map((entry, i) => (
+                      <Cell key={`cell-golongan-${i}`} fill={['#93c5fd', '#3b82f6', '#1d4ed8', '#1e3a5f'][i]} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -154,12 +154,12 @@ export default function Laporan() {
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
               <h3 className="text-gray-800 mb-4">Distribusi Jenjang Pendidikan</h3>
               <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={jenjangData} layout="vertical" margin={{ left: 10, right: 20 }}>
+                <BarChart id="chart-jenjang" data={jenjangData} layout="vertical" margin={{ left: 10, right: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 11 }} />
                   <YAxis dataKey="jenjang" type="category" tick={{ fontSize: 11 }} width={65} />
-                  <Tooltip formatter={(val: any) => [`${val} pegawai`]} />
-                  <Bar dataKey="jumlah" fill="#6366f1" radius={[0, 4, 4, 0]} />
+                  <Tooltip key="tt-jenjang" formatter={(val: any) => [`${val} pegawai`]} />
+                  <Bar dataKey="jumlah" fill="#6366f1" radius={[0, 4, 4, 0]} isAnimationActive={false} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -169,7 +169,7 @@ export default function Laporan() {
               <h3 className="text-gray-800 mb-4">Komposisi Jenis Kelamin</h3>
               <div className="flex items-center">
                 <ResponsiveContainer width="60%" height={200}>
-                  <PieChart>
+                  <PieChart id="chart-gender">
                     <Pie
                       data={jenisKelaminData}
                       cx="50%"
@@ -178,11 +178,12 @@ export default function Laporan() {
                       outerRadius={80}
                       paddingAngle={4}
                       dataKey="value"
+                      isAnimationActive={false}
                     >
-                      <Cell fill="#3b82f6" />
-                      <Cell fill="#ec4899" />
+                      <Cell key="cell-gender-0" fill="#3b82f6" />
+                      <Cell key="cell-gender-1" fill="#ec4899" />
                     </Pie>
-                    <Tooltip formatter={(val: any) => [`${val} orang`]} />
+                    <Tooltip key="tt-gender" formatter={(val: any) => [`${val} orang`]} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="space-y-4">
@@ -204,12 +205,12 @@ export default function Laporan() {
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
               <h3 className="text-gray-800 mb-4">Distribusi Usia Pegawai</h3>
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={usiaData}>
+                <BarChart id="chart-usia" data={usiaData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="range" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(val: any) => [`${val} pegawai`]} labelFormatter={l => `Usia ${l} tahun`} />
-                  <Bar dataKey="jumlah" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  <Tooltip key="tt-usia" formatter={(val: any) => [`${val} pegawai`]} labelFormatter={l => `Usia ${l} tahun`} />
+                  <Bar dataKey="jumlah" fill="#10b981" radius={[4, 4, 0, 0]} isAnimationActive={false} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -262,16 +263,16 @@ export default function Laporan() {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h3 className="text-gray-800 mb-4">Trend Kehadiran 7 Bulan Terakhir</h3>
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={chartKehadiran}>
+              <BarChart id="chart-kehadiran" data={chartKehadiran}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="bulan" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
+                <Tooltip key="tt-kehadiran" />
                 <Legend />
-                <Bar dataKey="hadir" name="Hadir" fill="#3b82f6" stackId="a" radius={[0, 0, 0, 0]} />
-                <Bar dataKey="sakit" name="Sakit" fill="#f59e0b" stackId="a" />
-                <Bar dataKey="cuti" name="Cuti" fill="#8b5cf6" stackId="a" />
-                <Bar dataKey="alpha" name="Alpha" fill="#ef4444" stackId="a" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="hadir" name="Hadir" fill="#3b82f6" stackId="a" radius={[0, 0, 0, 0]} isAnimationActive={false} />
+                <Bar dataKey="sakit" name="Sakit" fill="#f59e0b" stackId="a" isAnimationActive={false} />
+                <Bar dataKey="cuti" name="Cuti" fill="#8b5cf6" stackId="a" isAnimationActive={false} />
+                <Bar dataKey="alpha" name="Alpha" fill="#ef4444" stackId="a" radius={[4, 4, 0, 0]} isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -298,14 +299,14 @@ export default function Laporan() {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h3 className="text-gray-800 mb-4">Trend Kenaikan Pangkat 2020–2025</h3>
             <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={trendKPData}>
+              <LineChart id="chart-kp-trend" data={trendKPData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="tahun" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
+                <Tooltip key="tt-kp" />
                 <Legend />
-                <Line type="monotone" dataKey="reguler" name="KP Reguler" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} />
-                <Line type="monotone" dataKey="fungsional" name="KP Fungsional" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="reguler" name="KP Reguler" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} isAnimationActive={false} />
+                <Line type="monotone" dataKey="fungsional" name="KP Fungsional" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 4 }} isAnimationActive={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -337,16 +338,18 @@ export default function Laporan() {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h3 className="text-gray-800 mb-4">Distribusi Predikat SKP Tahun 2025</h3>
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={skpDistribusi}>
+              <BarChart id="chart-skp" data={skpDistribusi}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="predikat" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip formatter={(val: any) => [`${val} pegawai`]} />
-                <Bar dataKey="jumlah" radius={[4, 4, 0, 0]}>
-                  <Cell fill="#10b981" />
-                  <Cell fill="#3b82f6" />
-                  <Cell fill="#f59e0b" />
-                  <Cell fill="#ef4444" />
+                <Tooltip key="tt-skp" formatter={(val: any) => [`${val} pegawai`]} />
+                <Bar dataKey="jumlah" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                  {skpDistribusi.map((entry, i) => (
+                    <Cell
+                      key={`cell-skp-${i}`}
+                      fill={['#10b981', '#3b82f6', '#f59e0b', '#ef4444'][i]}
+                    />
+                  ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { GraduationCap, Plus, Search, Eye, Edit2, Trash2, X, BookOpen, Award, Clock, Calendar } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { DiklatRecord } from '../types';
+import type { DiklatRecord } from '../types';
 import { toast } from 'sonner';
 
 const jenisConfig = {

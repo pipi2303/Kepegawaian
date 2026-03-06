@@ -2,9 +2,11 @@ import React, { useState, useEffect, Suspense, memo } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import {
   LayoutDashboard, Users, Clock, CalendarDays, Briefcase,
-  TrendingUp, Target, FileBarChart2, Settings, LogOut,
-  Menu, Bell, Search, ChevronDown,
+  TrendingUp, Target, FileBarChart2, LogOut,
+  Menu, Bell, ChevronDown, Search, Settings,
   Hospital, UserCircle, ChevronLeft, ShieldAlert, GraduationCap, Mail,
+  ShieldCheck, HeartPulse, DollarSign, CalendarClock, Heart,
+  FileSignature, Award, ArrowRightLeft, Users2, Scale,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { toast } from 'sonner';
@@ -20,13 +22,16 @@ const menuItems = [
     section: 'DATA PEGAWAI',
     items: [
       { path: '/pegawai', label: 'Data Pegawai', icon: Users },
+      { path: '/mutasi', label: 'Mutasi & Rotasi', icon: ArrowRightLeft },
+      { path: '/penghargaan', label: 'Penghargaan', icon: Award },
     ],
   },
   {
-    section: 'KEHADIRAN & CUTI',
+    section: 'KEHADIRAN & JADWAL',
     items: [
       { path: '/absensi', label: 'Presensi / Absensi', icon: Clock },
       { path: '/cuti', label: 'Manajemen Cuti', icon: CalendarDays },
+      { path: '/penjadwalan', label: 'Penjadwalan Shift', icon: CalendarClock },
     ],
   },
   {
@@ -44,20 +49,32 @@ const menuItems = [
     ],
   },
   {
-    section: 'DISIPLIN',
+    section: 'KLINIS & LISENSI',
+    items: [
+      { path: '/credentialing', label: 'Credentialing & Lisensi', icon: ShieldCheck },
+      { path: '/k3rs', label: 'K3RS & Kesehatan Kerja', icon: HeartPulse },
+      { path: '/komite-rs', label: 'Komite Rumah Sakit', icon: Users2 },
+    ],
+  },
+  {
+    section: 'KEPEGAWAIAN',
+    items: [
+      { path: '/penggajian', label: 'Penggajian & Tunjangan', icon: DollarSign },
+      { path: '/bpjs', label: 'BPJS Ketenagakerjaan', icon: Heart },
+      { path: '/kontrak', label: 'Kontrak Kerja', icon: FileSignature },
+    ],
+  },
+  {
+    section: 'DISIPLIN & HUKUM',
     items: [
       { path: '/disiplin', label: 'Disiplin Pegawai', icon: ShieldAlert },
+      { path: '/hubungan-industrial', label: 'Hubungan Industrial', icon: Scale },
     ],
   },
   {
-    section: 'SURAT & DOKUMEN',
+    section: 'SURAT & LAPORAN',
     items: [
       { path: '/surat-kepegawaian', label: 'Surat Kepegawaian', icon: Mail },
-    ],
-  },
-  {
-    section: 'LAPORAN',
-    items: [
       { path: '/laporan', label: 'Laporan & Statistik', icon: FileBarChart2 },
     ],
   },

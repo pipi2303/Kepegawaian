@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { Search, Plus, Filter, Eye, Edit2, Trash2, Download, Upload, Users, ChevronDown, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { Pegawai } from '../types';
+import type { Pegawai } from '../types';
 import { UNIT_KERJA } from '../data/constants';
 import { toast } from 'sonner';
 

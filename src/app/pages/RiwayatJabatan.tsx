@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Briefcase, Plus, Search, X, Eye, Edit2, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { RiwayatJabatan as RJType } from '../types';
+import type { RiwayatJabatan as RJType } from '../types';
 import { toast } from 'sonner';
 
 const jenisColor: Record<string, string> = {

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { CalendarDays, Plus, Check, X, Clock, Info, Search, Download, Eye, Edit2, Trash2, CheckCircle, XCircle, ChevronRight } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { CutiRecord } from '../types';
+import type { CutiRecord } from '../types';
 import { JENIS_CUTI } from '../data/constants';
 import { toast } from 'sonner';
 

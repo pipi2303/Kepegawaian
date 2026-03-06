@@ -5,7 +5,7 @@ import {
   Download, Info, CheckCircle, Building, Calendar, Hash,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { Pegawai } from '../types';
+import type { Pegawai } from '../types';
 import { toast } from 'sonner';
 
 // ─── Types ──────────────────────────────────────────────────────────────────

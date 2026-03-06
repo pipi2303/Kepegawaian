@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { ShieldAlert, Plus, Search, Eye, Edit2, Trash2, X, AlertTriangle, CheckCircle, Clock, FileText } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { DisiplinRecord } from '../types';
+import type { DisiplinRecord } from '../types';
 import { toast } from 'sonner';
 
 const tingkatConfig = {
