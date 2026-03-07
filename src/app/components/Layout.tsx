@@ -6,7 +6,7 @@ import {
   Menu, Bell, ChevronDown, Search, Settings,
   Hospital, UserCircle, ChevronLeft, ShieldAlert, GraduationCap, Mail,
   ShieldCheck, HeartPulse, DollarSign, CalendarClock, Heart,
-  FileSignature, Award, ArrowRightLeft, Users2, Scale,
+  FileSignature, Award, ArrowRightLeft, Users2, Scale, Network,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { toast } from 'sonner';
@@ -22,6 +22,7 @@ const menuItems = [
     section: 'DATA PEGAWAI',
     items: [
       { path: '/pegawai', label: 'Data Pegawai', icon: Users },
+      { path: '/organisasi', label: 'Struktur Organisasi', icon: Network },
       { path: '/mutasi', label: 'Mutasi & Rotasi', icon: ArrowRightLeft },
       { path: '/penghargaan', label: 'Penghargaan', icon: Award },
     ],

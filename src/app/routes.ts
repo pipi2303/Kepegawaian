@@ -28,12 +28,13 @@ const Penghargaan      = lazy(() => import('./pages/Penghargaan'));
 const Mutasi           = lazy(() => import('./pages/Mutasi'));
 const KomiteRS         = lazy(() => import('./pages/KomiteRS'));
 const HubunganIndustrial = lazy(() => import('./pages/HubunganIndustrial'));
+const OrganisasiTree     = lazy(() => import('./pages/OrganisasiTree'));
 
 // ─── Router Singleton ─────────────────────────────────────────────────────────
 // Menggunakan globalThis singleton agar HMR tidak membuat instance router baru.
 // Router baru yang di-pass ke RouterProvider yang sudah mount akan menyebabkan
 // Layout di-render sebentar di luar konteks Router (error useNavigate).
-const ROUTER_KEY = '__hrAppRouter';
+const ROUTER_KEY = '__hrAppRouter_v2';
 type RouterType = ReturnType<typeof createBrowserRouter>;
 
 export const router: RouterType =
@@ -67,6 +68,7 @@ export const router: RouterType =
           { path: 'mutasi',                   Component: Mutasi },
           { path: 'komite-rs',                Component: KomiteRS },
           { path: 'hubungan-industrial',      Component: HubunganIndustrial },
+          { path: 'organisasi',               Component: OrganisasiTree },
         ],
       },
     ]);
