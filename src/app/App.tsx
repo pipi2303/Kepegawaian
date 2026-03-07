@@ -1,8 +1,6 @@
 import React from 'react';
 import { RouterProvider } from 'react-router';
-import { Toaster } from 'sonner';
 import { router } from './routes';
-import { AppProvider } from './context/AppContext';
 
 // ─── Error Boundary untuk menangkap lazy-loading failures ────────────────────
 interface ErrorBoundaryState {
@@ -86,10 +84,7 @@ class AppErrorBoundary extends React.Component<
 export default function App() {
   return (
     <AppErrorBoundary>
-      <AppProvider>
-        <RouterProvider router={router} />
-        <Toaster position="top-right" richColors closeButton />
-      </AppProvider>
+      <RouterProvider router={router} />
     </AppErrorBoundary>
   );
 }

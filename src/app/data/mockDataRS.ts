@@ -95,7 +95,7 @@ export const dataCredentialing: CredentialingRecord[] = [
     statusKredensial: 'Selesai',
     kewenangan: kewenanganDokterSpesialisPD,
     rekomendasiKomite: 'Diberikan seluruh kewenangan klinis sesuai kompetensi',
-    disetujuiOleh: 'dr. Hendra Gunawan, Sp.Rad (Ketua Komite Medik)',
+    disetujuiOleh: 'dr. Hotmen Sijabat, Sp.PD (Ketua Komite Medik)',
     catatanKomite: 'Telah menjalani kredensial ulang dengan hasil baik',
   },
   {
@@ -104,7 +104,7 @@ export const dataCredentialing: CredentialingRecord[] = [
     statusKredensial: 'Selesai',
     kewenangan: kewenanganPerawatAhliMuda,
     rekomendasiKomite: 'Disetujui penuh dengan catatan perlu peningkatan kompetensi keperawatan intensif',
-    disetujuiOleh: 'Maya Anggraeni, S.Kep., Ners, M.Kep (Ketua Komite Keperawatan)',
+    disetujuiOleh: 'dr. Asih Hendrastuti, M.Kes (Ketua Komite Keperawatan)',
   },
   {
     id: 'CR003', pegawaiId: 'P002', jenis: 'Kredensial Awal',
@@ -122,7 +122,7 @@ export const dataCredentialing: CredentialingRecord[] = [
       { id: 'KW021', kode: 'BD-02', namaKewenangan: 'Laparotomi Eksplorasi', kategori: 'Bedah Umum', level: 'Mandiri' },
       { id: 'KW022', kode: 'BD-03', namaKewenangan: 'Bedah Onkologi', kategori: 'Bedah Onkologi', level: 'Dengan Supervisi' },
     ],
-    disetujuiOleh: 'dr. Hendra Gunawan, Sp.Rad (Ketua Komite Medik)',
+    disetujuiOleh: 'dr. Hotmen Sijabat, Sp.PD (Ketua Komite Medik)',
   },
   {
     id: 'CR005', pegawaiId: 'P011', jenis: 'Re-kredensial',
@@ -315,33 +315,33 @@ const shiftDates = ['2026-03-09', '2026-03-10', '2026-03-11', '2026-03-12', '202
 
 export const dataJadwalShift: JadwalShift[] = [
   // IGD - P006, P018
-  { id: 'JS001', pegawaiId: 'P006', tanggal: '2026-03-09', jenisShift: 'Pagi', jamMulai: '07:00', jamSelesai: '14:00', unitKerja: 'Instalasi Gawat Darurat (IGD)', status: 'Aktif' },
-  { id: 'JS002', pegawaiId: 'P006', tanggal: '2026-03-10', jenisShift: 'Malam', jamMulai: '21:00', jamSelesai: '07:00', unitKerja: 'Instalasi Gawat Darurat (IGD)', status: 'Aktif' },
-  { id: 'JS003', pegawaiId: 'P006', tanggal: '2026-03-11', jenisShift: 'Lepas', unitKerja: 'Instalasi Gawat Darurat (IGD)', status: 'Aktif' },
-  { id: 'JS004', pegawaiId: 'P006', tanggal: '2026-03-12', jenisShift: 'Sore', jamMulai: '14:00', jamSelesai: '21:00', unitKerja: 'Instalasi Gawat Darurat (IGD)', status: 'Aktif' },
-  { id: 'JS005', pegawaiId: 'P018', tanggal: '2026-03-09', jenisShift: 'Sore', jamMulai: '14:00', jamSelesai: '21:00', unitKerja: 'Instalasi Rawat Inap', status: 'Aktif' },
-  { id: 'JS006', pegawaiId: 'P018', tanggal: '2026-03-10', jenisShift: 'Pagi', jamMulai: '07:00', jamSelesai: '14:00', unitKerja: 'Instalasi Rawat Inap', status: 'Aktif' },
-  { id: 'JS007', pegawaiId: 'P018', tanggal: '2026-03-11', jenisShift: 'Malam', jamMulai: '21:00', jamSelesai: '07:00', unitKerja: 'Instalasi Rawat Inap', status: 'Aktif' },
-  { id: 'JS008', pegawaiId: 'P018', tanggal: '2026-03-13', jenisShift: 'Libur', unitKerja: 'Instalasi Rawat Inap', status: 'Aktif' },
-  // Rawat Inap - P003, P015
-  { id: 'JS009', pegawaiId: 'P003', tanggal: '2026-03-09', jenisShift: 'Pagi', jamMulai: '07:00', jamSelesai: '14:00', unitKerja: 'Instalasi Rawat Inap', status: 'Aktif' },
-  { id: 'JS010', pegawaiId: 'P003', tanggal: '2026-03-10', jenisShift: 'Pagi', jamMulai: '07:00', jamSelesai: '14:00', unitKerja: 'Instalasi Rawat Inap', status: 'Aktif' },
-  { id: 'JS011', pegawaiId: 'P003', tanggal: '2026-03-11', jenisShift: 'Sore', jamMulai: '14:00', jamSelesai: '21:00', unitKerja: 'Instalasi Rawat Inap', status: 'Swap', keterangan: 'Tukar shift dengan Dini Fitriani' },
-  { id: 'JS012', pegawaiId: 'P012', tanggal: '2026-03-09', jenisShift: 'Pagi', jamMulai: '07:00', jamSelesai: '14:00', unitKerja: 'Instalasi Kebidanan & Kandungan', status: 'Aktif' },
-  { id: 'JS013', pegawaiId: 'P012', tanggal: '2026-03-10', jenisShift: 'Malam', jamMulai: '21:00', jamSelesai: '07:00', unitKerja: 'Instalasi Kebidanan & Kandungan', status: 'Aktif' },
-  // Dokter On-Call
-  { id: 'JS014', pegawaiId: 'P001', tanggal: '2026-03-09', jenisShift: 'On-Call', unitKerja: 'Instalasi Rawat Jalan', keterangan: 'On-call spesialis PD', status: 'Aktif' },
-  { id: 'JS015', pegawaiId: 'P005', tanggal: '2026-03-10', jenisShift: 'On-Call', unitKerja: 'Instalasi Bedah Sentral (IBS)', keterangan: 'On-call bedah', status: 'Aktif' },
-  { id: 'JS016', pegawaiId: 'P011', tanggal: '2026-03-11', jenisShift: 'On-Call', unitKerja: 'Instalasi Radiologi', keterangan: 'On-call radiologi', status: 'Aktif' },
-  { id: 'JS017', pegawaiId: 'P002', tanggal: '2026-03-12', jenisShift: 'On-Call', unitKerja: 'Instalasi Gawat Darurat (IGD)', keterangan: 'On-call dokter umum', status: 'Aktif' },
-  // Lab
-  { id: 'JS018', pegawaiId: 'P009', tanggal: '2026-03-09', jenisShift: 'Pagi', jamMulai: '07:00', jamSelesai: '14:00', unitKerja: 'Instalasi Laboratorium', status: 'Aktif' },
-  { id: 'JS019', pegawaiId: 'P009', tanggal: '2026-03-10', jenisShift: 'Sore', jamMulai: '14:00', jamSelesai: '21:00', unitKerja: 'Instalasi Laboratorium', status: 'Aktif' },
-  { id: 'JS020', pegawaiId: 'P009', tanggal: '2026-03-13', jenisShift: 'Malam', jamMulai: '21:00', jamSelesai: '07:00', unitKerja: 'Instalasi Laboratorium', status: 'Aktif' },
+  { id: 'JS001', pegawaiId: 'P006', tanggal: '2026-03-09', jenisShift: 'Pagi', jamMulai: '07:00', jamSelesai: '14:00', unitKerja: 'Bidang Pelayanan Medik', status: 'Aktif' },
+  { id: 'JS002', pegawaiId: 'P006', tanggal: '2026-03-10', jenisShift: 'Malam', jamMulai: '21:00', jamSelesai: '07:00', unitKerja: 'IGD', status: 'Aktif' },
+  { id: 'JS003', pegawaiId: 'P006', tanggal: '2026-03-11', jenisShift: 'Lepas', unitKerja: 'IGD', status: 'Aktif' },
+  { id: 'JS004', pegawaiId: 'P006', tanggal: '2026-03-12', jenisShift: 'Sore', jamMulai: '14:00', jamSelesai: '21:00', unitKerja: 'IGD', status: 'Aktif' },
+  { id: 'JS005', pegawaiId: 'P018', tanggal: '2026-03-09', jenisShift: 'Sore', jamMulai: '14:00', jamSelesai: '21:00', unitKerja: 'Bidang Pengembangan SDM', status: 'Aktif' },
+  { id: 'JS006', pegawaiId: 'P018', tanggal: '2026-03-10', jenisShift: 'Pagi', jamMulai: '07:00', jamSelesai: '14:00', unitKerja: 'Bidang Pengembangan SDM', status: 'Aktif' },
+  { id: 'JS007', pegawaiId: 'P018', tanggal: '2026-03-11', jenisShift: 'Malam', jamMulai: '21:00', jamSelesai: '07:00', unitKerja: 'Bidang Pengembangan SDM', status: 'Aktif' },
+  { id: 'JS008', pegawaiId: 'P018', tanggal: '2026-03-13', jenisShift: 'Libur', unitKerja: 'Bidang Pengembangan SDM', status: 'Aktif' },
+  // Wakil Direktur - P003
+  { id: 'JS009', pegawaiId: 'P003', tanggal: '2026-03-09', jenisShift: 'Pagi', jamMulai: '07:00', jamSelesai: '14:00', unitKerja: 'Wakil Direktur Umum dan Keuangan', status: 'Aktif' },
+  { id: 'JS010', pegawaiId: 'P003', tanggal: '2026-03-10', jenisShift: 'Pagi', jamMulai: '07:00', jamSelesai: '14:00', unitKerja: 'Wakil Direktur Umum dan Keuangan', status: 'Aktif' },
+  { id: 'JS011', pegawaiId: 'P003', tanggal: '2026-03-11', jenisShift: 'Sore', jamMulai: '14:00', jamSelesai: '21:00', unitKerja: 'Wakil Direktur Umum dan Keuangan', status: 'Swap', keterangan: 'Tukar jadwal dengan dr. Mira Yustiawati' },
+  { id: 'JS012', pegawaiId: 'P012', tanggal: '2026-03-09', jenisShift: 'Pagi', jamMulai: '07:00', jamSelesai: '14:00', unitKerja: 'Bidang Keperawatan', status: 'Aktif' },
+  { id: 'JS013', pegawaiId: 'P012', tanggal: '2026-03-10', jenisShift: 'Malam', jamMulai: '21:00', jamSelesai: '07:00', unitKerja: 'Bidang Keperawatan', status: 'Aktif' },
+  // Direktur On-Call
+  { id: 'JS014', pegawaiId: 'P001', tanggal: '2026-03-09', jenisShift: 'On-Call', unitKerja: 'Direktur', keterangan: 'On-call Direktur', status: 'Aktif' },
+  { id: 'JS015', pegawaiId: 'P005', tanggal: '2026-03-10', jenisShift: 'On-Call', unitKerja: 'Bagian Keuangan', keterangan: 'On-call Kabag Keuangan', status: 'Aktif' },
+  { id: 'JS016', pegawaiId: 'P011', tanggal: '2026-03-11', jenisShift: 'On-Call', unitKerja: 'Bagian Umum', keterangan: 'On-call Kabag Umum', status: 'Aktif' },
+  { id: 'JS017', pegawaiId: 'P002', tanggal: '2026-03-12', jenisShift: 'On-Call', unitKerja: 'Wakil Direktur Pend, Peng. SDM dan Hukum', keterangan: 'On-call Wakil Direktur', status: 'Aktif' },
+  // Penunjang Medik
+  { id: 'JS018', pegawaiId: 'P009', tanggal: '2026-03-09', jenisShift: 'Pagi', jamMulai: '07:00', jamSelesai: '14:00', unitKerja: 'Bidang Pengembangan SDM', status: 'Aktif' },
+  { id: 'JS019', pegawaiId: 'P009', tanggal: '2026-03-10', jenisShift: 'Sore', jamMulai: '14:00', jamSelesai: '21:00', unitKerja: 'Bidang Pengembangan SDM', status: 'Aktif' },
+  { id: 'JS020', pegawaiId: 'P009', tanggal: '2026-03-13', jenisShift: 'Malam', jamMulai: '21:00', jamSelesai: '07:00', unitKerja: 'Bidang Pengembangan SDM', status: 'Aktif' },
   ...shiftDates.map((tgl, i) => ({
     id: `JS${21 + i}`, pegawaiId: 'P004', tanggal: tgl,
     jenisShift: 'Pagi' as const, jamMulai: '08:00', jamSelesai: '16:00',
-    unitKerja: 'Instalasi Farmasi', status: 'Aktif' as const,
+    unitKerja: 'Wakil Direktur Keperawatan, Pelayanan dan Penunjang Medik', status: 'Aktif' as const,
   })),
 ];
 
@@ -408,7 +408,7 @@ export const dataAnggotaKomite: AnggotaKomite[] = [
 ];
 
 export const dataKegiatanKomite: KegiatanKomite[] = [
-  { id: 'KK001', namaKomite: 'Komite Medik', tanggal: '2026-03-05', jenisKegiatan: 'Rapat Rutin', agenda: 'Evaluasi pelaksanaan kredensial dokter, review insiden medis Februari 2026', peserta: ['P011', 'P001', 'P005', 'P002'], status: 'Selesai', hasilKeputusan: 'Kredensial dr. Siti Rahayu dan dr. Hendra Gunawan dilanjutkan ke tahap peer review' },
+  { id: 'KK001', namaKomite: 'Komite Medik', tanggal: '2026-03-05', jenisKegiatan: 'Rapat Rutin', agenda: 'Evaluasi pelaksanaan kredensial dokter, review insiden medis Februari 2026', peserta: ['P011', 'P001', 'P005', 'P002'], status: 'Selesai', hasilKeputusan: 'Kredensial dr. Edy Ramdhani dan dr. Mira Yustiawati dilanjutkan ke tahap peer review' },
   { id: 'KK002', namaKomite: 'Komite Keperawatan', tanggal: '2026-03-10', jenisKegiatan: 'Sidang Kredensial', agenda: 'Kredensial ulang 5 perawat unit ICU/ICCU yang masa kredensialnya akan habis', peserta: ['P017', 'P003', 'P015'], status: 'Dijadwalkan', hasilKeputusan: '' },
   { id: 'KK003', namaKomite: 'Komite K3RS', tanggal: '2026-02-28', jenisKegiatan: 'Rapat Rutin', agenda: 'Review insiden K3 Januari-Februari 2026, evaluasi program vaksinasi nakes', peserta: ['P013', 'P016'], status: 'Selesai', hasilKeputusan: 'Percepatan vaksinasi Hepatitis B untuk 3 nakes yang belum lengkap, perbaikan SOP handling jarum suntik' },
   { id: 'KK004', namaKomite: 'Komite Medik', tanggal: '2026-03-20', jenisKegiatan: 'Sidang Disiplin', agenda: 'Evaluasi dugaan pelanggaran etik profesi medis - kasus DR-001/2026', peserta: ['P011', 'P001', 'P002', 'P019'], status: 'Dijadwalkan', hasilKeputusan: '' },
@@ -417,9 +417,9 @@ export const dataKegiatanKomite: KegiatanKomite[] = [
 
 // ─── HUBUNGAN INDUSTRIAL ──────────────────────────────────────────────────────
 export const dataGrievance: GrievanceRecord[] = [
-  { id: 'GR001', pegawaiId: 'P018', tanggalPengaduan: '2026-01-10', kategori: 'Kontrak', deskripsi: 'Pegawai mengajukan keberatan atas tidak diperpanjangnya kontrak sementara kinerja dinilai baik', status: 'Selesai', resolusi: 'Kontrak diperpanjang 1 tahun setelah evaluasi ulang oleh manajemen', tanggalResolusi: '2026-01-25', mediator: 'Budi Santoso, S.E (Kasubag Kepegawaian)' },
-  { id: 'GR002', pegawaiId: 'P006', tanggalPengaduan: '2026-02-05', kategori: 'Keselamatan Kerja', deskripsi: 'Perawat IGD mengadukan kurangnya APD (sarung tangan nitril) yang tersedia di unit kerja sehingga berisiko pajanan', status: 'Selesai', resolusi: 'Pengadaan APD dipercepat, stok APD di IGD ditambah, SOP permintaan APD disederhanakan', tanggalResolusi: '2026-02-15', mediator: 'Teguh Prasetyo, S.T (K3RS)' },
-  { id: 'GR003', pegawaiId: 'P009', tanggalPengaduan: '2026-02-20', kategori: 'Gaji', deskripsi: 'Tunjangan kinerja bulan Januari 2026 tidak diterima sesuai besaran yang seharusnya', status: 'Mediasi', mediator: 'Sri Wahyuni, S.E., M.M (Kabag TU)' },
+  { id: 'GR001', pegawaiId: 'P018', tanggalPengaduan: '2026-01-10', kategori: 'Kontrak', deskripsi: 'Pegawai mengajukan keberatan atas tidak diperpanjangnya kontrak sementara kinerja dinilai baik', status: 'Selesai', resolusi: 'Kontrak diperpanjang 1 tahun setelah evaluasi ulang oleh manajemen', tanggalResolusi: '2026-01-25', mediator: 'Sabariah Hasan, S.E (Kepala Bagian Umum)' },
+  { id: 'GR002', pegawaiId: 'P006', tanggalPengaduan: '2026-02-05', kategori: 'Keselamatan Kerja', deskripsi: 'Perawat IGD mengadukan kurangnya APD (sarung tangan nitril) yang tersedia di unit kerja sehingga berisiko pajanan', status: 'Selesai', resolusi: 'Pengadaan APD dipercepat, stok APD di IGD ditambah, SOP permintaan APD disederhanakan', tanggalResolusi: '2026-02-15', mediator: 'Akhmad Sapri, Ns., S.Kep., M.H (Kepala Bidang Hukum)' },
+  { id: 'GR003', pegawaiId: 'P009', tanggalPengaduan: '2026-02-20', kategori: 'Gaji', deskripsi: 'Tunjangan kinerja bulan Januari 2026 tidak diterima sesuai besaran yang seharusnya', status: 'Mediasi', mediator: 'Nanny Ricardini Nurzal, SE., M.Kes (Kepala Bagian Keuangan)' },
   { id: 'GR004', pegawaiId: 'P014', tanggalPengaduan: '2026-03-01', kategori: 'Lingkungan Kerja', deskripsi: 'Pengaduan tentang kondisi ruang kerja rekam medis yang panas dan kurang ventilasi', status: 'Diterima' },
 ];
 

@@ -110,6 +110,7 @@ export default function Absensi() {
   // ── Modal ──
   const [showModal, setShowModal] = useState(false);
   const [editingRecord, setEditingRecord] = useState<AbsensiRecord | null>(null);
+  const [detailRecord, setDetailRecord] = useState<AbsensiRecord | null>(null);
   const [modalForm, setModalForm] = useState<ModalForm>({
     pegawaiId: '', tanggal: '2026-03-05', status: 'Hadir',
     jamMasuk: '07:30', jamKeluar: '16:00', keterangan: '',
@@ -561,7 +562,7 @@ export default function Absensi() {
                     {filteredRecords.map((rec, i) => {
                       const p = pegawai.find(px => px.id === rec.pegawaiId);
                       return (
-                        <tr key={rec.id} className="hover:bg-gray-50/60 transition-colors group">
+                        <tr key={rec.id} className="hover:bg-gray-50/60 transition-colors group cursor-pointer" onClick={() => setDetailRecord(rec)}>
                           <td className="px-4 py-3 text-gray-400 text-xs">{i + 1}</td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2.5">
@@ -1169,6 +1170,64 @@ export default function Absensi() {
           </div>
         </div>
       )}
+
+      {/* ── Detail Record Modal ── */}
+      {detailRecord && (() => {
+        const p = pegawai.find(px => px.id === detailRecord.pegawaiId);
+        const cfg = STATUS_CONFIG[detailRecord.status] || STATUS_CONFIG['Alpha'];
+        const late = isLate(detailRecord.jamMasuk);
+        const earlyLeave = detailRecord.status === 'Hadir' && isEarlyLeave(detailRecord.jamKeluar);
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setDetailRecord(null)} />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-xl ${cfg.bg} flex items-center justify-center`}>
+                    <span className={`w-3 h-3 rounded-full ${cfg.dot}`} />
+                  </div>
+                  <h2 className="font-semibold text-gray-800">Detail Kehadiran</h2>
+                </div>
+                <button onClick={() => setDetailRecord(null)} className="p-1.5 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5 text-gray-500" /></button>
+              </div>
+              <div className="p-6 space-y-4">
+                {/* Pegawai */}
+                <div className="bg-gray-50 rounded-xl p-4 flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full ${getAvatarColor(detailRecord.pegawaiId)} flex items-center justify-center text-white font-semibold flex-shrink-0`}>
+                    {getInitials(p?.nama || '?')}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-800 text-sm">{p?.gelarDepan || ''} {p?.nama}{p?.gelarBelakang ? `, ${p.gelarBelakang}` : ''}</p>
+                    <p className="text-xs text-gray-500">{p?.jabatan}</p>
+                    <p className="text-xs text-gray-400">{p?.unitKerja}</p>
+                  </div>
+                </div>
+                <div className="space-y-2.5">
+                  {[
+                    { label: 'Tanggal', value: formatDateLong(detailRecord.tanggal) },
+                    { label: 'Status', value: <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.bg} ${cfg.color}`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}/>{cfg.label}</span> },
+                    { label: 'Jam Masuk', value: detailRecord.jamMasuk ? <span>{detailRecord.jamMasuk} {late && <span className="text-xs text-orange-500 ml-1 font-medium">Terlambat</span>}</span> : '—' },
+                    { label: 'Jam Keluar', value: detailRecord.jamKeluar ? <span>{detailRecord.jamKeluar} {earlyLeave && <span className="text-xs text-red-400 ml-1 font-medium">Pulang Cepat</span>}</span> : '—' },
+                    { label: 'Keterangan', value: detailRecord.keterangan || '—' },
+                  ].map(row => (
+                    <div key={row.label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                      <span className="text-xs text-gray-500 w-32 flex-shrink-0">{row.label}</span>
+                      <span className="text-xs font-medium text-gray-800 text-right">{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+                <button onClick={() => { setDetailRecord(null); openEditModal(detailRecord); }}
+                  className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">
+                  <Edit2 className="w-4 h-4" /> Edit
+                </button>
+                <button onClick={() => setDetailRecord(null)} className="px-4 py-2 text-sm bg-gray-800 text-white rounded-lg hover:bg-gray-900">Tutup</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

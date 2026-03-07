@@ -234,7 +234,7 @@ const initialDisiplin: DisiplinRecord[] = [
     nomorSK: 'SK/DISIPLIN/VII/2025/001',
     kronologi: 'Pegawai tidak hadir selama 3 hari berturut-turut tanpa keterangan resmi.',
     status: 'Selesai',
-    pejabatPenetap: 'dr. Bambang Suryanto, Sp.PD, M.Kes',
+    pejabatPenetap: 'dr. Imam Ghozali, Sp.An., M.Kes',
   },
   {
     id: 'D002', pegawaiId: 'P012',
@@ -367,10 +367,10 @@ const initialDiklat: DiklatRecord[] = [
 
 // ─── Mock Users ───────────────────────────────────────────────────────────────
 export const appUsers: AppUser[] = [
-  { id: 'U001', username: 'admin', password: 'admin123', nama: 'Drs. Agus Priyanto', role: 'admin', jabatan: 'Direktur RSUD', golongan: 'IV/c' },
-  { id: 'U002', username: 'direktur', password: 'dir123', nama: 'dr. Bambang Suryanto, Sp.PD', role: 'direktur', jabatan: 'Direktur Pelayanan', pegawaiId: 'P001', golongan: 'IV/b' },
-  { id: 'U003', username: 'kepala', password: 'kepala123', nama: 'Ns. Dewi Kusumawardani, S.Kep', role: 'kepala_unit', jabatan: 'Kepala Instalasi Rawat Inap', unitKerja: 'Instalasi Rawat Inap', pegawaiId: 'P003', golongan: 'III/c' },
-  { id: 'U004', username: 'pegawai', password: 'peg123', nama: 'Ahmad Fauzi, S.Farm., Apt', role: 'pegawai', jabatan: 'Apoteker Ahli Pertama', unitKerja: 'Instalasi Farmasi', pegawaiId: 'P004', golongan: 'III/b' },
+  { id: 'U001', username: 'admin', password: 'admin123', nama: 'dr. Imam Ghozali, Sp.An., M.Kes', role: 'admin', jabatan: 'Direktur RSUD Abdul Moeloek', golongan: 'IV/b' },
+  { id: 'U002', username: 'direktur', password: 'dir123', nama: 'dr. Imam Ghozali, Sp.An., M.Kes', role: 'direktur', jabatan: 'Direktur RSUD Abdul Moeloek', pegawaiId: 'P001', golongan: 'IV/b' },
+  { id: 'U003', username: 'kepala', password: 'kepala123', nama: 'dr. Asih Hendrastuti, M.Kes', role: 'kepala_unit', jabatan: 'Kepala Bidang Keperawatan', unitKerja: 'Bidang Keperawatan', pegawaiId: 'P012', golongan: 'IV/a' },
+  { id: 'U004', username: 'pegawai', password: 'peg123', nama: 'Ns. Septi Kurniasari, M.Kep, Sp.KMB', role: 'pegawai', jabatan: 'Subkoordinator Substansi Bidang Keperawatan', unitKerja: 'Bidang Keperawatan', pegawaiId: 'P013', golongan: 'IV/a' },
 ];
 
 // ─── State Types ──────────────────────────────────────────────────────────────
@@ -796,14 +796,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       {
         level: 1,
         jabatan: 'Kepala Unit Kerja',
-        nama: c.status !== 'Pending' ? 'dr. Siti Rahayu, M.Kes' : '',
+        nama: c.status !== 'Pending' ? 'dr. Surya Puspa Dewi, MARS' : '',
         status: c.status === 'Pending' ? 'Pending' as const : 'Disetujui' as const,
         tanggal: c.status !== 'Pending' ? c.tanggalPengajuan : undefined,
       },
       {
         level: 2,
         jabatan: 'Direktur RSUD',
-        nama: c.status === 'Disetujui' ? 'Drs. Agus Priyanto' : '',
+        nama: c.status === 'Disetujui' ? 'dr. Imam Ghozali, Sp.An., M.Kes' : '',
         status: c.status === 'Disetujui' ? 'Disetujui' as const : c.status === 'Ditolak' ? 'Ditolak' as const : 'Pending' as const,
         tanggal: c.status === 'Disetujui' ? c.tanggalPengajuan : undefined,
       },

@@ -46,8 +46,8 @@ export default function Dashboard() {
 
   // Recent activities
   const recentActivities = [
-    { id: 1, text: 'Pengajuan cuti Dewi Kusumawardani disetujui', time: '5 menit lalu', type: 'cuti' },
-    { id: 2, text: 'Kenaikan pangkat Wahyu Hidayat periode April 2026', time: '1 jam lalu', type: 'pangkat' },
+    { id: 1, text: 'Pengajuan cuti Ns. Jumiah, S.Kep disetujui', time: '5 menit lalu', type: 'cuti' },
+    { id: 2, text: 'Kenaikan pangkat Susilawati, SKM., MM periode April 2026', time: '1 jam lalu', type: 'pangkat' },
     { id: 3, text: 'Absensi hari ini: 215 hadir dari 219 pegawai', time: '2 jam lalu', type: 'absensi' },
     { id: 4, text: 'SKP Semester 1 2026 untuk 12 pegawai telah ditetapkan', time: '1 hari lalu', type: 'skp' },
   ];

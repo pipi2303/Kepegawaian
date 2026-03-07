@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Award, Search, Plus, Edit2, Trash2, X, Star } from 'lucide-react';
+import { Award, Search, Plus, Edit2, Trash2, X, Star, Eye } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import type { PenghargaanRecord, JenisPenghargaan } from '../types';
 import { toast } from 'sonner';
@@ -22,6 +22,8 @@ export default function Penghargaan() {
   const [search, setSearch] = useState('');
   const [filterTingkat, setFilterTingkat] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [detailData, setDetailData] = useState<PenghargaanRecord | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
@@ -60,6 +62,8 @@ export default function Penghargaan() {
     else { addPenghargaan(form); toast.success('Penghargaan berhasil ditambahkan'); }
     setShowModal(false);
   };
+
+  const openDetail = (p: PenghargaanRecord) => { setDetailData(p); setShowDetailModal(true); };
 
   return (
     <div className="p-4 lg:p-6 space-y-5">
@@ -126,7 +130,7 @@ export default function Penghargaan() {
             <tbody className="divide-y divide-gray-50">
               {filtered.length === 0 ? <tr><td colSpan={6} className="py-10 text-center text-gray-400">Tidak ada data penghargaan</td></tr>
                 : filtered.map(p => (
-                  <tr key={p.id} className="hover:bg-gray-50/60">
+                  <tr key={p.id} className="hover:bg-gray-50/60 cursor-pointer transition-colors" onClick={() => openDetail(p)}>
                     <td className="px-4 py-3.5"><p className="font-medium text-sm text-gray-800">{getFullName(p.pegawaiId)}</p><p className="text-xs text-gray-400">{pegawai.find(x => x.id === p.pegawaiId)?.jabatan}</p></td>
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-2">
@@ -138,8 +142,9 @@ export default function Penghargaan() {
                     <td className="px-4 py-3.5 hidden md:table-cell text-xs text-gray-600">{p.instansiPemberi}</td>
                     <td className="px-4 py-3.5 hidden lg:table-cell text-xs text-gray-500">{fmtDate(p.tanggalPemberian)}</td>
                     <td className="px-4 py-3.5 text-center"><span className={`text-xs px-2.5 py-1 rounded-full font-medium ${tingkatConfig[p.tingkat]}`}>{p.tingkat}</span></td>
-                    <td className="px-4 py-3.5 text-center">
+                    <td className="px-4 py-3.5 text-center" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center justify-center gap-1">
+                        <button onClick={() => openDetail(p)} className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-600" title="Detail"><Eye className="w-3.5 h-3.5" /></button>
                         <button onClick={() => { setEditId(p.id); setForm({ pegawaiId: p.pegawaiId, jenisPenghargaan: p.jenisPenghargaan, tanggalPemberian: p.tanggalPemberian, nomorSK: p.nomorSK || '', instansiPemberi: p.instansiPemberi, tingkat: p.tingkat, keterangan: p.keterangan || '' }); setShowModal(true); }} className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-600"><Edit2 className="w-3.5 h-3.5" /></button>
                         <button onClick={() => setShowDeleteConfirm(p.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
@@ -150,6 +155,62 @@ export default function Penghargaan() {
           </table>
         </div>
       </div>
+
+      {/* Detail Modal */}
+      {showDetailModal && detailData && (() => {
+        const pg = pegawai.find(x => x.id === detailData.pegawaiId);
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDetailModal(false)} />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-yellow-100 flex items-center justify-center">
+                    <Star className="w-4 h-4 text-yellow-600" />
+                  </div>
+                  <h2 className="font-semibold text-gray-800">Detail Penghargaan</h2>
+                </div>
+                <button onClick={() => setShowDetailModal(false)} className="p-1.5 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5 text-gray-500" /></button>
+              </div>
+              <div className="p-6 space-y-4">
+                {/* Pegawai */}
+                <div className="bg-gray-50 rounded-xl p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                    {pg?.nama.charAt(0) || '?'}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-800 text-sm">{getFullName(detailData.pegawaiId)}</p>
+                    <p className="text-xs text-gray-500">{pg?.jabatan} · {pg?.unitKerja}</p>
+                    <p className="text-xs text-gray-400">NIP {pg?.nip}</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {[
+                    { label: 'Jenis Penghargaan', value: detailData.jenisPenghargaan },
+                    { label: 'Tingkat', value: <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${tingkatConfig[detailData.tingkat]}`}>{detailData.tingkat}</span> },
+                    { label: 'Instansi Pemberi', value: detailData.instansiPemberi || '—' },
+                    { label: 'Tanggal Pemberian', value: fmtDate(detailData.tanggalPemberian) },
+                    { label: 'Nomor SK', value: detailData.nomorSK || '—' },
+                    { label: 'Keterangan', value: detailData.keterangan || '—' },
+                  ].map(row => (
+                    <div key={row.label} className="flex items-start justify-between gap-4 py-2 border-b border-gray-50 last:border-0">
+                      <span className="text-xs text-gray-500 flex-shrink-0 w-40">{row.label}</span>
+                      <span className="text-xs font-medium text-gray-800 text-right">{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+                <button onClick={() => { setShowDetailModal(false); setEditId(detailData.id); setForm({ pegawaiId: detailData.pegawaiId, jenisPenghargaan: detailData.jenisPenghargaan, tanggalPemberian: detailData.tanggalPemberian, nomorSK: detailData.nomorSK || '', instansiPemberi: detailData.instansiPemberi, tingkat: detailData.tingkat, keterangan: detailData.keterangan || '' }); setShowModal(true); }}
+                  className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">
+                  <Edit2 className="w-4 h-4" /> Edit
+                </button>
+                <button onClick={() => setShowDetailModal(false)} className="px-4 py-2 text-sm bg-gray-800 text-white rounded-lg hover:bg-gray-900">Tutup</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

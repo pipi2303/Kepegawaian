@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, memo } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router';
+import { NavLink, Outlet } from 'react-router';
 import {
   LayoutDashboard, Users, Clock, CalendarDays, Briefcase,
   TrendingUp, Target, FileBarChart2, LogOut,
@@ -89,9 +89,9 @@ const roleLabel: Record<string, string> = {
 };
 
 const notifications = [
-  { id: 1, text: 'Pengajuan cuti Dewi Kusumawardani menunggu persetujuan', time: '5 mnt lalu', type: 'cuti' },
-  { id: 2, text: 'Kenaikan pangkat Wahyu Hidayat periode April 2026 siap diproses', time: '1 jam lalu', type: 'pangkat' },
-  { id: 3, text: 'Pengajuan cuti Budi Santoso menunggu persetujuan', time: '2 jam lalu', type: 'cuti' },
+  { id: 1, text: 'Pengajuan cuti Ns. Jumiah, S.Kep menunggu persetujuan', time: '5 mnt lalu', type: 'cuti' },
+  { id: 2, text: 'Kenaikan pangkat Susilawati, SKM., MM periode April 2026 siap diproses', time: '1 jam lalu', type: 'pangkat' },
+  { id: 3, text: 'Pengajuan cuti dr. Marzuqi Sayuti menunggu persetujuan', time: '2 jam lalu', type: 'cuti' },
   { id: 4, text: '3 pegawai akan memasuki batas pensiun dalam 2 tahun', time: '1 hari lalu', type: 'info' },
   { id: 5, text: 'SKP semester 1 tahun 2026 belum ditetapkan untuk 8 pegawai', time: '2 hari lalu', type: 'skp' },
 ];
@@ -181,24 +181,31 @@ const SidebarContent = memo(({ sidebarOpen, currentUser, onLogout, setMobileSide
 
 SidebarContent.displayName = 'SidebarContent';
 
+// ─── Layout ───────────────────────────────────────────────────────────────────
+// PENTING: Layout TIDAK menggunakan useNavigate() sama sekali.
+// Navigasi auth (redirect ke /login) ditangani via window.location agar Layout
+// tidak bergantung pada React Router context — mencegah error "useNavigate()
+// may be used only in the context of a <Router> component" saat HMR router swap.
 function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const navigate = useNavigate();
   const { isLoggedIn, currentUser, logout } = useAppContext();
 
+  // Redirect ke login jika belum authenticated — gunakan window.location,
+  // bukan useNavigate(), agar tidak bergantung pada Router context.
   useEffect(() => {
     if (!isLoggedIn) {
-      navigate('/login', { replace: true });
+      window.location.replace('/login');
     }
-  }, [isLoggedIn, navigate]);
+  }, [isLoggedIn]);
 
   const handleLogout = () => {
     logout();
     toast.success('Anda berhasil keluar dari HR APP');
-    navigate('/login');
+    // Gunakan window.location untuk menghindari ketergantungan pada useNavigate()
+    window.location.href = '/login';
   };
 
   if (!isLoggedIn) return null;

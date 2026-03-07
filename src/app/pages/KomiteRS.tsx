@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Users2, Search, Plus, Edit2, Trash2, X, Calendar, ChevronRight, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { Users2, Search, Plus, Edit2, Trash2, X, Calendar, ChevronRight, CheckCircle, Clock, AlertCircle, Eye } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import type { AnggotaKomite, KegiatanKomite } from '../types';
 import { toast } from 'sonner';
@@ -28,6 +28,8 @@ export default function KomiteRS() {
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [detailAnggota, setDetailAnggota] = useState<AnggotaKomite | null>(null);
+  const [detailKegiatan, setDetailKegiatan] = useState<KegiatanKomite | null>(null);
 
   const emptyAnggota: Omit<AnggotaKomite, 'id'> = { pegawaiId: '', namaKomite: 'Komite Medik', subKomite: '', jabatanKomite: '', tanggalMulai: '', tanggalSelesai: '', statusKomite: 'Aktif', nomorSK: '' };
   const emptyKegiatan: Omit<KegiatanKomite, 'id'> = { namaKomite: 'Komite Medik', tanggal: '', jenisKegiatan: 'Rapat Rutin', agenda: '', peserta: [], status: 'Dijadwalkan', hasilKeputusan: '' };
@@ -130,15 +132,16 @@ export default function KomiteRS() {
               <tbody className="divide-y divide-gray-50">
                 {filteredAnggota.length === 0 ? <tr><td colSpan={7} className="py-10 text-center text-gray-400">Tidak ada data</td></tr>
                   : filteredAnggota.map(a => (
-                    <tr key={a.id} className="hover:bg-gray-50/60">
+                    <tr key={a.id} className="hover:bg-gray-50/60 cursor-pointer transition-colors" onClick={() => setDetailAnggota(a)}>
                       <td className="px-4 py-3.5"><p className="font-medium text-sm text-gray-800">{getFullName(a.pegawaiId)}</p><p className="text-xs text-gray-400">{pegawai.find(p => p.id === a.pegawaiId)?.jabatan}</p></td>
                       <td className="px-4 py-3.5"><span className={`text-xs px-2 py-0.5 rounded font-medium ${komiteColor[a.namaKomite]}`}>{a.namaKomite}</span></td>
                       <td className="px-4 py-3.5 hidden md:table-cell text-xs text-gray-500">{a.subKomite || '—'}</td>
                       <td className="px-4 py-3.5 text-xs font-medium text-gray-700">{a.jabatanKomite}</td>
                       <td className="px-4 py-3.5 hidden lg:table-cell text-xs text-gray-500">{fmtDate(a.tanggalMulai)} — {a.tanggalSelesai ? fmtDate(a.tanggalSelesai) : 'Sekarang'}</td>
                       <td className="px-4 py-3.5 text-center"><span className={`text-xs px-2.5 py-1 rounded-full font-medium ${a.statusKomite === 'Aktif' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{a.statusKomite}</span></td>
-                      <td className="px-4 py-3.5 text-center">
+                      <td className="px-4 py-3.5 text-center" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-center gap-1">
+                          <button onClick={() => setDetailAnggota(a)} className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-600"><Eye className="w-3.5 h-3.5" /></button>
                           <button onClick={() => { setEditId(a.id); setFormAnggota({ pegawaiId: a.pegawaiId, namaKomite: a.namaKomite, subKomite: a.subKomite || '', jabatanKomite: a.jabatanKomite, tanggalMulai: a.tanggalMulai, tanggalSelesai: a.tanggalSelesai || '', statusKomite: a.statusKomite, nomorSK: a.nomorSK || '' }); setShowModal(true); }} className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-600"><Edit2 className="w-3.5 h-3.5" /></button>
                           <button onClick={() => setShowDeleteConfirm(a.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
@@ -168,15 +171,16 @@ export default function KomiteRS() {
                   : filteredKegiatan.map(k => {
                     const sc = statusKegiatanConfig[k.status];
                     return (
-                      <tr key={k.id} className="hover:bg-gray-50/60">
+                      <tr key={k.id} className="hover:bg-gray-50/60 cursor-pointer transition-colors" onClick={() => setDetailKegiatan(k)}>
                         <td className="px-4 py-3.5"><span className={`text-xs px-2 py-0.5 rounded font-medium ${komiteColor[k.namaKomite]}`}>{k.namaKomite}</span></td>
                         <td className="px-4 py-3.5 text-xs text-gray-700">{fmtDate(k.tanggal)}</td>
                         <td className="px-4 py-3.5 text-xs text-gray-600">{k.jenisKegiatan}</td>
                         <td className="px-4 py-3.5 hidden md:table-cell text-xs text-gray-600 max-w-xs truncate">{k.agenda}</td>
                         <td className="px-4 py-3.5 hidden lg:table-cell text-xs text-gray-500 max-w-xs truncate">{k.hasilKeputusan || '—'}</td>
                         <td className="px-4 py-3.5 text-center"><span className={`text-xs px-2.5 py-1 rounded-full font-medium ${sc.bg} ${sc.color}`}>{k.status}</span></td>
-                        <td className="px-4 py-3.5 text-center">
+                        <td className="px-4 py-3.5 text-center" onClick={e => e.stopPropagation()}>
                           <div className="flex items-center justify-center gap-1">
+                            <button onClick={() => setDetailKegiatan(k)} className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-600"><Eye className="w-3.5 h-3.5" /></button>
                             <button onClick={() => { setEditId(k.id); setFormKegiatan({ namaKomite: k.namaKomite, tanggal: k.tanggal, jenisKegiatan: k.jenisKegiatan, agenda: k.agenda, peserta: k.peserta, status: k.status, hasilKeputusan: k.hasilKeputusan || '' }); setShowModal(true); }} className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-600"><Edit2 className="w-3.5 h-3.5" /></button>
                             <button onClick={() => setShowDeleteConfirm(k.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
                           </div>
@@ -189,6 +193,102 @@ export default function KomiteRS() {
           </div>
         )}
       </div>
+
+      {/* Detail Anggota Modal */}
+      {detailAnggota && (() => {
+        const pg = pegawai.find(p => p.id === detailAnggota.pegawaiId);
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setDetailAnggota(null)} />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h2 className="font-semibold text-gray-800">Detail Anggota Komite</h2>
+                <button onClick={() => setDetailAnggota(null)} className="p-1.5 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5 text-gray-500" /></button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div className="bg-gray-50 rounded-xl p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold flex-shrink-0">{pg?.nama.charAt(0) || '?'}</div>
+                  <div>
+                    <p className="font-semibold text-gray-800 text-sm">{getFullName(detailAnggota.pegawaiId)}</p>
+                    <p className="text-xs text-gray-500">{pg?.jabatan} · {pg?.unitKerja}</p>
+                  </div>
+                </div>
+                <div className="space-y-2.5">
+                  {[
+                    { label: 'Komite', value: <span className={`text-xs px-2 py-0.5 rounded font-medium ${komiteColor[detailAnggota.namaKomite]}`}>{detailAnggota.namaKomite}</span> },
+                    { label: 'Sub Komite', value: detailAnggota.subKomite || '—' },
+                    { label: 'Jabatan dalam Komite', value: detailAnggota.jabatanKomite },
+                    { label: 'Mulai Bertugas', value: fmtDate(detailAnggota.tanggalMulai) },
+                    { label: 'Selesai Bertugas', value: detailAnggota.tanggalSelesai ? fmtDate(detailAnggota.tanggalSelesai) : 'Masih aktif' },
+                    { label: 'Status', value: <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${detailAnggota.statusKomite === 'Aktif' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{detailAnggota.statusKomite}</span> },
+                    { label: 'Nomor SK', value: detailAnggota.nomorSK || '—' },
+                  ].map(row => (
+                    <div key={row.label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                      <span className="text-xs text-gray-500 w-44 flex-shrink-0">{row.label}</span>
+                      <span className="text-xs font-medium text-gray-800 text-right">{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+                <button onClick={() => { setDetailAnggota(null); setEditId(detailAnggota.id); setFormAnggota({ pegawaiId: detailAnggota.pegawaiId, namaKomite: detailAnggota.namaKomite, subKomite: detailAnggota.subKomite || '', jabatanKomite: detailAnggota.jabatanKomite, tanggalMulai: detailAnggota.tanggalMulai, tanggalSelesai: detailAnggota.tanggalSelesai || '', statusKomite: detailAnggota.statusKomite, nomorSK: detailAnggota.nomorSK || '' }); setShowModal(true); }}
+                  className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50"><Edit2 className="w-4 h-4" /> Edit</button>
+                <button onClick={() => setDetailAnggota(null)} className="px-4 py-2 text-sm bg-gray-800 text-white rounded-lg hover:bg-gray-900">Tutup</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Detail Kegiatan Modal */}
+      {detailKegiatan && (() => {
+        const sc = statusKegiatanConfig[detailKegiatan.status];
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setDetailKegiatan(null)} />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h2 className="font-semibold text-gray-800">Detail Kegiatan Komite</h2>
+                <button onClick={() => setDetailKegiatan(null)} className="p-1.5 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5 text-gray-500" /></button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-4">
+                  <span className={`text-sm px-3 py-1 rounded-full font-medium ${komiteColor[detailKegiatan.namaKomite]}`}>{detailKegiatan.namaKomite}</span>
+                  <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${sc.bg} ${sc.color}`}>{detailKegiatan.status}</span>
+                </div>
+                <div className="space-y-2.5">
+                  {[
+                    { label: 'Jenis Kegiatan', value: detailKegiatan.jenisKegiatan },
+                    { label: 'Tanggal', value: fmtDate(detailKegiatan.tanggal) },
+                    { label: 'Agenda', value: detailKegiatan.agenda },
+                    { label: 'Hasil Keputusan', value: detailKegiatan.hasilKeputusan || '—' },
+                  ].map(row => (
+                    <div key={row.label} className="flex items-start justify-between gap-4 py-2 border-b border-gray-50 last:border-0">
+                      <span className="text-xs text-gray-500 w-36 flex-shrink-0">{row.label}</span>
+                      <span className="text-xs font-medium text-gray-800 text-right">{row.value}</span>
+                    </div>
+                  ))}
+                  {detailKegiatan.peserta && detailKegiatan.peserta.length > 0 && (
+                    <div className="py-2">
+                      <span className="text-xs text-gray-500 block mb-2">Peserta ({detailKegiatan.peserta.length})</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {detailKegiatan.peserta.map((pid, i) => (
+                          <span key={i} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{getFullName(pid)}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+                <button onClick={() => { setDetailKegiatan(null); setEditId(detailKegiatan.id); setFormKegiatan({ namaKomite: detailKegiatan.namaKomite, tanggal: detailKegiatan.tanggal, jenisKegiatan: detailKegiatan.jenisKegiatan, agenda: detailKegiatan.agenda, peserta: detailKegiatan.peserta, status: detailKegiatan.status, hasilKeputusan: detailKegiatan.hasilKeputusan || '' }); setShowModal(true); }}
+                  className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50"><Edit2 className="w-4 h-4" /> Edit</button>
+                <button onClick={() => setDetailKegiatan(null)} className="px-4 py-2 text-sm bg-gray-800 text-white rounded-lg hover:bg-gray-900">Tutup</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Modal */}
       {showModal && (

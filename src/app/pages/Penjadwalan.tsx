@@ -32,6 +32,7 @@ export default function Penjadwalan() {
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [detailJadwal, setDetailJadwal] = useState<JadwalShift | null>(null);
 
   const emptyForm: Omit<JadwalShift, 'id'> = { pegawaiId: '', tanggal: '', jenisShift: 'Pagi', jamMulai: '', jamSelesai: '', unitKerja: '', keterangan: '', status: 'Aktif' };
   const [form, setForm] = useState<Omit<JadwalShift, 'id'>>(emptyForm);
@@ -184,14 +185,14 @@ export default function Penjadwalan() {
                     const hariIdx = (d.getDay() + 6) % 7;
                     const p = pegawai.find(x => x.id === j.pegawaiId);
                     return (
-                      <tr key={j.id} className="hover:bg-gray-50/60">
+                      <tr key={j.id} className="hover:bg-gray-50/60 cursor-pointer transition-colors" onClick={() => setDetailJadwal(j)}>
                         <td className="px-4 py-3.5"><p className="font-medium text-sm text-gray-800">{p?.nama || '—'}</p><p className="text-xs text-gray-400">{p?.jabatan}</p></td>
                         <td className="px-4 py-3.5"><p className="text-sm text-gray-700">{HARI_FULL[hariIdx]}, {d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</p></td>
                         <td className="px-4 py-3.5"><span className={`text-xs px-2.5 py-1 rounded-full font-medium ${cfg.bg} ${cfg.text}`}>{j.jenisShift}{j.status === 'Swap' ? ' (Swap)' : ''}</span></td>
                         <td className="px-4 py-3.5 hidden md:table-cell text-xs text-gray-500">{j.jamMulai && j.jamSelesai ? `${j.jamMulai} – ${j.jamSelesai}` : cfg.jam || '—'}</td>
                         <td className="px-4 py-3.5 hidden lg:table-cell text-xs text-gray-500">{j.unitKerja}</td>
                         <td className="px-4 py-3.5 hidden lg:table-cell text-xs text-gray-400">{j.keterangan || '—'}</td>
-                        <td className="px-4 py-3.5 text-center">
+                        <td className="px-4 py-3.5 text-center" onClick={e => e.stopPropagation()}>
                           <div className="flex items-center justify-center gap-1">
                             <button onClick={() => { setEditId(j.id); setForm({ pegawaiId: j.pegawaiId, tanggal: j.tanggal, jenisShift: j.jenisShift, jamMulai: j.jamMulai || '', jamSelesai: j.jamSelesai || '', unitKerja: j.unitKerja, keterangan: j.keterangan || '', status: j.status }); setShowModal(true); }} className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-600"><Edit2 className="w-3.5 h-3.5" /></button>
                             <button onClick={() => setShowDeleteConfirm(j.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -215,6 +216,54 @@ export default function Penjadwalan() {
           </div>
         ))}
       </div>
+
+      {/* Detail Jadwal Modal */}
+      {detailJadwal && (() => {
+        const p = pegawai.find(x => x.id === detailJadwal.pegawaiId);
+        const cfg = SHIFT_CONFIG[detailJadwal.jenisShift];
+        const d = new Date(detailJadwal.tanggal);
+        const hariIdx = (d.getDay() + 6) % 7;
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setDetailJadwal(null)} />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h2 className="font-semibold text-gray-800">Detail Jadwal Shift</h2>
+                <button onClick={() => setDetailJadwal(null)} className="p-1.5 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5 text-gray-500" /></button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div className="bg-gray-50 rounded-xl p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold flex-shrink-0">{p?.nama.charAt(0) || '?'}</div>
+                  <div>
+                    <p className="font-semibold text-gray-800 text-sm">{p?.nama || '—'}</p>
+                    <p className="text-xs text-gray-500">{p?.jabatan} · {p?.unitKerja}</p>
+                  </div>
+                </div>
+                <div className="space-y-2.5">
+                  {[
+                    { label: 'Hari & Tanggal', value: `${HARI_FULL[hariIdx]}, ${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}` },
+                    { label: 'Shift', value: <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${cfg.bg} ${cfg.text}`}>{detailJadwal.jenisShift}</span> },
+                    { label: 'Jam Kerja', value: detailJadwal.jamMulai && detailJadwal.jamSelesai ? `${detailJadwal.jamMulai} – ${detailJadwal.jamSelesai}` : cfg.jam || '—' },
+                    { label: 'Unit Kerja', value: detailJadwal.unitKerja || '—' },
+                    { label: 'Status', value: detailJadwal.status },
+                    { label: 'Keterangan', value: detailJadwal.keterangan || '—' },
+                  ].map(row => (
+                    <div key={row.label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                      <span className="text-xs text-gray-500 w-36 flex-shrink-0">{row.label}</span>
+                      <span className="text-xs font-medium text-gray-800 text-right">{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+                <button onClick={() => { setDetailJadwal(null); setEditId(detailJadwal.id); setForm({ pegawaiId: detailJadwal.pegawaiId, tanggal: detailJadwal.tanggal, jenisShift: detailJadwal.jenisShift, jamMulai: detailJadwal.jamMulai || '', jamSelesai: detailJadwal.jamSelesai || '', unitKerja: detailJadwal.unitKerja, keterangan: detailJadwal.keterangan || '', status: detailJadwal.status }); setShowModal(true); }}
+                  className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50"><Edit2 className="w-4 h-4" /> Edit</button>
+                <button onClick={() => setDetailJadwal(null)} className="px-4 py-2 text-sm bg-gray-800 text-white rounded-lg hover:bg-gray-900">Tutup</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Modal */}
       {showModal && (
