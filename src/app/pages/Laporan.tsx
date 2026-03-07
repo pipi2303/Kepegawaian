@@ -2,12 +2,18 @@ import React, { useState } from 'react';
 import { FileBarChart2, Download, Printer, Calendar, Users, TrendingUp, Target, Clock, Award } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line, RadarChart, Radar, PolarGrid, PolarAngleAxis,
+  PieChart, Pie, LineChart, Line,
 } from 'recharts';
 import { dataPegawai, chartKehadiran, chartGolongan, chartUnitKerja, dataSKP, dataKenaikanPangkat } from '../data/mockData';
 
-const COLORS = ['#3b82f6', '#0ea5e9', '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#64748b'];
+// ─── Custom bar shape – reads `fill` from data item, no Cell needed ───────────
+const ColoredBar = (props: any) => {
+  const { x, y, width, height, fill } = props;
+  if (!height || height <= 0) return null;
+  return <rect x={x} y={y} width={width} height={Math.max(0, height)} fill={fill} rx={4} ry={4} />;
+};
 
+// ─── Static data ──────────────────────────────────────────────────────────────
 const jenjangData = [
   { jenjang: 'SD', jumlah: 0 },
   { jenjang: 'SMA/SMK', jumlah: 3 },
@@ -28,35 +34,44 @@ const trendKPData = [
   { tahun: '2025', reguler: 8, fungsional: 17 },
 ];
 
+// `fill` embedded in data → no Cell children needed
 const skpDistribusi = [
-  { predikat: 'Sangat Baik', jumlah: 42, percent: 35 },
-  { predikat: 'Baik', jumlah: 68, percent: 56 },
-  { predikat: 'Cukup', jumlah: 8, percent: 7 },
-  { predikat: 'Kurang', jumlah: 2, percent: 2 },
+  { predikat: 'Sangat Baik', jumlah: 42, percent: 35, fill: '#10b981' },
+  { predikat: 'Baik',        jumlah: 68, percent: 56, fill: '#3b82f6' },
+  { predikat: 'Cukup',       jumlah: 8,  percent: 7,  fill: '#f59e0b' },
+  { predikat: 'Kurang',      jumlah: 2,  percent: 2,  fill: '#ef4444' },
 ];
 
+// Pie reads `fill` from data items automatically – no Cell children needed
 const jenisKelaminData = [
-  { name: 'Laki-laki', value: dataPegawai.filter(p => p.jenisKelamin === 'L').length },
-  { name: 'Perempuan', value: dataPegawai.filter(p => p.jenisKelamin === 'P').length },
+  { name: 'Laki-laki', value: dataPegawai.filter(p => p.jenisKelamin === 'L').length, fill: '#3b82f6' },
+  { name: 'Perempuan', value: dataPegawai.filter(p => p.jenisKelamin === 'P').length, fill: '#ec4899' },
 ];
 
 const usiaData = [
-  { range: '< 30', jumlah: 18 },
+  { range: '< 30',  jumlah: 18 },
   { range: '30-35', jumlah: 32 },
   { range: '36-40', jumlah: 28 },
   { range: '41-45', jumlah: 35 },
   { range: '46-50', jumlah: 42 },
   { range: '51-55', jumlah: 38 },
-  { range: '> 55', jumlah: 10 },
+  { range: '> 55',  jumlah: 10 },
 ];
 
+// Golongan with `fill` per bar – used by ColoredBar shape
+const GOLONGAN_COLORS = ['#93c5fd', '#3b82f6', '#1d4ed8', '#1e3a5f'];
+const chartGolonganColored = chartGolongan.map((entry: any, i: number) => ({
+  ...entry,
+  fill: GOLONGAN_COLORS[i % GOLONGAN_COLORS.length],
+}));
+
 const reportTypes = [
-  { id: 'kepegawaian', label: 'Laporan Kepegawaian', icon: Users, color: 'text-blue-600 bg-blue-50' },
-  { id: 'kehadiran', label: 'Laporan Kehadiran', icon: Clock, color: 'text-green-600 bg-green-50' },
-  { id: 'cuti', label: 'Laporan Cuti', icon: Calendar, color: 'text-orange-600 bg-orange-50' },
-  { id: 'kenaikan', label: 'Laporan Kenaikan Pangkat', icon: TrendingUp, color: 'text-purple-600 bg-purple-50' },
-  { id: 'skp', label: 'Laporan SKP', icon: Target, color: 'text-indigo-600 bg-indigo-50' },
-  { id: 'pensiun', label: 'Proyeksi Pensiun', icon: Award, color: 'text-red-600 bg-red-50' },
+  { id: 'kepegawaian', label: 'Laporan Kepegawaian',     icon: Users,       color: 'text-blue-600 bg-blue-50'   },
+  { id: 'kehadiran',   label: 'Laporan Kehadiran',        icon: Clock,       color: 'text-green-600 bg-green-50' },
+  { id: 'cuti',        label: 'Laporan Cuti',             icon: Calendar,    color: 'text-orange-600 bg-orange-50' },
+  { id: 'kenaikan',    label: 'Laporan Kenaikan Pangkat', icon: TrendingUp,  color: 'text-purple-600 bg-purple-50' },
+  { id: 'skp',         label: 'Laporan SKP',              icon: Target,      color: 'text-indigo-600 bg-indigo-50' },
+  { id: 'pensiun',     label: 'Proyeksi Pensiun',         icon: Award,       color: 'text-red-600 bg-red-50'     },
 ];
 
 export default function Laporan() {
@@ -111,16 +126,15 @@ export default function Laporan() {
         ))}
       </div>
 
-      {/* Report Content */}
+      {/* ── Kepegawaian ── */}
       {activeReport === 'kepegawaian' && (
         <div className="space-y-5">
-          {/* Summary */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Total Pegawai', value: dataPegawai.length, sub: `${totalPNS} PNS + ${totalPPPK} PPPK`, color: 'bg-blue-600' },
-              { label: 'Jenis Kelamin P', value: jenisKelaminData[1].value, sub: `${Math.round((jenisKelaminData[1].value / dataPegawai.length) * 100)}% dari total`, color: 'bg-pink-500' },
-              { label: 'Jenis Kelamin L', value: jenisKelaminData[0].value, sub: `${Math.round((jenisKelaminData[0].value / dataPegawai.length) * 100)}% dari total`, color: 'bg-blue-500' },
-              { label: 'Akan Pensiun (2 thn)', value: akanPensiun2Thn, sub: 'Perlu perencanaan suksesi', color: 'bg-red-500' },
+              { label: 'Total Pegawai',       value: dataPegawai.length,        sub: `${totalPNS} PNS + ${totalPPPK} PPPK`,                                           color: 'bg-blue-600' },
+              { label: 'Jenis Kelamin P',     value: jenisKelaminData[1].value, sub: `${Math.round((jenisKelaminData[1].value / dataPegawai.length) * 100)}% dari total`, color: 'bg-pink-500' },
+              { label: 'Jenis Kelamin L',     value: jenisKelaminData[0].value, sub: `${Math.round((jenisKelaminData[0].value / dataPegawai.length) * 100)}% dari total`, color: 'bg-blue-500' },
+              { label: 'Akan Pensiun (2 thn)', value: akanPensiun2Thn,          sub: 'Perlu perencanaan suksesi',                                                       color: 'bg-red-500' },
             ].map(s => (
               <div key={s.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
                 <div className={`w-8 h-1 rounded-full ${s.color} mb-3`} />
@@ -132,44 +146,40 @@ export default function Laporan() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {/* Distribusi Golongan */}
+            {/* Distribusi Golongan – ColoredBar, no Cell */}
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
               <h3 className="text-gray-800 mb-4">Distribusi Golongan</h3>
               <ResponsiveContainer width="100%" height={220}>
-                <BarChart id="chart-golongan" data={chartGolongan}>
+                <BarChart data={chartGolonganColored} barCategoryGap="30%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="golongan" tick={{ fontSize: 12 }} tickFormatter={v => `Gol. ${v}`} />
                   <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip key="tt-golongan" formatter={(val: any) => [`${val} pegawai`]} />
-                  <Bar dataKey="jumlah" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                    {chartGolongan.map((entry, i) => (
-                      <Cell key={`cell-golongan-${i}`} fill={['#93c5fd', '#3b82f6', '#1d4ed8', '#1e3a5f'][i]} />
-                    ))}
-                  </Bar>
+                  <Tooltip formatter={(val: any) => [`${val} pegawai`]} />
+                  <Bar dataKey="jumlah" shape={<ColoredBar />} isAnimationActive={false} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
 
-            {/* Distribusi Jenjang Pendidikan */}
+            {/* Distribusi Jenjang Pendidikan – single fill, no Cell */}
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
               <h3 className="text-gray-800 mb-4">Distribusi Jenjang Pendidikan</h3>
               <ResponsiveContainer width="100%" height={220}>
-                <BarChart id="chart-jenjang" data={jenjangData} layout="vertical" margin={{ left: 10, right: 20 }}>
+                <BarChart data={jenjangData} layout="vertical" margin={{ left: 10, right: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 11 }} />
                   <YAxis dataKey="jenjang" type="category" tick={{ fontSize: 11 }} width={65} />
-                  <Tooltip key="tt-jenjang" formatter={(val: any) => [`${val} pegawai`]} />
+                  <Tooltip formatter={(val: any) => [`${val} pegawai`]} />
                   <Bar dataKey="jumlah" fill="#6366f1" radius={[0, 4, 4, 0]} isAnimationActive={false} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
 
-            {/* Gender & Unit */}
+            {/* Gender – fill in data, no Cell */}
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
               <h3 className="text-gray-800 mb-4">Komposisi Jenis Kelamin</h3>
               <div className="flex items-center">
                 <ResponsiveContainer width="60%" height={200}>
-                  <PieChart id="chart-gender">
+                  <PieChart>
                     <Pie
                       data={jenisKelaminData}
                       cx="50%"
@@ -179,18 +189,15 @@ export default function Laporan() {
                       paddingAngle={4}
                       dataKey="value"
                       isAnimationActive={false}
-                    >
-                      <Cell key="cell-gender-0" fill="#3b82f6" />
-                      <Cell key="cell-gender-1" fill="#ec4899" />
-                    </Pie>
-                    <Tooltip key="tt-gender" formatter={(val: any) => [`${val} orang`]} />
+                    />
+                    <Tooltip formatter={(val: any) => [`${val} orang`]} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="space-y-4">
                   {jenisKelaminData.map((d, i) => (
                     <div key={d.name}>
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: i === 0 ? '#3b82f6' : '#ec4899' }} />
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: d.fill }} />
                         <span className="text-sm text-gray-700">{d.name}</span>
                       </div>
                       <p className="text-xl font-semibold text-gray-800 ml-5">{d.value}</p>
@@ -201,15 +208,15 @@ export default function Laporan() {
               </div>
             </div>
 
-            {/* Distribusi Usia */}
+            {/* Distribusi Usia – single fill, no Cell */}
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
               <h3 className="text-gray-800 mb-4">Distribusi Usia Pegawai</h3>
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart id="chart-usia" data={usiaData}>
+                <BarChart data={usiaData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="range" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip key="tt-usia" formatter={(val: any) => [`${val} pegawai`]} labelFormatter={l => `Usia ${l} tahun`} />
+                  <Tooltip formatter={(val: any) => [`${val} pegawai`]} labelFormatter={l => `Usia ${l} tahun`} />
                   <Bar dataKey="jumlah" fill="#10b981" radius={[4, 4, 0, 0]} isAnimationActive={false} />
                 </BarChart>
               </ResponsiveContainer>
@@ -233,7 +240,7 @@ export default function Laporan() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {chartUnitKerja.map(u => (
+                  {chartUnitKerja.map((u: any) => (
                     <tr key={u.name} className="hover:bg-gray-50/60">
                       <td className="px-4 py-3 text-gray-700 font-medium">{u.name}</td>
                       <td className="px-4 py-3 text-center font-semibold text-gray-800">{u.value}</td>
@@ -258,31 +265,31 @@ export default function Laporan() {
         </div>
       )}
 
+      {/* ── Kehadiran ── */}
       {activeReport === 'kehadiran' && (
         <div className="space-y-5">
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h3 className="text-gray-800 mb-4">Trend Kehadiran 7 Bulan Terakhir</h3>
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart id="chart-kehadiran" data={chartKehadiran}>
+              <BarChart data={chartKehadiran}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="bulan" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip key="tt-kehadiran" />
+                <Tooltip />
                 <Legend />
-                <Bar dataKey="hadir" name="Hadir" fill="#3b82f6" stackId="a" radius={[0, 0, 0, 0]} isAnimationActive={false} />
-                <Bar dataKey="sakit" name="Sakit" fill="#f59e0b" stackId="a" isAnimationActive={false} />
-                <Bar dataKey="cuti" name="Cuti" fill="#8b5cf6" stackId="a" isAnimationActive={false} />
-                <Bar dataKey="alpha" name="Alpha" fill="#ef4444" stackId="a" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                <Bar dataKey="hadir"  name="Hadir" fill="#3b82f6" stackId="a" isAnimationActive={false} />
+                <Bar dataKey="sakit"  name="Sakit" fill="#f59e0b" stackId="a" isAnimationActive={false} />
+                <Bar dataKey="cuti"   name="Cuti"  fill="#8b5cf6" stackId="a" isAnimationActive={false} />
+                <Bar dataKey="alpha"  name="Alpha" fill="#ef4444" stackId="a" radius={[4, 4, 0, 0]} isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
           </div>
-
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Rata-rata Kehadiran', value: '94.2%', sub: 'Per hari kerja', color: 'text-green-600' },
-              { label: 'Total Hari Alpha', value: '56', sub: 'Sem. 2 2025', color: 'text-red-600' },
-              { label: 'Total Hari Sakit', value: '267', sub: 'Sem. 2 2025', color: 'text-yellow-600' },
-              { label: 'Total Hari Cuti', value: '347', sub: 'Sem. 2 2025', color: 'text-blue-600' },
+              { label: 'Rata-rata Kehadiran', value: '94.2%', sub: 'Per hari kerja',  color: 'text-green-600'  },
+              { label: 'Total Hari Alpha',    value: '56',    sub: 'Sem. 2 2025',     color: 'text-red-600'   },
+              { label: 'Total Hari Sakit',    value: '267',   sub: 'Sem. 2 2025',     color: 'text-yellow-600' },
+              { label: 'Total Hari Cuti',     value: '347',   sub: 'Sem. 2 2025',     color: 'text-blue-600'  },
             ].map(s => (
               <div key={s.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
                 <p className="text-xs text-gray-500">{s.label}</p>
@@ -294,18 +301,19 @@ export default function Laporan() {
         </div>
       )}
 
+      {/* ── Kenaikan Pangkat ── */}
       {activeReport === 'kenaikan' && (
         <div className="space-y-5">
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h3 className="text-gray-800 mb-4">Trend Kenaikan Pangkat 2020–2025</h3>
             <ResponsiveContainer width="100%" height={280}>
-              <LineChart id="chart-kp-trend" data={trendKPData}>
+              <LineChart data={trendKPData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="tahun" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip key="tt-kp" />
+                <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="reguler" name="KP Reguler" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} isAnimationActive={false} />
+                <Line type="monotone" dataKey="reguler"    name="KP Reguler"    stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} isAnimationActive={false} />
                 <Line type="monotone" dataKey="fungsional" name="KP Fungsional" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 4 }} isAnimationActive={false} />
               </LineChart>
             </ResponsiveContainer>
@@ -313,50 +321,39 @@ export default function Laporan() {
         </div>
       )}
 
+      {/* ── SKP – ColoredBar, no Cell ── */}
       {activeReport === 'skp' && (
         <div className="space-y-5">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {skpDistribusi.map(s => (
               <div key={s.predikat} className={`rounded-xl border p-4 ${
                 s.predikat === 'Sangat Baik' ? 'bg-emerald-50 border-emerald-100' :
-                s.predikat === 'Baik' ? 'bg-blue-50 border-blue-100' :
-                s.predikat === 'Cukup' ? 'bg-yellow-50 border-yellow-100' :
+                s.predikat === 'Baik'        ? 'bg-blue-50 border-blue-100'       :
+                s.predikat === 'Cukup'       ? 'bg-yellow-50 border-yellow-100'   :
                 'bg-red-50 border-red-100'
               }`}>
                 <p className="text-xs text-gray-500">{s.predikat}</p>
-                <p className={`text-2xl font-semibold ${
-                  s.predikat === 'Sangat Baik' ? 'text-emerald-600' :
-                  s.predikat === 'Baik' ? 'text-blue-600' :
-                  s.predikat === 'Cukup' ? 'text-yellow-600' :
-                  'text-red-600'
-                }`}>{s.jumlah}</p>
+                <p className={`text-2xl font-semibold`} style={{ color: s.fill }}>{s.jumlah}</p>
                 <p className="text-xs text-gray-400">{s.percent}% pegawai</p>
               </div>
             ))}
           </div>
-
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h3 className="text-gray-800 mb-4">Distribusi Predikat SKP Tahun 2025</h3>
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart id="chart-skp" data={skpDistribusi}>
+              <BarChart data={skpDistribusi} barCategoryGap="30%">
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="predikat" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip key="tt-skp" formatter={(val: any) => [`${val} pegawai`]} />
-                <Bar dataKey="jumlah" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                  {skpDistribusi.map((entry, i) => (
-                    <Cell
-                      key={`cell-skp-${i}`}
-                      fill={['#10b981', '#3b82f6', '#f59e0b', '#ef4444'][i]}
-                    />
-                  ))}
-                </Bar>
+                <Tooltip formatter={(val: any) => [`${val} pegawai`]} />
+                <Bar dataKey="jumlah" shape={<ColoredBar />} isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
       )}
 
+      {/* ── Proyeksi Pensiun ── */}
       {activeReport === 'pensiun' && (
         <div className="space-y-5">
           <div className="bg-orange-50 border border-orange-100 rounded-xl p-4">
@@ -382,18 +379,14 @@ export default function Laporan() {
                 <tbody className="divide-y divide-gray-50">
                   {dataPegawai
                     .filter(p => {
-                      const pensiun = new Date(p.batasPensiun);
-                      const now = new Date('2026-03-03');
-                      const diff = (pensiun.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+                      const diff = (new Date(p.batasPensiun).getTime() - new Date('2026-03-03').getTime()) / (1000 * 60 * 60 * 24 * 365.25);
                       return diff > 0 && diff <= 5;
                     })
                     .sort((a, b) => new Date(a.batasPensiun).getTime() - new Date(b.batasPensiun).getTime())
                     .map(p => {
-                      const pensiun = new Date(p.batasPensiun);
-                      const now = new Date('2026-03-03');
-                      const diffDays = (pensiun.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+                      const diffDays  = (new Date(p.batasPensiun).getTime() - new Date('2026-03-03').getTime()) / (1000 * 60 * 60 * 24);
                       const diffYears = diffDays / 365.25;
-                      const isUrgent = diffYears <= 1;
+                      const isUrgent  = diffYears <= 1;
                       return (
                         <tr key={p.id} className={`hover:bg-gray-50/60 ${isUrgent ? 'bg-red-50/30' : ''}`}>
                           <td className="px-4 py-3.5">
@@ -419,9 +412,7 @@ export default function Laporan() {
                 </tbody>
               </table>
               {dataPegawai.filter(p => {
-                const pensiun = new Date(p.batasPensiun);
-                const now = new Date('2026-03-03');
-                const diff = (pensiun.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+                const diff = (new Date(p.batasPensiun).getTime() - new Date('2026-03-03').getTime()) / (1000 * 60 * 60 * 24 * 365.25);
                 return diff > 0 && diff <= 5;
               }).length === 0 && (
                 <div className="text-center py-10 text-gray-400 text-sm">
@@ -433,7 +424,7 @@ export default function Laporan() {
         </div>
       )}
 
-      {(activeReport === 'cuti') && (
+      {activeReport === 'cuti' && (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8 text-center text-gray-400">
           <FileBarChart2 className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p className="text-sm">Laporan {reportTypes.find(r => r.id === activeReport)?.label} akan ditampilkan di sini</p>

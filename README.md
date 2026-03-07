@@ -1,7 +1,7 @@
 
-  # Kepegawaian
+  # Modul Kepegawaian
 
-  This is a code bundle for Kepegawaian. The original project is available at https://www.figma.com/design/5StM3bEgI9qEyhUd0no88K/Kepegawaian.
+  This is a code bundle for Modul Kepegawaian. The original project is available at https://www.figma.com/design/5StM3bEgI9qEyhUd0no88K/Modul-Kepegawaian.
 
   ## Running the code
 
