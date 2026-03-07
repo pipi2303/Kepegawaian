@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useEffect, createContext, useCont
 import {
   Users, ZoomIn, ZoomOut, RotateCcw, ChevronDown, ChevronRight,
   User, Building2, Info, X, Search, Maximize2, Minimize2,
-  Briefcase, Award, AlertCircle,
+  Briefcase, Award, AlertCircle, Plus, GitBranch,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import type { Pegawai } from '../types';
@@ -18,6 +18,21 @@ interface OrgNode {
   eselon?: string;
   isVacant?: boolean;
   children?: OrgNode[];
+}
+
+// ─── Tree helpers ─────────────────────────────────────────────────────────────
+function addNodeToTree(tree: OrgNode, parentId: string, newNode: OrgNode): OrgNode {
+  if (tree.id === parentId) {
+    return { ...tree, children: [...(tree.children || []), newNode] };
+  }
+  return {
+    ...tree,
+    children: (tree.children || []).map(c => addNodeToTree(c, parentId, newNode)),
+  };
+}
+
+function getAllNodes(tree: OrgNode): OrgNode[] {
+  return [tree, ...(tree.children || []).flatMap(c => getAllNodes(c))];
 }
 
 // ─── Org Structure ──────────────────────────────────────────────────────────
@@ -179,6 +194,252 @@ function countNodePegawai(node: OrgNode, allPegawai: Pegawai[]): number {
 // ─── Drag context (shared between canvas and node cards) ─────────────────────
 const DragCtx = createContext<React.MutableRefObject<boolean>>({ current: false });
 
+// ─── Add-child context ────────────────────────────────────────────────────────
+const AddCtx = createContext<(parentId: string) => void>(() => {});
+
+// ─── Add Node Modal ───────────────────────────────────────────────────────────
+interface AddNodeModalProps {
+  allNodes: OrgNode[];
+  pegawai: Pegawai[];
+  initialParentId: string;
+  onClose: () => void;
+  onSubmit: (parentId: string, node: OrgNode) => void;
+}
+
+const NODE_TYPE_LABELS: Record<OrgNode['type'], string> = {
+  hospital: 'Rumah Sakit (Hospital)',
+  eselon2: 'Eselon II (Direktur)',
+  eselon3: 'Eselon III (Kepala Bidang/Bagian)',
+  eselon4: 'Eselon IV (Kepala Sub Bagian)',
+  unit: 'Unit / Instalasi',
+};
+
+const ESELON_OPTIONS = ['Eselon II/a', 'Eselon II/b', 'Eselon III/a', 'Eselon III/b', 'Eselon IV/a', 'Eselon IV/b'];
+
+function AddNodeModal({ allNodes, pegawai, initialParentId, onClose, onSubmit }: AddNodeModalProps) {
+  const [title, setTitle] = useState('');
+  const [type, setType] = useState<OrgNode['type']>('unit');
+  const [subtitle, setSubtitle] = useState('');
+  const [eselon, setEselon] = useState('');
+  const [parentId, setParentId] = useState(initialParentId);
+  const [unitKerja, setUnitKerja] = useState('');
+  const [pegawaiId, setPegawaiId] = useState('');
+  const [isVacant, setIsVacant] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Auto-fill subtitle based on type
+  const handleTypeChange = (t: OrgNode['type']) => {
+    setType(t);
+    if (t === 'eselon2') { setSubtitle('Eselon II/b'); setEselon('Eselon II/b'); }
+    else if (t === 'eselon3') { setSubtitle('Eselon III/a'); setEselon('Eselon III/a'); }
+    else if (t === 'eselon4') { setSubtitle('Eselon IV/a'); setEselon('Eselon IV/a'); }
+    else { setSubtitle(''); setEselon(''); }
+  };
+
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!title.trim()) e.title = 'Nama jabatan/unit wajib diisi';
+    if (!parentId) e.parentId = 'Node induk wajib dipilih';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+    const newNode: OrgNode = {
+      id: `node-${Date.now()}`,
+      title: title.trim(),
+      type,
+      subtitle: subtitle.trim() || undefined,
+      eselon: eselon.trim() || undefined,
+      unitKerja: unitKerja.trim() || undefined,
+      pegawaiId: pegawaiId || undefined,
+      isVacant: isVacant || undefined,
+    };
+    onSubmit(parentId, newNode);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(15,27,68,0.45)', backdropFilter: 'blur(4px)' }}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh] overflow-hidden">
+        {/* Modal header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center">
+              <GitBranch className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h2 className="text-gray-800 text-sm">Tambah Node Baru</h2>
+              <p className="text-[11px] text-gray-400 mt-0.5">Tambahkan jabatan atau unit ke struktur organisasi</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
+          <div className="px-6 py-5 space-y-4">
+
+            {/* Parent node */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                Node Induk <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={parentId}
+                onChange={e => setParentId(e.target.value)}
+                className={`w-full text-xs border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white ${errors.parentId ? 'border-red-400' : 'border-gray-200'}`}
+              >
+                <option value="">-- Pilih node induk --</option>
+                {allNodes.filter(n => n.type !== 'unit').map(n => (
+                  <option key={n.id} value={n.id}>{n.title}</option>
+                ))}
+              </select>
+              {errors.parentId && <p className="text-[10px] text-red-500 mt-1">{errors.parentId}</p>}
+            </div>
+
+            {/* Tipe node */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                Tipe Node <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {(['eselon2', 'eselon3', 'eselon4', 'unit'] as OrgNode['type'][]).map(t => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => handleTypeChange(t)}
+                    className={`text-left px-3 py-2 rounded-lg border-2 transition-all ${
+                      type === t
+                        ? t === 'eselon2' ? 'border-blue-600 bg-blue-50 text-blue-800'
+                          : t === 'eselon3' ? 'border-sky-500 bg-sky-50 text-sky-800'
+                          : t === 'eselon4' ? 'border-teal-500 bg-teal-50 text-teal-800'
+                          : 'border-gray-400 bg-gray-50 text-gray-700'
+                        : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                    }`}
+                  >
+                    <p className="text-[10px] font-semibold truncate">{NODE_TYPE_LABELS[t]}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Nama */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                Nama Jabatan / Unit <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                placeholder="Contoh: Bidang Litbang, Inst. Radiologi..."
+                className={`w-full text-xs border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.title ? 'border-red-400' : 'border-gray-200'}`}
+              />
+              {errors.title && <p className="text-[10px] text-red-500 mt-1">{errors.title}</p>}
+            </div>
+
+            {/* Subtitle & Eselon (tampil jika bukan unit) */}
+            {type !== 'unit' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Subtitle</label>
+                  <input
+                    type="text"
+                    value={subtitle}
+                    onChange={e => setSubtitle(e.target.value)}
+                    placeholder="mis. Eselon III/a"
+                    className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Eselon</label>
+                  <select
+                    value={eselon}
+                    onChange={e => setEselon(e.target.value)}
+                    className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="">-- Pilih --</option>
+                    {ESELON_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Unit Kerja */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Unit Kerja (untuk pencocokan data pegawai)</label>
+              <input
+                type="text"
+                value={unitKerja}
+                onChange={e => setUnitKerja(e.target.value)}
+                placeholder="Nama unit kerja sesuai data kepegawaian..."
+                className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Pejabat */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Pejabat / Penanggung Jawab</label>
+              <select
+                value={pegawaiId}
+                onChange={e => { setPegawaiId(e.target.value); if (e.target.value) setIsVacant(false); }}
+                className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                <option value="">-- Tidak ada / Lowong --</option>
+                {pegawai.map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.gelarDepan ? `${p.gelarDepan} ` : ''}{p.nama}{p.gelarBelakang ? `, ${p.gelarBelakang}` : ''} — {p.jabatan}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Jabatan Lowong */}
+            {!pegawaiId && type !== 'unit' && (
+              <div className="flex items-center gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+                <input
+                  type="checkbox"
+                  id="isVacant"
+                  checked={isVacant}
+                  onChange={e => setIsVacant(e.target.checked)}
+                  className="w-4 h-4 accent-red-500 cursor-pointer"
+                />
+                <label htmlFor="isVacant" className="text-xs text-red-700 cursor-pointer">
+                  Tandai sebagai <strong>Jabatan Lowong</strong> (tampil badge merah)
+                </label>
+              </div>
+            )}
+
+          </div>
+
+          {/* Footer */}
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3 flex-shrink-0">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-xs border border-gray-200 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-1.5"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Tambah Node
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ─── NodeCard ────────────────────────────────────────────────────────────────
 interface NodeCardProps {
   node: OrgNode;
@@ -285,17 +546,33 @@ function TreeNode({ node, pegawai, collapsedIds, selectedId, onToggle, onSelect,
   const children = node.children || [];
   const hasChildren = children.length > 0;
   const lineColor = LINE_COLOR[node.type] || '#cbd5e1';
+  const onAddChild = useContext(AddCtx);
 
   return (
     <div className="flex flex-col items-center">
-      <NodeCard
-        node={node}
-        pegawai={pegawai}
-        isCollapsed={isCollapsed}
-        isSelected={isSelected}
-        onToggle={() => onToggle(node.id)}
-        onSelect={() => onSelect(node)}
-      />
+      {/* Card + Add button wrapper */}
+      <div className="relative group/node">
+        <NodeCard
+          node={node}
+          pegawai={pegawai}
+          isCollapsed={isCollapsed}
+          isSelected={isSelected}
+          onToggle={() => onToggle(node.id)}
+          onSelect={() => onSelect(node)}
+        />
+        {/* + Add child button (visible on hover, hidden for unit type) */}
+        {node.type !== 'unit' && (
+          <button
+            onClick={e => { e.stopPropagation(); onAddChild(node.id); }}
+            title="Tambah node anak"
+            className="absolute -bottom-3 left-1/2 -translate-x-1/2 opacity-0 group-hover/node:opacity-100 transition-all duration-150
+              w-6 h-6 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg
+              flex items-center justify-center z-20 border-2 border-white"
+          >
+            <Plus className="w-3 h-3" />
+          </button>
+        )}
+      </div>
 
       {hasChildren && !isCollapsed && (
         <div className="contents">
@@ -506,11 +783,14 @@ function DetailPanel({ node, pegawai, onClose }: { node: OrgNode; pegawai: Pegaw
 export default function OrganisasiTree() {
   const { pegawai } = useAppContext();
 
+  // Org tree data (mutable state)
+  const [orgData, setOrgData] = useState<OrgNode>(ORG_DATA);
+
   // Zoom & pan
   const [scale, setScale] = useState(0.85);
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
   const isPanning = useRef(false);
-  const hasDraggedRef = useRef(false);   // true only after mouse moved > 5px
+  const hasDraggedRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const lastPos = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -521,10 +801,16 @@ export default function OrganisasiTree() {
   const [selectedNode, setSelectedNode] = useState<OrgNode | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  // Add node modal
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addParentId, setAddParentId] = useState('');
+
   // Stats
   const totalPNS = pegawai.filter(p => p.statusPegawai === 'PNS').length;
   const totalPPPK = pegawai.filter(p => p.statusPegawai === 'PPPK').length;
   const totalHonorer = pegawai.filter(p => p.statusPegawai === 'Honorer').length;
+
+  const allNodes = getAllNodes(orgData);
 
   // Toggle collapse
   const handleToggle = useCallback((id: string) => {
@@ -540,19 +826,29 @@ export default function OrganisasiTree() {
   const handleCollapseAll = () => {
     const ids = new Set<string>();
     const collect = (n: OrgNode) => { if ((n.children || []).length) { ids.add(n.id); (n.children || []).forEach(collect); } };
-    collect(ORG_DATA);
+    collect(orgData);
     setCollapsedIds(ids);
   };
 
   // Zoom
-  const handleZoom = (delta: number) => {
-    setScale(s => Math.min(2, Math.max(0.3, s + delta)));
-  };
+  const handleZoom = (delta: number) => setScale(s => Math.min(2, Math.max(0.3, s + delta)));
+  const handleReset = () => { setScale(0.85); setTranslate({ x: 0, y: 0 }); };
 
-  const handleReset = () => {
-    setScale(0.85);
-    setTranslate({ x: 0, y: 0 });
-  };
+  // Add node handlers
+  const handleOpenAdd = useCallback((parentId: string) => {
+    setAddParentId(parentId);
+    setShowAddModal(true);
+  }, []);
+
+  const handleAddNode = useCallback((parentId: string, newNode: OrgNode) => {
+    setOrgData(prev => addNodeToTree(prev, parentId, newNode));
+    // Auto-expand the parent so new child is visible
+    setCollapsedIds(prev => {
+      const next = new Set(prev);
+      next.delete(parentId);
+      return next;
+    });
+  }, []);
 
   // Pan (mouse)
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -569,13 +865,10 @@ export default function OrganisasiTree() {
     const dx = e.clientX - lastPos.current.x;
     const dy = e.clientY - lastPos.current.y;
     lastPos.current = { x: e.clientX, y: e.clientY };
-    // Mark as dragged once threshold exceeded
     if (!hasDraggedRef.current) {
       const totalDx = e.clientX - dragStartRef.current.x;
       const totalDy = e.clientY - dragStartRef.current.y;
-      if (Math.abs(totalDx) > 5 || Math.abs(totalDy) > 5) {
-        hasDraggedRef.current = true;
-      }
+      if (Math.abs(totalDx) > 5 || Math.abs(totalDy) > 5) hasDraggedRef.current = true;
     }
     setTranslate(t => ({ x: t.x + dx, y: t.y + dy }));
   }, []);
@@ -583,15 +876,12 @@ export default function OrganisasiTree() {
   const handleMouseUp = useCallback(() => {
     isPanning.current = false;
     if (containerRef.current) containerRef.current.style.cursor = 'grab';
-    // Reset hasDragged after a tick so onClick handlers can read it first
     setTimeout(() => { hasDraggedRef.current = false; }, 0);
   }, []);
 
-  // Wheel zoom
   const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
-    const delta = -e.deltaY * 0.001;
-    setScale(s => Math.min(2, Math.max(0.3, s + delta)));
+    setScale(s => Math.min(2, Math.max(0.3, s + (-e.deltaY * 0.001))));
   }, []);
 
   useEffect(() => {
@@ -609,6 +899,18 @@ export default function OrganisasiTree() {
 
   return (
     <div className={`flex flex-col h-full ${isFullscreen ? 'fixed inset-0 z-50 bg-white' : ''}`}>
+
+      {/* Add Node Modal */}
+      {showAddModal && (
+        <AddNodeModal
+          allNodes={allNodes}
+          pegawai={pegawai}
+          initialParentId={addParentId}
+          onClose={() => setShowAddModal(false)}
+          onSubmit={handleAddNode}
+        />
+      )}
+
       {/* Header */}
       <div className="flex-shrink-0 px-5 py-4 bg-white border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
@@ -637,6 +939,16 @@ export default function OrganisasiTree() {
           <button onClick={handleCollapseAll} className="text-xs px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600">
             Tutup Semua
           </button>
+
+          {/* Tambah Node button */}
+          <button
+            onClick={() => handleOpenAdd('rsud')}
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg font-semibold transition-colors shadow-sm"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Tambah Node
+          </button>
+
           <button
             onClick={() => setIsFullscreen(f => !f)}
             className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-500"
@@ -676,7 +988,7 @@ export default function OrganisasiTree() {
           style={{ cursor: 'grab', backgroundImage: 'radial-gradient(circle, #cbd5e1 1px, transparent 1px)', backgroundSize: '24px 24px' }}
           onMouseDown={handleMouseDown}
         >
-          {/* Controls */}
+          {/* Zoom controls */}
           <div className="absolute top-4 right-4 z-10 flex flex-col gap-1.5">
             <button onClick={() => handleZoom(0.15)} className="w-8 h-8 bg-white border border-gray-200 rounded-lg shadow-sm flex items-center justify-center hover:bg-gray-50 text-gray-600" title="Perbesar">
               <ZoomIn className="w-4 h-4" />
@@ -695,7 +1007,7 @@ export default function OrganisasiTree() {
           {/* Hint */}
           <div className="absolute bottom-4 left-4 z-10 bg-white/80 border border-gray-200 rounded-lg px-3 py-1.5 flex items-center gap-1.5 backdrop-blur-sm">
             <Info className="w-3 h-3 text-gray-400" />
-            <p className="text-[10px] text-gray-500">Scroll untuk zoom · Drag untuk geser · Klik node untuk detail</p>
+            <p className="text-[10px] text-gray-500">Scroll untuk zoom · Drag untuk geser · Hover node → klik <span className="font-semibold text-blue-600">+</span> untuk tambah anak</p>
           </div>
 
           {/* Tree */}
@@ -713,14 +1025,16 @@ export default function OrganisasiTree() {
             }}
           >
             <DragCtx.Provider value={hasDraggedRef}>
-              <TreeNode
-                node={ORG_DATA}
-                pegawai={pegawai}
-                collapsedIds={collapsedIds}
-                selectedId={selectedNode?.id || null}
-                onToggle={handleToggle}
-                onSelect={(n) => setSelectedNode(prev => prev?.id === n.id ? null : n)}
-              />
+              <AddCtx.Provider value={handleOpenAdd}>
+                <TreeNode
+                  node={orgData}
+                  pegawai={pegawai}
+                  collapsedIds={collapsedIds}
+                  selectedId={selectedNode?.id || null}
+                  onToggle={handleToggle}
+                  onSelect={(n) => setSelectedNode(prev => prev?.id === n.id ? null : n)}
+                />
+              </AddCtx.Provider>
             </DragCtx.Provider>
           </div>
         </div>
