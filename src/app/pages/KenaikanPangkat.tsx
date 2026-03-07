@@ -219,6 +219,7 @@ export default function KenaikanPangkat() {
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Pegawai</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 hidden md:table-cell">Unit Kerja</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Gol. Sekarang</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 hidden lg:table-cell">Jabatan / Eselon</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 hidden lg:table-cell">Lama di Pangkat</th>
                   <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">Aksi</th>
                 </tr>
@@ -240,6 +241,18 @@ export default function KenaikanPangkat() {
                       <td className="px-4 py-3.5">
                         <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-medium">{p.golongan}</span>
                         <p className="text-xs text-gray-400 mt-0.5">{p.pangkat}</p>
+                      </td>
+                      <td className="px-4 py-3.5 hidden lg:table-cell">
+                        {p.jabatan
+                          ? <p className="text-xs text-gray-700 leading-snug">{p.jabatan}</p>
+                          : <p className="text-xs text-gray-400 italic">—</p>}
+                        {p.eselon ? (
+                          <span className={`inline-block mt-1 text-xs px-2 py-0.5 rounded font-medium ${p.eselon === 'Non-Eselon' ? 'bg-gray-100 text-gray-500' : 'bg-purple-100 text-purple-700'}`}>
+                            {p.eselon}
+                          </span>
+                        ) : (
+                          <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-400">—</span>
+                        )}
                       </td>
                       <td className="px-4 py-3.5 hidden lg:table-cell">
                         <span className="text-xs font-medium text-green-600">{years} thn {months} bln</span>
@@ -291,9 +304,9 @@ export default function KenaikanPangkat() {
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Pegawai</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Kenaikan Pangkat</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 hidden md:table-cell">Jenis KP</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 hidden xl:table-cell">Jabatan / Eselon</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 hidden lg:table-cell">Jabatan / Eselon</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">Periode</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 hidden lg:table-cell">No. SK</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 hidden xl:table-cell">No. SK</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">Status</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">Aksi</th>
               </tr>
@@ -319,18 +332,20 @@ export default function KenaikanPangkat() {
                       <p className="text-xs text-gray-500 mt-1">{k.pangkatLama} → {k.pangkatBaru}</p>
                     </td>
                     <td className="px-4 py-3.5 hidden md:table-cell text-xs text-gray-600">{k.jenisKenaikan}</td>
-                    <td className="px-4 py-3.5 hidden xl:table-cell">
+                    <td className="px-4 py-3.5 hidden lg:table-cell">
                       {k.jabatan
                         ? <p className="text-xs text-gray-700 leading-snug">{k.jabatan}</p>
                         : <p className="text-xs text-gray-400 italic">—</p>}
-                      {k.eselon && (
+                      {k.eselon ? (
                         <span className={`inline-block mt-1 text-xs px-2 py-0.5 rounded font-medium ${k.eselon === 'Non-Eselon' ? 'bg-gray-100 text-gray-500' : 'bg-purple-100 text-purple-700'}`}>
                           {k.eselon}
                         </span>
+                      ) : (
+                        <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-400">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3.5 text-center text-xs text-gray-700 font-medium">{k.periodeUsulan}</td>
-                    <td className="px-4 py-3.5 hidden lg:table-cell text-xs text-gray-500">
+                    <td className="px-4 py-3.5 hidden xl:table-cell text-xs text-gray-500">
                       {k.nomorSK || (k.status === 'Proses' ? <span className="text-yellow-500">Belum diterbitkan</span> : '—')}
                     </td>
                     <td className="px-4 py-3.5 text-center">

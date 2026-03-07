@@ -83,7 +83,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '2006-04-01',
     batasPensiun: '2035-03-31',
     masaKerja: '19 Tahun 10 Bulan',
-    eselon: '-',
+    eselon: 'Non-Eselon',
   },
   {
     id: 'P002',
@@ -115,6 +115,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '2010-01-01',
     batasPensiun: '2042-05-31',
     masaKerja: '16 Tahun 2 Bulan',
+    eselon: 'Non-Eselon',
   },
   {
     id: 'P003',
@@ -146,6 +147,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '2012-01-01',
     batasPensiun: '2048-01-31',
     masaKerja: '14 Tahun 2 Bulan',
+    eselon: 'Non-Eselon',
   },
   {
     id: 'P004',
@@ -176,6 +178,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '2014-03-01',
     batasPensiun: '2050-03-31',
     masaKerja: '12 Tahun 0 Bulan',
+    eselon: 'Non-Eselon',
   },
   {
     id: 'P005',
@@ -207,7 +210,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '1998-03-01',
     batasPensiun: '2032-08-31',
     masaKerja: '27 Tahun 11 Bulan',
-    eselon: '-',
+    eselon: 'Non-Eselon',
   },
   {
     id: 'P006',
@@ -238,6 +241,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '2019-03-01',
     batasPensiun: '2055-08-31',
     masaKerja: '7 Tahun 0 Bulan',
+    eselon: 'Non-Eselon',
   },
   {
     id: 'P007',
@@ -268,7 +272,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '2001-03-01',
     batasPensiun: '2036-01-31',
     masaKerja: '25 Tahun 0 Bulan',
-    eselon: 'IV',
+    eselon: 'Eselon IV/a',
   },
   {
     id: 'P008',
@@ -299,6 +303,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '2016-04-01',
     batasPensiun: '2052-06-30',
     masaKerja: '9 Tahun 11 Bulan',
+    eselon: 'Non-Eselon',
   },
   {
     id: 'P009',
@@ -329,6 +334,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '2013-01-01',
     batasPensiun: '2050-01-31',
     masaKerja: '13 Tahun 2 Bulan',
+    eselon: 'Non-Eselon',
   },
   {
     id: 'P010',
@@ -359,6 +365,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '2014-02-01',
     batasPensiun: '2048-07-31',
     masaKerja: '12 Tahun 1 Bulan',
+    eselon: 'Non-Eselon',
   },
   {
     id: 'P011',
@@ -390,6 +397,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '1997-03-01',
     batasPensiun: '2031-09-30',
     masaKerja: '28 Tahun 11 Bulan',
+    eselon: 'Non-Eselon',
   },
   {
     id: 'P012',
@@ -420,6 +428,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '2019-03-01',
     batasPensiun: '2054-04-30',
     masaKerja: '7 Tahun 0 Bulan',
+    eselon: 'Non-Eselon',
   },
   {
     id: 'P013',
@@ -450,6 +459,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '2018-03-01',
     batasPensiun: '2051-01-31',
     masaKerja: '8 Tahun 0 Bulan',
+    eselon: 'Non-Eselon',
   },
   {
     id: 'P014',
@@ -480,6 +490,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '2017-02-01',
     batasPensiun: '2052-02-28',
     masaKerja: '9 Tahun 1 Bulan',
+    eselon: 'Non-Eselon',
   },
   {
     id: 'P015',
@@ -510,6 +521,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '2018-01-01',
     batasPensiun: '2053-08-31',
     masaKerja: '8 Tahun 2 Bulan',
+    eselon: 'Non-Eselon',
   },
   {
     id: 'P016',
@@ -539,7 +551,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '1993-03-01',
     batasPensiun: '2029-05-31',
     masaKerja: '32 Tahun 11 Bulan',
-    eselon: 'II',
+    eselon: 'Eselon II/b',
   },
   {
     id: 'P017',
@@ -570,7 +582,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '2012-03-01',
     batasPensiun: '2046-04-30',
     masaKerja: '14 Tahun 0 Bulan',
-    eselon: 'III',
+    eselon: 'Eselon III/a',
   },
   {
     id: 'P018',
@@ -601,6 +613,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '2020-01-01',
     batasPensiun: '2055-07-31',
     masaKerja: '6 Tahun 2 Bulan',
+    eselon: 'Non-Eselon',
   },
   {
     id: 'P019',
@@ -631,7 +644,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '2005-04-01',
     batasPensiun: '2043-01-31',
     masaKerja: '20 Tahun 11 Bulan',
-    eselon: 'III',
+    eselon: 'Eselon III/b',
   },
   {
     id: 'P020',
@@ -662,6 +675,7 @@ export const dataPegawai: Pegawai[] = [
     tanggalMasuk: '2016-04-01',
     batasPensiun: '2049-09-30',
     masaKerja: '9 Tahun 11 Bulan',
+    eselon: 'Non-Eselon',
   },
 ];
 
