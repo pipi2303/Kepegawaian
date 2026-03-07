@@ -92,20 +92,6 @@ export default function Penghargaan() {
         ))}
       </div>
 
-      {/* Eligible Alert */}
-      {eligible.length > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
-          <p className="text-sm font-semibold text-orange-800 mb-2">⭐ Pegawai Eligible Satyalancana Karya Satya</p>
-          <div className="flex flex-wrap gap-2">
-            {eligible.map(p => {
-              const masaKerja = Math.floor((Date.now() - new Date(p.tanggalMasuk).getTime()) / (365.25 * 24 * 3600 * 1000));
-              const thn = masaKerja >= 30 ? 30 : masaKerja >= 20 ? 20 : 10;
-              return <span key={p.id} className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">{p.nama} ({thn} Thn)</span>;
-            })}
-          </div>
-        </div>
-      )}
-
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="p-4 border-b border-gray-50 flex flex-wrap gap-3">
           <div className="relative flex-1 min-w-[200px]">
