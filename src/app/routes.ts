@@ -2,6 +2,7 @@ import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router';
 import Layout from './components/Layout';
 import Root   from './components/Root';
+import NotFound from './components/NotFound';
 
 // Menggunakan React.lazy() dengan import() biasa — tanpa manualChunks agresif di vite.config.ts,
 // semua dependencies di-bundle bersama chunk utama, menghindari cascading chunk loading failures.
@@ -36,7 +37,7 @@ const OrganisasiTree     = lazy(() => import('./pages/OrganisasiTree'));
 // Layout TIDAK menggunakan useNavigate() — navigasi auth ditangani via window.location.
 // Singleton mencegah RouterProvider menerima instance router baru saat HMR
 // (router baru → React Router unmount/remount context → useNavigate error).
-const ROUTER_KEY = '__hrAppRouter_v5';
+const ROUTER_KEY = '__hrAppRouter_v6';
 type RouterType = ReturnType<typeof createBrowserRouter>;
 
 function buildRouter(): RouterType {
@@ -74,15 +75,19 @@ function buildRouter(): RouterType {
             { path: 'komite-rs',                Component: KomiteRS },
             { path: 'hubungan-industrial',      Component: HubunganIndustrial },
             { path: 'organisasi',               Component: OrganisasiTree },
+            // Catch-all: redirect unknown sub-paths back to dashboard
+            { path: '*',                        Component: NotFound },
           ],
         },
+        // Catch-all at root level: handles completely unknown top-level paths
+        { path: '*', Component: NotFound },
       ],
     },
   ]);
 }
 
 // Hapus semua cache router versi lama dari globalThis
-(['__hrAppRouter_v3', '__hrAppRouter_v4'] as string[]).forEach(key => {
+(['__hrAppRouter_v3', '__hrAppRouter_v4', '__hrAppRouter_v5'] as string[]).forEach(key => {
   delete (globalThis as Record<string, unknown>)[key];
 });
 
