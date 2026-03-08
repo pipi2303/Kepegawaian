@@ -92,7 +92,7 @@ function WorkflowStepper({ status }: { status: string }) {
         const done = idx > i;
         const active = idx === i;
         return (
-          <React.Fragment key={step}>
+          <div className="contents" key={step}>
             <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium transition-colors ${
               isDitolak && active ? 'bg-red-100 text-red-700' :
               active ? 'bg-blue-600 text-white' :
@@ -103,7 +103,7 @@ function WorkflowStepper({ status }: { status: string }) {
               <span className="hidden sm:inline">{step}</span>
             </div>
             {i < WORKFLOW_STEPS.length - 1 && <div className={`h-px w-3 ${done ? 'bg-green-300' : 'bg-gray-200'}`} />}
-          </React.Fragment>
+          </div>
         );
       })}
     </div>

@@ -6,13 +6,6 @@ import {
 } from 'recharts';
 import { dataPegawai, chartKehadiran, chartGolongan, chartUnitKerja, dataSKP, dataKenaikanPangkat } from '../data/mockData';
 
-// ─── Custom bar shape – reads `fill` from data item, no Cell needed ───────────
-const ColoredBar = (props: any) => {
-  const { x, y, width, height, fill } = props;
-  if (!height || height <= 0) return null;
-  return <rect x={x} y={y} width={width} height={Math.max(0, height)} fill={fill} rx={4} ry={4} />;
-};
-
 // ─── Static data ──────────────────────────────────────────────────────────────
 const jenjangData = [
   { jenjang: 'SD', jumlah: 0 },
@@ -155,7 +148,7 @@ export default function Laporan() {
                   <XAxis dataKey="golongan" tick={{ fontSize: 12 }} tickFormatter={v => `Gol. ${v}`} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip formatter={(val: any) => [`${val} pegawai`]} />
-                  <Bar dataKey="jumlah" shape={<ColoredBar />} isAnimationActive={false} />
+                  <Bar dataKey="jumlah" radius={[4, 4, 0, 0]} isAnimationActive={false} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -346,7 +339,7 @@ export default function Laporan() {
                 <XAxis dataKey="predikat" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(val: any) => [`${val} pegawai`]} />
-                <Bar dataKey="jumlah" shape={<ColoredBar />} isAnimationActive={false} />
+                <Bar dataKey="jumlah" radius={[4, 4, 0, 0]} isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
           </div>

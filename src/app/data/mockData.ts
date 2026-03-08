@@ -1263,13 +1263,13 @@ export const dataSKP: SKPRecord[] = [
 ];
 
 export const chartKehadiran = [
-  { bulan: 'Sep', hadir: 1580, alpha: 12, sakit: 45, cuti: 38 },
-  { bulan: 'Okt', hadir: 1610, alpha: 8, sakit: 52, cuti: 30 },
-  { bulan: 'Nov', hadir: 1595, alpha: 10, sakit: 41, cuti: 54 },
-  { bulan: 'Des', hadir: 1520, alpha: 5, sakit: 38, cuti: 137 },
-  { bulan: 'Jan', hadir: 1602, alpha: 9, sakit: 47, cuti: 42 },
-  { bulan: 'Feb', hadir: 1590, alpha: 11, sakit: 39, cuti: 60 },
-  { bulan: 'Mar', hadir: 215, alpha: 1, sakit: 1, cuti: 2 },
+  { bulan: 'Sep', hadir: 1580, alpha: 12, sakit: 45, cuti: 38, izin: 28, dinasLuar: 18 },
+  { bulan: 'Okt', hadir: 1610, alpha: 8, sakit: 52, cuti: 30, izin: 24, dinasLuar: 22 },
+  { bulan: 'Nov', hadir: 1595, alpha: 10, sakit: 41, cuti: 54, izin: 32, dinasLuar: 19 },
+  { bulan: 'Des', hadir: 1520, alpha: 5, sakit: 38, cuti: 137, izin: 18, dinasLuar: 14 },
+  { bulan: 'Jan', hadir: 1602, alpha: 9, sakit: 47, cuti: 42, izin: 27, dinasLuar: 21 },
+  { bulan: 'Feb', hadir: 1590, alpha: 11, sakit: 39, cuti: 60, izin: 31, dinasLuar: 25 },
+  { bulan: 'Mar', hadir: 215, alpha: 1, sakit: 1, cuti: 2, izin: 1, dinasLuar: 1 },
 ];
 
 export const chartGolongan = [
