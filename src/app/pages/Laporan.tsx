@@ -10,7 +10,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line,
   AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from 'recharts';
-import { chartKehadiran, chartGolongan, chartUnitKerja } from '../data/mockData';
+import { chartGolongan, chartUnitKerja } from '../data/mockData';
 import { useAppContext } from '../context/AppContext';
 
 // ─── Colour Palettes ──────────────────────────────────────────────────────────
@@ -419,12 +419,12 @@ export default function Laporan() {
     const alphaCount  = thisMonth.filter(a => a.status === 'Alpha').length;
 
     // Cuti pending
-    const cutiPending = cuti.filter(c => c.status === 'Diajukan' || c.status === 'Proses').length;
+    const cutiPending = cuti.filter(c => c.status === 'Pending').length;
 
     // SKP distribution
     const skpDist = ['Sangat Baik', 'Baik', 'Cukup', 'Kurang'].map(p => ({
       predikat: p,
-      jumlah: skp.filter(s => s.predikatKinerja === p).length,
+      jumlah: skp.filter(s => s.predikat === p).length,
     }));
     const avgSKP = skp.length
       ? (skp.reduce((s, r) => s + (r.nilaiAkhir || 0), 0) / skp.length).toFixed(1)
@@ -442,13 +442,13 @@ export default function Laporan() {
 
     // STR/SIP expiring ≤ 90 days
     const strExpiring = str.filter(s => {
-      if (!s.tanggalBerakhir || s.statusSTR !== 'Aktif') return false;
-      const d = (new Date(s.tanggalBerakhir).getTime() - TODAY.getTime()) / 864e5;
+      if (!s.tanggalExpired || s.status !== 'Aktif') return false;
+      const d = (new Date(s.tanggalExpired).getTime() - TODAY.getTime()) / 864e5;
       return d >= 0 && d <= 90;
     }).length;
     const sipExpiring = sip.filter(s => {
-      if (!s.tanggalBerakhir || s.statusSIP !== 'Aktif') return false;
-      const d = (new Date(s.tanggalBerakhir).getTime() - TODAY.getTime()) / 864e5;
+      if (!s.tanggalExpired || s.status !== 'Aktif') return false;
+      const d = (new Date(s.tanggalExpired).getTime() - TODAY.getTime()) / 864e5;
       return d >= 0 && d <= 90;
     }).length;
 
@@ -478,7 +478,7 @@ export default function Laporan() {
     const totalBrutoFeb = bulanLalu.reduce((s, sg) => s + (sg.totalBruto || 0), 0);
 
     // KP tahun ini
-    const kpTahunIni = kenaikanPangkat.filter(k => k.periodeMulai?.startsWith('2025') || k.periodeMulai?.startsWith('2026')).length;
+    const kpTahunIni = kenaikanPangkat.filter(k => k.periodeUsulan?.startsWith('2025') || k.periodeUsulan?.startsWith('2026')).length;
 
     // Gender donut
     const genderData = [
@@ -742,8 +742,8 @@ export default function Laporan() {
             <SectionHeader title="Ringkasan Status Aktif" />
             <div className="space-y-3">
               {[
-                { icon: CheckCircle, label: 'STR Aktif', val: str.filter(s => s.statusSTR === 'Aktif').length, color: 'text-emerald-500' },
-                { icon: CheckCircle, label: 'SIP Aktif', val: sip.filter(s => s.statusSIP === 'Aktif').length, color: 'text-emerald-500' },
+                { icon: CheckCircle, label: 'STR Aktif', val: str.filter(s => s.status === 'Aktif').length, color: 'text-emerald-500' },
+                { icon: CheckCircle, label: 'SIP Aktif', val: sip.filter(s => s.status === 'Aktif').length, color: 'text-emerald-500' },
                 { icon: AlertTriangle, label: 'STR Akan Berakhir', val: stats.strExpiring, color: 'text-amber-500' },
                 { icon: AlertTriangle, label: 'SIP Akan Berakhir', val: stats.sipExpiring, color: 'text-amber-500' },
                 { icon: XCircle, label: 'Disiplin Aktif', val: stats.disiplinProses, color: 'text-red-500' },
@@ -897,13 +897,13 @@ export default function Laporan() {
               <SectionHeader title="Status Pengajuan Cuti" />
               <div className="space-y-3">
                 {[
-                  { label: 'Cuti Tahunan',    val: cuti.filter(c => c.jenisCuti === 'Tahunan').length,    color: 'bg-blue-500'   },
-                  { label: 'Cuti Sakit',      val: cuti.filter(c => c.jenisCuti === 'Sakit').length,      color: 'bg-amber-400'  },
-                  { label: 'Cuti Melahirkan', val: cuti.filter(c => c.jenisCuti === 'Melahirkan').length, color: 'bg-pink-400'   },
-                  { label: 'Cuti Besar',      val: cuti.filter(c => c.jenisCuti === 'Besar').length,      color: 'bg-purple-400' },
-                  { label: 'Cuti Alasan Penting', val: cuti.filter(c => c.jenisCuti === 'Alasan Penting').length, color: 'bg-orange-400' },
+                  { label: 'Cuti Tahunan',    val: cuti.filter(c => c.jenisCuti?.includes('Tahunan')).length,    color: 'bg-blue-500'   },
+                  { label: 'Cuti Sakit',      val: cuti.filter(c => c.jenisCuti?.includes('Sakit')).length,      color: 'bg-amber-400'  },
+                  { label: 'Cuti Melahirkan', val: cuti.filter(c => c.jenisCuti?.includes('Melahirkan')).length, color: 'bg-pink-400'   },
+                  { label: 'Cuti Besar',      val: cuti.filter(c => c.jenisCuti?.includes('Besar')).length,      color: 'bg-purple-400' },
+                  { label: 'Cuti Alasan Penting', val: cuti.filter(c => c.jenisCuti?.includes('Alasan')).length, color: 'bg-orange-400' },
                   { label: 'Disetujui',       val: cuti.filter(c => c.status === 'Disetujui').length,     color: 'bg-emerald-500'},
-                  { label: 'Pending',         val: cuti.filter(c => c.status === 'Diajukan').length,      color: 'bg-gray-400'   },
+                  { label: 'Pending',         val: cuti.filter(c => c.status === 'Pending').length,       color: 'bg-gray-400'   },
                 ].map(item => (
                   <ProgressRow key={item.label} label={item.label} value={item.val} max={20} color={item.color} />
                 ))}
@@ -977,7 +977,7 @@ export default function Laporan() {
                         <td className="px-4 py-3 text-xs text-gray-600">{kp.golonganLama || '–'}</td>
                         <td className="px-4 py-3 text-xs font-semibold text-blue-700">{kp.golonganBaru || '–'}</td>
                         <td className="px-4 py-3 text-xs text-gray-600">{kp.jenisKenaikan || '–'}</td>
-                        <td className="px-4 py-3 text-xs text-gray-600">{kp.periodeMulai || '–'}</td>
+                        <td className="px-4 py-3 text-xs text-gray-600">{kp.periodeUsulan || '–'}</td>
                         <td className="px-4 py-3">
                           <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                             kp.status === 'Selesai' ? 'bg-emerald-100 text-emerald-700' :
@@ -1035,8 +1035,8 @@ export default function Laporan() {
                   { label: 'Manajerial',   val: diklat.filter(d => d.jenisDiklat === 'Manajerial').length,   color: 'bg-blue-500'   },
                   { label: 'Teknis',       val: diklat.filter(d => d.jenisDiklat === 'Teknis').length,       color: 'bg-indigo-500' },
                   { label: 'Fungsional',   val: diklat.filter(d => d.jenisDiklat === 'Fungsional').length,   color: 'bg-teal-500'   },
-                  { label: 'Klinis',       val: diklat.filter(d => d.jenisDiklat === 'Klinis').length,       color: 'bg-emerald-500'},
-                  { label: 'Dasar',        val: diklat.filter(d => d.jenisDiklat === 'Dasar').length,        color: 'bg-amber-500'  },
+                  { label: 'Sosiokultural', val: diklat.filter(d => d.jenisDiklat === 'Sosiokultural').length,       color: 'bg-emerald-500'},
+                  { label: 'Orientasi',    val: diklat.filter(d => d.jenisDiklat === 'Orientasi').length,        color: 'bg-amber-500'  },
                 ].map(item => (
                   <ProgressRow key={item.label} label={item.label} value={item.val} max={10} color={item.color} />
                 ))}
@@ -1181,10 +1181,10 @@ export default function Laporan() {
                         <p className="text-xs text-gray-500">{v.jenisVaksin} · {v.tanggalVaksin}</p>
                       </div>
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${
-                        v.statusVaksinasi === 'Lengkap' ? 'bg-emerald-100 text-emerald-700' :
-                        v.statusVaksinasi === 'Proses' ? 'bg-amber-100 text-amber-700' :
+                        v.status === 'Lengkap' ? 'bg-emerald-100 text-emerald-700' :
+                        v.status === 'Sebagian' ? 'bg-amber-100 text-amber-700' :
                         'bg-gray-100 text-gray-600'
-                      }`}>{v.statusVaksinasi}</span>
+                      }`}>{v.status}</span>
                     </div>
                   );
                 })}
@@ -1202,11 +1202,11 @@ export default function Laporan() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-medium text-gray-800 truncate">{p?.nama || m.pegawaiId}</p>
-                        <p className="text-xs text-gray-500">{m.tanggalMCU} · {m.tempatMCU}</p>
+                        <p className="text-xs text-gray-500">{m.tanggal} · {m.fasilitasMCU}</p>
                       </div>
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${
-                        m.hasilMCU === 'Sehat / Layak Kerja' ? 'bg-emerald-100 text-emerald-700' :
-                        m.hasilMCU === 'Perlu Tindak Lanjut' ? 'bg-amber-100 text-amber-700' :
+                        m.hasilMCU === 'Layak Kerja' ? 'bg-emerald-100 text-emerald-700' :
+                        m.hasilMCU === 'Layak dengan Syarat' ? 'bg-amber-100 text-amber-700' :
                         'bg-blue-100 text-blue-700'
                       }`}>{m.hasilMCU || 'Menunggu'}</span>
                     </div>
@@ -1274,8 +1274,8 @@ export default function Laporan() {
                           <p className="text-xs font-medium text-gray-800">{p?.nama || sg.pegawaiId}</p>
                           <p className="text-xs text-gray-400">{p?.unitKerja}</p>
                         </td>
-                        <td className="px-4 py-3 text-xs text-gray-600">{sg.golongan}</td>
-                        <td className="px-4 py-3 text-xs text-gray-600 max-w-xs truncate">{sg.jabatanFungsional}</td>
+                        <td className="px-4 py-3 text-xs text-gray-600">{p?.golongan || '–'}</td>
+                        <td className="px-4 py-3 text-xs text-gray-600 max-w-xs truncate">{p?.jabatanFungsional || p?.jabatan || '–'}</td>
                         <td className="px-4 py-3 text-xs text-gray-600">{sg.bulan}/{sg.tahun}</td>
                         <td className="px-4 py-3 text-xs font-semibold text-gray-800">
                           Rp {(sg.totalBruto / 1000000).toFixed(2)} Jt
