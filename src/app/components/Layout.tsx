@@ -1,5 +1,5 @@
-import React, { useState, useEffect, Suspense, memo } from 'react';
-import { NavLink, Outlet } from 'react-router';
+import React, { useState, Suspense, memo } from 'react';
+import { NavLink, Outlet, Navigate, useNavigate } from 'react-router';
 import {
   LayoutDashboard, Users, Clock, CalendarDays, Briefcase,
   TrendingUp, Target, FileBarChart2, LogOut,
@@ -182,33 +182,24 @@ const SidebarContent = memo(({ sidebarOpen, currentUser, onLogout, setMobileSide
 SidebarContent.displayName = 'SidebarContent';
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
-// PENTING: Layout TIDAK menggunakan useNavigate() sama sekali.
-// Navigasi auth (redirect ke /login) ditangani via window.location agar Layout
-// tidak bergantung pada React Router context — mencegah error "useNavigate()
-// may be used only in the context of a <Router> component" saat HMR router swap.
+// Layout menggunakan useNavigate() — aman karena Layout selalu berada di dalam
+// Router context (sebagai child dari pathless Root route di routes.ts).
 function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const { isLoggedIn, currentUser, logout } = useAppContext();
-
-  // Redirect ke login jika belum authenticated — gunakan window.location,
-  // bukan useNavigate(), agar tidak bergantung pada Router context.
-  useEffect(() => {
-    if (!isLoggedIn) {
-      window.location.replace('/login');
-    }
-  }, [isLoggedIn]);
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
     toast.success('Anda berhasil keluar dari HR APP');
-    // Gunakan window.location untuk menghindari ketergantungan pada useNavigate()
-    window.location.href = '/login';
+    navigate('/login', { replace: true });
   };
 
-  if (!isLoggedIn) return null;
+  // Redirect via React Router — tidak memerlukan window.location (tidak ada full reload)
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
 
   const initials = currentUser?.nama
     ? currentUser.nama.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase()
