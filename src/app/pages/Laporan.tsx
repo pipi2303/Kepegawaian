@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FileBarChart2, Download, Printer, Calendar, Users, TrendingUp, Target, Clock, Award } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  PieChart, Pie, LineChart, Line,
+  PieChart, Pie, LineChart, Line, Cell,
 } from 'recharts';
 import { dataPegawai, chartKehadiran, chartGolongan, chartUnitKerja, dataSKP, dataKenaikanPangkat } from '../data/mockData';
 
@@ -53,9 +53,11 @@ const usiaData = [
 
 // Golongan with `fill` per bar – used by ColoredBar shape
 const GOLONGAN_COLORS = ['#93c5fd', '#3b82f6', '#1d4ed8', '#1e3a5f'];
-const chartGolonganColored = chartGolongan.map((entry: any, i: number) => ({
-  ...entry,
-  fill: GOLONGAN_COLORS[i % GOLONGAN_COLORS.length],
+// Strip `fill` from chart data to avoid recharts auto-generating null-keyed Cell nodes;
+// colours are applied via explicit <Cell> children instead.
+const chartGolonganColored = chartGolongan.map((entry: any) => ({
+  golongan: entry.golongan,
+  jumlah: entry.jumlah,
 }));
 
 const reportTypes = [
@@ -139,7 +141,7 @@ export default function Laporan() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {/* Distribusi Golongan – ColoredBar, no Cell */}
+            {/* Distribusi Golongan – explicit Cell children with unique keys */}
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
               <h3 className="text-gray-800 mb-4">Distribusi Golongan</h3>
               <ResponsiveContainer width="100%" height={220}>
@@ -148,7 +150,11 @@ export default function Laporan() {
                   <XAxis dataKey="golongan" tick={{ fontSize: 12 }} tickFormatter={v => `Gol. ${v}`} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip formatter={(val: any) => [`${val} pegawai`]} />
-                  <Bar dataKey="jumlah" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                  <Bar dataKey="jumlah" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                    {chartGolonganColored.map((_entry, index) => (
+                      <Cell key={`gol-cell-${index}`} fill={GOLONGAN_COLORS[index % GOLONGAN_COLORS.length]} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -167,7 +173,7 @@ export default function Laporan() {
               </ResponsiveContainer>
             </div>
 
-            {/* Gender – fill in data, no Cell */}
+            {/* Gender – explicit Cell children with unique keys */}
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
               <h3 className="text-gray-800 mb-4">Komposisi Jenis Kelamin</h3>
               <div className="flex items-center">
@@ -182,7 +188,11 @@ export default function Laporan() {
                       paddingAngle={4}
                       dataKey="value"
                       isAnimationActive={false}
-                    />
+                    >
+                      {jenisKelaminData.map((entry, index) => (
+                        <Cell key={`pie-cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
                     <Tooltip formatter={(val: any) => [`${val} orang`]} />
                   </PieChart>
                 </ResponsiveContainer>
@@ -339,7 +349,11 @@ export default function Laporan() {
                 <XAxis dataKey="predikat" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(val: any) => [`${val} pegawai`]} />
-                <Bar dataKey="jumlah" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                <Bar dataKey="jumlah" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                  {skpDistribusi.map((_entry, index) => (
+                    <Cell key={`skp-cell-${index}`} fill={skpDistribusi[index].fill} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
