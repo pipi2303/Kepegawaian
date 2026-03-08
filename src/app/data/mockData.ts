@@ -1,35 +1,11 @@
 import type { Pegawai, AbsensiRecord, CutiRecord, SKPRecord, RiwayatJabatan, KenaikanPangkat, SisaCuti } from '../types';
+// Konstanta dikelola terpusat di constants.ts — import untuk kebutuhan internal
+import { PANGKAT_GOLONGAN } from './constants';
 
-export const PANGKAT_GOLONGAN: Record<string, string> = {
-  'I/a': 'Juru Muda',
-  'I/b': 'Juru Muda Tingkat I',
-  'I/c': 'Juru',
-  'I/d': 'Juru Tingkat I',
-  'II/a': 'Pengatur Muda',
-  'II/b': 'Pengatur Muda Tingkat I',
-  'II/c': 'Pengatur',
-  'II/d': 'Pengatur Tingkat I',
-  'III/a': 'Penata Muda',
-  'III/b': 'Penata Muda Tingkat I',
-  'III/c': 'Penata',
-  'III/d': 'Penata Tingkat I',
-  'IV/a': 'Pembina',
-  'IV/b': 'Pembina Tingkat I',
-  'IV/c': 'Pembina Utama Muda',
-  'IV/d': 'Pembina Utama Madya',
-  'IV/e': 'Pembina Utama',
-};
+// JENIS_CUTI dan UNIT_KERJA dikelola di constants.ts
 
-export const JENIS_CUTI = [
-  { value: 'Cuti Tahunan', label: 'Cuti Tahunan', kuota: 12, dasar: 'PP No. 11 Tahun 2017' },
-  { value: 'Cuti Sakit', label: 'Cuti Sakit', kuota: 14, dasar: 'PP No. 11 Tahun 2017' },
-  { value: 'Cuti Melahirkan', label: 'Cuti Melahirkan', kuota: 90, dasar: 'PP No. 11 Tahun 2017' },
-  { value: 'Cuti Besar', label: 'Cuti Besar', kuota: 90, dasar: 'PP No. 11 Tahun 2017' },
-  { value: 'Cuti Alasan Penting', label: 'Cuti Alasan Penting', kuota: 30, dasar: 'PP No. 11 Tahun 2017' },
-  { value: 'CLTN', label: 'Cuti di Luar Tanggungan Negara', kuota: 365, dasar: 'PP No. 11 Tahun 2017' },
-];
-
-export const UNIT_KERJA = [
+// UNIT_KERJA dikelola di constants.ts — dihapus dari sini untuk menghindari duplikasi
+const _UNIT_KERJA_PLACEHOLDER = [
   'Direktur',
   'Wakil Direktur Pend, Peng. SDM dan Hukum',
   'Wakil Direktur Umum dan Keuangan',
@@ -122,15 +98,169 @@ export const UNIT_KERJA = [
   'BPJS',
 ];
 
-// ─── Builder untuk P021–P246 dari CSV ────────────────────────────────────────
-type RawEmp = [fullName: string, jabatan: string, gol: string, unitKerja: string, pddk: number, gender: 'L'|'P'];
-const _BYG: Record<string,number>={'IV/e':1963,'IV/d':1966,'IV/c':1967,'IV/b':1969,'IV/a':1972,'III/d':1975,'III/c':1978,'III/b':1982,'III/a':1985,'II/d':1988,'II/c':1990,'II/b':1992,'II/a':1994,'I/d':1996,'I/c':1997,'I/b':1998,'I/a':1999};
-const _PDK: Record<number,string>={0:'S1',1:'SMA/SMK',2:'D3',3:'D3',4:'D4',5:'D4',6:'S1',7:'Profesi',8:'S2',9:'Spesialis',10:'S3'};
-const _UKM: Record<string,string>={'DIREKTUR':'Direktur','WAKIL DIREKTUR PEND, PENG. SDM DAN HUKUM':'Wakil Direktur Pend, Peng. SDM dan Hukum','WAKIL DIREKTUR UMUM DAN KEUANGAN':'Wakil Direktur Umum dan Keuangan','WAKIL DIREKTUR KEPERAWATAN, PELAYANAN DAN PENUNJANG MEDIK':'Wakil Direktur Keperawatan, Pelayanan dan Penunjang Medik','BAGIAN KEUANGAN':'Bagian Keuangan','BIDANG PELAYANAN MEDIK':'Bidang Pelayanan Medik','BIDANG PENUNJANG MEDIK':'Bidang Penunjang Medik','BIDANG HUKUM':'Bidang Hukum','BIDANG PENGEMBANGAN SDM':'Bidang Pengembangan SDM','BAGIAN PERENCANAAN & ANGGARAN':'Bagian Perencanaan & Anggaran','BAGIAN UMUM':'Bagian Umum','BIDANG KEPERAWATAN':'Bidang Keperawatan','SMF PENYAKIT DALAM':'SMF Penyakit Dalam','KOMITE KEPERAWATAN':'Komite Keperawatan','KEPALA INSTALASI PELAYANAN':'Kepala Instalasi Pelayanan','KEPALA INSTALASI KEPERAWATAN':'Kepala Instalasi Keperawatan','KEPALA INSTALASI NON ESELON':'Kepala Instalasi Non Eselon','APOTEKER':'Instalasi Farmasi','MANAJER RUANGAN':'Manajer Ruangan','MANAJER KLINIS':'Manajer Klinis','SPI':'SPI','SUB BAG KEPEGAWAIAN':'Sub Bag Kepegawaian','SUB BAG PENYUSUNAN PELAPORAN & ANGG':'Sub Bag Penyusunan Pelaporan & Angg','SUB BAG RT/PERLENGKAPAN':'Sub Bag RT/Perlengkapan','IRJ':'IRJ','IGD':'IGD','SUB BAG UMUM':'Sub Bag Umum','INSTALASI EDP-TI':'Instalasi EDP-TI','INSTALASI BEDAH SENTRAL':'Instalasi Bedah Sentral','INSTALASI ANESTESI':'Instalasi Anestesi','ICU / ICCU / PICU':'ICU / ICCU / PICU','R. CVCU JANTUNG':'R. CVCU Jantung','R. ANAK':'R. Anak','R. ONKOLOGI TERPADU (KHEMOTERAPI)':'R. Onkologi Terpadu (Khemoterapi)','R. BEDAH':'R. Bedah','R. NEUROLOGI':'R. Neurologi','R. KEBIDANAN':'R. Kebidanan','R. PINERE':'R. Pinere','R. PARU':'R. Paru','R. PBH LANTAI 2':'R. PBH Lantai 2','R. PBH LANTAI 3':'R. PBH Lantai 3','R. PBH LANTAI 4':'R. PBH Lantai 4','R. PENYAKIT DALAM INFEKSIUS':'R. Penyakit Dalam Infeksius','R. PENYAKIT DALAM NON INFEKSIUS':'R. Penyakit Dalam Non Infeksius','R. PERINATOLOGI':'R. Perinatologi','R. PAV SUDHA NIRMALA A':'R. PAV Sudha Nirmala A','R. PELAYANAN JANTUNG TERPADU KLINIS':'R. Pelayanan Jantung Terpadu Klinis','INSTALASI HEMODIALISA':'Instalasi Hemodialisa','INSTALASI ENDOSCOPY':'Instalasi Endoscopy','INSTALASI RADIOTERAPI':'Instalasi Radioterapi','INSTALASI MEDICAL CHECK UP':'Instalasi Medical Check Up','INSTALASI FORENSIK':'Instalasi Forensik','ADMISTRASI FARMASI':'Administrasi Farmasi','INSTALASI DIKLAT':'Instalasi Diklat','SUB BAGIAN REKAM MEDIK':'Sub Bag Rekam Medik'};
-const _CTS=['Bandar Lampung','Metro','Kotabumi','Pringsewu','Liwa','Kalianda','Menggala','Gunung Sugih','Sukadana','Blambangan Umpu'];
-const _ARS=['Pahoman','Kedaton','Rajabasa','Labuhan Ratu','Tanjung Senang','Langkapura','Sukarame','Panjang','Telukbetung','Kemiling'];
-function _pn(f:string):{gd?:string;nm:string;gb?:string}{let s=f.trim(),gd:string|undefined;for(const p of['drg. ','dr. ','Dr. ','Ns. ','NS. ','Bdn. ','Ns.','NS.','Bdn.','dr.','Dr.','drg.']){if(s.startsWith(p)){gd=p.trim();s=s.slice(p.length).trim();break;}}const ci=s.indexOf(',');if(ci>=0)return{gd,nm:s.slice(0,ci).trim(),gb:s.slice(ci+1).trim()||undefined};return{gd,nm:s};}
-function _bldE(row:RawEmp,seq:number):Pegawai{const[full,jabatan,gol,uk,pddk,gender]=row;const{gd,nm,gb}=_pn(full);const isStd=/^(I|II|III|IV)\/[abcde]$/.test(gol);const sp:Pegawai['statusPegawai']=isStd?'PNS':'Honorer';const byr=(_BYG[gol]??1988)+(seq%6)-2;const bm=(seq*3%12)+1;const bd=(seq*7%28)+1;const bdate=`${byr}-${String(bm).padStart(2,'0')}-${String(bd).padStart(2,'0')}`;const jyr=Math.min(byr+23,2024);const jm=((seq*5)%12)+1;const nip=isStd?`${byr}${String(bm).padStart(2,'0')}${String(bd).padStart(2,'0')}${jyr}${String(jm).padStart(2,'0')}01${gender==='L'?'1':'2'}${String(seq).padStart(3,'0')}`:String(1000000000000000+seq).slice(-18);const pk=PANGKAT_GOLONGAN[gol]??'Pegawai Tidak Tetap';const pend=_PDK[pddk]??'S1';let retAge=58;if(gd==='dr.'||gd==='drg.')retAge=65;else if(gol.startsWith('IV')&&(jabatan.includes('Direktur')||jabatan.includes('KABAG')||jabatan.includes('KABID')))retAge=60;const ry=byr+retAge;const bp=isStd?`${ry}-${String(bm).padStart(2,'0')}-${String(bd).padStart(2,'0')}`:'';const fnFung=gd==='dr.'?'Dokter':gd==='drg.'?'Dokter Gigi':(gd==='Ns.'||gd==='NS.')?'Perawat':gd==='Bdn.'?'Bidan':'Tenaga Kesehatan Lainnya';const emailName=nm.toLowerCase().replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,'.').slice(0,30);const area=_ARS[seq%_ARS.length];const jurusanMap:Record<string,string>={'Spesialis':'Ilmu Kedokteran Spesialis','S3':'Ilmu Kedokteran','S2':'Kesehatan Masyarakat','Profesi':'Ners Keperawatan','S1':'Keperawatan / Kesehatan','D4':'D4 Keperawatan','D3':'D3 Keperawatan','SMA/SMK':'—'};const inst=['Universitas Lampung','Universitas Indonesia','Universitas Gadjah Mada','Poltekkes Kemenkes Lampung','STIKES Muhammadiyah Pringsewu'];return{id:`P${String(seq).padStart(3,'0')}`,nip,nama:nm,...(gd?{gelarDepan:gd}:{}),...(gb?{gelarBelakang:gb}:{}),jenisKelamin:gender,tempatLahir:_CTS[seq%_CTS.length],tanggalLahir:bdate,agama:seq%9===0?'Kristen':seq%15===0?'Katolik':'Islam',statusPerkawinan:seq%7===0?'Belum Kawin':'Kawin',alamat:`Jl. ${area} No. ${(seq%99)+1}, ${area}, Bandar Lampung`,noTelp:`0812741${String(seq).padStart(4,'0')}`,email:`${emailName}@rsudabdulmoeloek.go.id`,jabatan,jabatanFungsional:fnFung,unitKerja:_UKM[uk]??uk,golongan:gol,pangkat:pk,tmtGolongan:`${Math.min(jyr+5,2025)}-04-01`,tmtJabatan:`${Math.min(jyr+3,2025)}-01-01`,statusPegawai:sp,statusAktif:'Aktif',pendidikanTerakhir:pend,jurusan:jurusanMap[pend]??'Kesehatan',institusi:inst[seq%inst.length],tahunLulus:jyr-1,tanggalMasuk:`${jyr}-03-01`,batasPensiun:bp,masaKerja:isStd?`${2026-jyr} Tahun 0 Bulan`:''};}
+// ─── Builder untuk P021–P246 dari data CSV ────────────────────────────────────
+type RawEmp = [fullName: string, jabatan: string, gol: string, unitKerja: string, pddk: number, gender: 'L' | 'P'];
+
+const _BYG: Record<string, number> = {
+  'IV/e': 1963, 'IV/d': 1966, 'IV/c': 1967, 'IV/b': 1969, 'IV/a': 1972,
+  'III/d': 1975, 'III/c': 1978, 'III/b': 1982, 'III/a': 1985,
+  'II/d': 1988, 'II/c': 1990, 'II/b': 1992, 'II/a': 1994,
+  'I/d': 1996, 'I/c': 1997, 'I/b': 1998, 'I/a': 1999,
+};
+
+const _PDK: Record<number, string> = {
+  0: 'S1', 1: 'SMA/SMK', 2: 'D3', 3: 'D3', 4: 'D4',
+  5: 'D4', 6: 'S1', 7: 'Profesi', 8: 'S2', 9: 'Spesialis', 10: 'S3',
+};
+
+// Mapping kode unit kerja (UPPERCASE dari CSV) → nama resmi
+const _UKM: Record<string, string> = {
+  'DIREKTUR': 'Direktur',
+  'WAKIL DIREKTUR PEND, PENG. SDM DAN HUKUM': 'Wakil Direktur Pend, Peng. SDM dan Hukum',
+  'WAKIL DIREKTUR UMUM DAN KEUANGAN': 'Wakil Direktur Umum dan Keuangan',
+  'WAKIL DIREKTUR KEPERAWATAN, PELAYANAN DAN PENUNJANG MEDIK': 'Wakil Direktur Keperawatan, Pelayanan dan Penunjang Medik',
+  'BAGIAN KEUANGAN': 'Bagian Keuangan',
+  'BIDANG PELAYANAN MEDIK': 'Bidang Pelayanan Medik',
+  'BIDANG PENUNJANG MEDIK': 'Bidang Penunjang Medik',
+  'BIDANG HUKUM': 'Bidang Hukum',
+  'BIDANG PENGEMBANGAN SDM': 'Bidang Pengembangan SDM',
+  'BAGIAN PERENCANAAN & ANGGARAN': 'Bagian Perencanaan & Anggaran',
+  'BAGIAN UMUM': 'Bagian Umum',
+  'BIDANG KEPERAWATAN': 'Bidang Keperawatan',
+  'SMF PENYAKIT DALAM': 'SMF Penyakit Dalam',
+  'KOMITE KEPERAWATAN': 'Komite Keperawatan',
+  'KEPALA INSTALASI PELAYANAN': 'Kepala Instalasi Pelayanan',
+  'KEPALA INSTALASI KEPERAWATAN': 'Kepala Instalasi Keperawatan',
+  'KEPALA INSTALASI NON ESELON': 'Kepala Instalasi Non Eselon',
+  'APOTEKER': 'Instalasi Farmasi',
+  'MANAJER RUANGAN': 'Manajer Ruangan',
+  'MANAJER KLINIS': 'Manajer Klinis',
+  'SPI': 'SPI',
+  'SUB BAG KEPEGAWAIAN': 'Sub Bag Kepegawaian',
+  'SUB BAG PENYUSUNAN PELAPORAN & ANGG': 'Sub Bag Penyusunan Pelaporan & Angg',
+  'SUB BAG RT/PERLENGKAPAN': 'Sub Bag RT/Perlengkapan',
+  'IRJ': 'IRJ',
+  'IGD': 'IGD',
+  'SUB BAG UMUM': 'Sub Bag Umum',
+  'INSTALASI EDP-TI': 'Instalasi EDP-TI',
+  'INSTALASI BEDAH SENTRAL': 'Instalasi Bedah Sentral',
+  'INSTALASI ANESTESI': 'Instalasi Anestesi',
+  'ICU / ICCU / PICU': 'ICU / ICCU / PICU',
+  'R. CVCU JANTUNG': 'R. CVCU Jantung',
+  'R. ANAK': 'R. Anak',
+  'R. ONKOLOGI TERPADU (KHEMOTERAPI)': 'R. Onkologi Terpadu (Khemoterapi)',
+  'R. BEDAH': 'R. Bedah',
+  'R. NEUROLOGI': 'R. Neurologi',
+  'R. KEBIDANAN': 'R. Kebidanan',
+  'R. PINERE': 'R. Pinere',
+  'R. PARU': 'R. Paru',
+  'R. PBH LANTAI 2': 'R. PBH Lantai 2',
+  'R. PBH LANTAI 3': 'R. PBH Lantai 3',
+  'R. PBH LANTAI 4': 'R. PBH Lantai 4',
+  'R. PENYAKIT DALAM INFEKSIUS': 'R. Penyakit Dalam Infeksius',
+  'R. PENYAKIT DALAM NON INFEKSIUS': 'R. Penyakit Dalam Non Infeksius',
+  'R. PERINATOLOGI': 'R. Perinatologi',
+  'R. PAV SUDHA NIRMALA A': 'R. PAV Sudha Nirmala A',
+  'R. PELAYANAN JANTUNG TERPADU KLINIS': 'R. Pelayanan Jantung Terpadu Klinis',
+  'INSTALASI HEMODIALISA': 'Instalasi Hemodialisa',
+  'INSTALASI ENDOSCOPY': 'Instalasi Endoscopy',
+  'INSTALASI RADIOTERAPI': 'Instalasi Radioterapi',
+  'INSTALASI MEDICAL CHECK UP': 'Instalasi Medical Check Up',
+  'INSTALASI FORENSIK': 'Instalasi Forensik',
+  'ADMISTRASI FARMASI': 'Administrasi Farmasi',
+  'INSTALASI DIKLAT': 'Instalasi Diklat',
+  'SUB BAGIAN REKAM MEDIK': 'Sub Bag Rekam Medik',
+};
+
+const _CTS = ['Bandar Lampung', 'Metro', 'Kotabumi', 'Pringsewu', 'Liwa', 'Kalianda', 'Menggala', 'Gunung Sugih', 'Sukadana', 'Blambangan Umpu'];
+const _ARS = ['Pahoman', 'Kedaton', 'Rajabasa', 'Labuhan Ratu', 'Tanjung Senang', 'Langkapura', 'Sukarame', 'Panjang', 'Telukbetung', 'Kemiling'];
+
+function _pn(f: string): { gd?: string; nm: string; gb?: string } {
+  let s = f.trim();
+  let gd: string | undefined;
+  const prefixes = ['drg. ', 'dr. ', 'Dr. ', 'Ns. ', 'NS. ', 'Bdn. ', 'Ns.', 'NS.', 'Bdn.', 'dr.', 'Dr.', 'drg.'];
+  for (const p of prefixes) {
+    if (s.startsWith(p)) { gd = p.trim(); s = s.slice(p.length).trim(); break; }
+  }
+  const ci = s.indexOf(',');
+  if (ci >= 0) return { gd, nm: s.slice(0, ci).trim(), gb: s.slice(ci + 1).trim() || undefined };
+  return { gd, nm: s };
+}
+
+function _bldE(row: RawEmp, seq: number): Pegawai {
+  const [full, jabatan, gol, uk, pddk, gender] = row;
+  const { gd, nm, gb } = _pn(full);
+  const isStd = /^(I|II|III|IV)\/[abcde]$/.test(gol);
+  const sp: Pegawai['statusPegawai'] = isStd ? 'PNS' : 'Honorer';
+  const byr = (_BYG[gol] ?? 1988) + (seq % 6) - 2;
+  const bm = (seq * 3 % 12) + 1;
+  const bd = (seq * 7 % 28) + 1;
+  const bdate = `${byr}-${String(bm).padStart(2, '0')}-${String(bd).padStart(2, '0')}`;
+  const jyr = Math.min(byr + 23, 2024);
+  const jm = ((seq * 5) % 12) + 1;
+  const nip = isStd
+    ? `${byr}${String(bm).padStart(2, '0')}${String(bd).padStart(2, '0')}${jyr}${String(jm).padStart(2, '0')}01${gender === 'L' ? '1' : '2'}${String(seq).padStart(3, '0')}`
+    : String(1000000000000000 + seq).slice(-18);
+  const pk = PANGKAT_GOLONGAN[gol] ?? 'Pegawai Tidak Tetap';
+  const pend = _PDK[pddk] ?? 'S1';
+  let retAge = 58;
+  if (gd === 'dr.' || gd === 'drg.') retAge = 65;
+  else if (gol.startsWith('IV') && (jabatan.includes('Direktur') || jabatan.includes('KABAG') || jabatan.includes('KABID'))) retAge = 60;
+  const ry = byr + retAge;
+  const bp = isStd ? `${ry}-${String(bm).padStart(2, '0')}-${String(bd).padStart(2, '0')}` : '';
+  const fnFung = gd === 'dr.' ? 'Dokter'
+    : gd === 'drg.' ? 'Dokter Gigi'
+    : (gd === 'Ns.' || gd === 'NS.') ? 'Perawat'
+    : gd === 'Bdn.' ? 'Bidan'
+    : 'Tenaga Kesehatan Lainnya';
+  const emailName = nm.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, '.').slice(0, 30);
+  const area = _ARS[seq % _ARS.length];
+  const jurusanMap: Record<string, string> = {
+    'Spesialis': 'Ilmu Kedokteran Spesialis',
+    'S3': 'Ilmu Kedokteran',
+    'S2': 'Kesehatan Masyarakat',
+    'Profesi': 'Ners Keperawatan',
+    'S1': 'Keperawatan / Kesehatan',
+    'D4': 'D4 Keperawatan',
+    'D3': 'D3 Keperawatan',
+    'SMA/SMK': '—',
+  };
+  const inst = [
+    'Universitas Lampung', 'Universitas Indonesia', 'Universitas Gadjah Mada',
+    'Poltekkes Kemenkes Lampung', 'STIKES Muhammadiyah Pringsewu',
+  ];
+  return {
+    id: `P${String(seq).padStart(3, '0')}`,
+    nip,
+    nama: nm,
+    ...(gd ? { gelarDepan: gd } : {}),
+    ...(gb ? { gelarBelakang: gb } : {}),
+    jenisKelamin: gender,
+    tempatLahir: _CTS[seq % _CTS.length],
+    tanggalLahir: bdate,
+    agama: seq % 9 === 0 ? 'Kristen' : seq % 15 === 0 ? 'Katolik' : 'Islam',
+    statusPerkawinan: seq % 7 === 0 ? 'Belum Kawin' : 'Kawin',
+    alamat: `Jl. ${area} No. ${(seq % 99) + 1}, ${area}, Bandar Lampung`,
+    noTelp: `0812741${String(seq).padStart(4, '0')}`,
+    email: `${emailName}@rsudabdulmoeloek.go.id`,
+    jabatan,
+    jabatanFungsional: fnFung,
+    unitKerja: _UKM[uk] ?? uk,
+    golongan: gol,
+    pangkat: pk,
+    tmtGolongan: `${Math.min(jyr + 5, 2025)}-04-01`,
+    tmtJabatan: `${Math.min(jyr + 3, 2025)}-01-01`,
+    statusPegawai: sp,
+    statusAktif: 'Aktif',
+    pendidikanTerakhir: pend,
+    jurusan: jurusanMap[pend] ?? 'Kesehatan',
+    institusi: inst[seq % inst.length],
+    tahunLulus: jyr - 1,
+    tanggalMasuk: `${jyr}-03-01`,
+    batasPensiun: bp,
+    masaKerja: isStd ? `${2026 - jyr} Tahun 0 Bulan` : '',
+  };
+}
 
 const _RAW: RawEmp[] = [
   ['Rahmat Saifutra, SKM., MM','Subkoordinator Substansi','IV/a','BAGIAN UMUM',8,'L'],

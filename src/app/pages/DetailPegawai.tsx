@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import {
-  ArrowLeft, User, Briefcase, GraduationCap, Clock,
-  Calendar, TrendingUp, Target, Phone, Mail, MapPin,
-  Edit2, Printer, Award,
+  User, Briefcase, Calendar, TrendingUp, Target,
+  ArrowLeft, Printer, Edit2, Award, Phone, Mail, Clock, GraduationCap,
 } from 'lucide-react';
-import { dataPegawai, dataRiwayatJabatan, dataCuti, dataKenaikanPangkat, dataSKP } from '../data/mockData';
+import { useAppContext } from '../context/AppContext';
 import { PANGKAT_GOLONGAN } from '../data/constants';
 
 const InfoRow = ({ label, value }: { label: string; value?: string | number }) => (
@@ -27,9 +26,10 @@ export default function DetailPegawai() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profil');
+  const { pegawai, riwayatJabatan: allRJ, cuti: allCuti, kenaikanPangkat: allKP, skp: allSKP } = useAppContext();
 
-  const pegawai = dataPegawai.find(p => p.id === id);
-  if (!pegawai) {
+  const pegawaiData = pegawai.find(p => p.id === id);
+  if (!pegawaiData) {
     return (
       <div className="p-6 text-center">
         <p className="text-gray-500">Pegawai tidak ditemukan</p>
@@ -40,12 +40,15 @@ export default function DetailPegawai() {
     );
   }
 
-  const riwayatJabatan = dataRiwayatJabatan.filter(r => r.pegawaiId === id);
-  const riwayatCuti = dataCuti.filter(c => c.pegawaiId === id);
-  const riwayatKP = dataKenaikanPangkat.filter(k => k.pegawaiId === id);
-  const riwayatSKP = dataSKP.filter(s => s.pegawaiId === id);
+  const riwayatJabatan = allRJ.filter(r => r.pegawaiId === id);
+  const riwayatCuti = allCuti.filter(c => c.pegawaiId === id);
+  const riwayatKP = allKP.filter(k => k.pegawaiId === id);
+  const riwayatSKP = allSKP.filter(s => s.pegawaiId === id);
 
-  const getFullName = () => `${pegawai.gelarDepan || ''} ${pegawai.nama}${pegawai.gelarBelakang ? ', ' + pegawai.gelarBelakang : ''}`.trim();
+  // alias for backward compat in JSX below
+  const pegawai_ = pegawaiData;
+
+  const getFullName = () => `${pegawai_.gelarDepan || ''} ${pegawai_.nama}${pegawai_.gelarBelakang ? ', ' + pegawai_.gelarBelakang : ''}`.trim();
 
   const statusColorCuti: Record<string, string> = {
     'Disetujui': 'bg-green-100 text-green-700',
@@ -76,18 +79,18 @@ export default function DetailPegawai() {
         <div className="bg-gradient-to-r from-[#1e3a5f] to-[#2563eb] px-6 pt-8 pb-5 relative">
           <div className="flex flex-col md:flex-row md:items-end gap-5">
             <div className="w-20 h-20 rounded-2xl bg-white/20 flex items-center justify-center text-white text-2xl font-bold border-2 border-white/40 shadow">
-              {pegawai.nama.charAt(0)}
+              {pegawai_.nama.charAt(0)}
             </div>
             <div className="flex-1">
               <h2 className="text-white text-xl font-semibold">{getFullName()}</h2>
-              <p className="text-blue-200 text-sm mt-0.5">{pegawai.jabatan}</p>
+              <p className="text-blue-200 text-sm mt-0.5">{pegawai_.jabatan}</p>
               <div className="flex flex-wrap items-center gap-2 mt-2">
-                <span className="bg-white/20 text-white text-xs px-2.5 py-1 rounded-full">{pegawai.unitKerja}</span>
-                <span className="bg-white/20 text-white text-xs px-2.5 py-1 rounded-full">Gol. {pegawai.golongan}</span>
-                <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${pegawai.statusPegawai === 'PNS' ? 'bg-blue-500 text-white' : 'bg-green-500 text-white'}`}>
-                  {pegawai.statusPegawai}
+                <span className="bg-white/20 text-white text-xs px-2.5 py-1 rounded-full">{pegawai_.unitKerja}</span>
+                <span className="bg-white/20 text-white text-xs px-2.5 py-1 rounded-full">Gol. {pegawai_.golongan}</span>
+                <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${pegawai_.statusPegawai === 'PNS' ? 'bg-blue-500 text-white' : 'bg-green-500 text-white'}`}>
+                  {pegawai_.statusPegawai}
                 </span>
-                <span className="bg-emerald-500 text-white text-xs px-2.5 py-1 rounded-full">{pegawai.statusAktif}</span>
+                <span className="bg-emerald-500 text-white text-xs px-2.5 py-1 rounded-full">{pegawai_.statusAktif}</span>
               </div>
             </div>
             <div className="flex gap-2">
@@ -105,19 +108,19 @@ export default function DetailPegawai() {
         <div className="px-6 py-3 bg-gray-50 border-t border-gray-100 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div className="flex items-center gap-2 text-gray-600">
             <Award className="w-4 h-4 text-gray-400" />
-            <span className="text-xs">NIP: <strong>{pegawai.nip}</strong></span>
+            <span className="text-xs">NIP: <strong>{pegawai_.nip}</strong></span>
           </div>
           <div className="flex items-center gap-2 text-gray-600">
             <Phone className="w-4 h-4 text-gray-400" />
-            <span className="text-xs">{pegawai.noTelp}</span>
+            <span className="text-xs">{pegawai_.noTelp}</span>
           </div>
           <div className="flex items-center gap-2 text-gray-600">
             <Mail className="w-4 h-4 text-gray-400" />
-            <span className="text-xs truncate">{pegawai.email}</span>
+            <span className="text-xs truncate">{pegawai_.email}</span>
           </div>
           <div className="flex items-center gap-2 text-gray-600">
             <Clock className="w-4 h-4 text-gray-400" />
-            <span className="text-xs">Masa Kerja: <strong>{pegawai.masaKerja}</strong></span>
+            <span className="text-xs">Masa Kerja: <strong>{pegawai_.masaKerja}</strong></span>
           </div>
         </div>
       </div>
@@ -152,14 +155,14 @@ export default function DetailPegawai() {
                 </h4>
                 <div className="space-y-3">
                   <InfoRow label="Nama Lengkap" value={getFullName()} />
-                  <InfoRow label="NIP" value={pegawai.nip} />
-                  <InfoRow label="Jenis Kelamin" value={pegawai.jenisKelamin === 'L' ? 'Laki-laki' : 'Perempuan'} />
-                  <InfoRow label="Tempat, Tgl. Lahir" value={`${pegawai.tempatLahir}, ${new Date(pegawai.tanggalLahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`} />
-                  <InfoRow label="Agama" value={pegawai.agama} />
-                  <InfoRow label="Status Perkawinan" value={pegawai.statusPerkawinan} />
-                  <InfoRow label="No. Telepon" value={pegawai.noTelp} />
-                  <InfoRow label="Email" value={pegawai.email} />
-                  <InfoRow label="Alamat" value={pegawai.alamat} />
+                  <InfoRow label="NIP" value={pegawai_.nip} />
+                  <InfoRow label="Jenis Kelamin" value={pegawai_.jenisKelamin === 'L' ? 'Laki-laki' : 'Perempuan'} />
+                  <InfoRow label="Tempat, Tgl. Lahir" value={`${pegawai_.tempatLahir}, ${new Date(pegawai_.tanggalLahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`} />
+                  <InfoRow label="Agama" value={pegawai_.agama} />
+                  <InfoRow label="Status Perkawinan" value={pegawai_.statusPerkawinan} />
+                  <InfoRow label="No. Telepon" value={pegawai_.noTelp} />
+                  <InfoRow label="Email" value={pegawai_.email} />
+                  <InfoRow label="Alamat" value={pegawai_.alamat} />
                 </div>
               </div>
 
@@ -169,18 +172,18 @@ export default function DetailPegawai() {
                   <Briefcase className="w-4 h-4" /> Data Kepegawaian
                 </h4>
                 <div className="space-y-3">
-                  <InfoRow label="Status Pegawai" value={pegawai.statusPegawai} />
-                  <InfoRow label="Status Aktif" value={pegawai.statusAktif} />
-                  <InfoRow label="Jabatan" value={pegawai.jabatan} />
-                  <InfoRow label="Jabatan Fungsional" value={pegawai.jabatanFungsional} />
-                  {pegawai.eselon && <InfoRow label="Eselon" value={pegawai.eselon} />}
-                  <InfoRow label="Unit Kerja" value={pegawai.unitKerja} />
-                  <InfoRow label="Golongan / Pangkat" value={`${pegawai.golongan} / ${pegawai.pangkat}`} />
-                  <InfoRow label="TMT Golongan" value={new Date(pegawai.tmtGolongan).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} />
-                  <InfoRow label="TMT Jabatan" value={new Date(pegawai.tmtJabatan).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} />
-                  <InfoRow label="Tanggal Masuk" value={new Date(pegawai.tanggalMasuk).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} />
-                  <InfoRow label="Masa Kerja" value={pegawai.masaKerja} />
-                  <InfoRow label="Batas Usia Pensiun" value={new Date(pegawai.batasPensiun).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} />
+                  <InfoRow label="Status Pegawai" value={pegawai_.statusPegawai} />
+                  <InfoRow label="Status Aktif" value={pegawai_.statusAktif} />
+                  <InfoRow label="Jabatan" value={pegawai_.jabatan} />
+                  <InfoRow label="Jabatan Fungsional" value={pegawai_.jabatanFungsional} />
+                  {pegawai_.eselon && <InfoRow label="Eselon" value={pegawai_.eselon} />}
+                  <InfoRow label="Unit Kerja" value={pegawai_.unitKerja} />
+                  <InfoRow label="Golongan / Pangkat" value={`${pegawai_.golongan} / ${pegawai_.pangkat}`} />
+                  <InfoRow label="TMT Golongan" value={new Date(pegawai_.tmtGolongan).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} />
+                  <InfoRow label="TMT Jabatan" value={new Date(pegawai_.tmtJabatan).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} />
+                  <InfoRow label="Tanggal Masuk" value={new Date(pegawai_.tanggalMasuk).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} />
+                  <InfoRow label="Masa Kerja" value={pegawai_.masaKerja} />
+                  <InfoRow label="Batas Usia Pensiun" value={new Date(pegawai_.batasPensiun).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} />
                 </div>
 
                 <div className="mt-6">
@@ -188,10 +191,10 @@ export default function DetailPegawai() {
                     <GraduationCap className="w-4 h-4" /> Pendidikan Terakhir
                   </h4>
                   <div className="space-y-3">
-                    <InfoRow label="Jenjang" value={pegawai.pendidikanTerakhir} />
-                    <InfoRow label="Jurusan" value={pegawai.jurusan} />
-                    <InfoRow label="Institusi" value={pegawai.institusi} />
-                    <InfoRow label="Tahun Lulus" value={pegawai.tahunLulus} />
+                    <InfoRow label="Jenjang" value={pegawai_.pendidikanTerakhir} />
+                    <InfoRow label="Jurusan" value={pegawai_.jurusan} />
+                    <InfoRow label="Institusi" value={pegawai_.institusi} />
+                    <InfoRow label="Tahun Lulus" value={pegawai_.tahunLulus} />
                   </div>
                 </div>
               </div>
