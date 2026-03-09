@@ -5,11 +5,16 @@ import {
   Zap, AlertTriangle, CheckCircle2, Clock, Users, Layers, ArrowRight,
   Search, Filter, Star, Brain, Heart, Handshake, Lightbulb, Crown,
   RefreshCw, Download, AlertCircle, CheckSquare, ChevronRight,
+  User, FileCheck, Printer, FileText,
 } from 'lucide-react';
+
 import { useAppContext } from '../context/AppContext';
 import type { SKPRecord, SKPItem } from '../types';
 import { toast } from 'sonner';
 import { bscObjectives, okrObjectives } from '../data/performanceData';
+import ProfilKinerjaTab from '../components/skp/ProfilKinerjaTab';
+import ApprovalTab from '../components/skp/ApprovalTab';
+import LaporanTab from '../components/skp/LaporanTab';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const TABS = [
@@ -19,6 +24,9 @@ const TABS = [
   { id: 'perilaku',   label: 'Penilaian Perilaku', icon: Brain       },
   { id: 'cascading',  label: 'Cascading',          icon: GitBranch   },
   { id: 'output',     label: 'Output & Dampak',    icon: TrendingUp  },
+  { id: 'profil',     label: 'Profil Kinerja',     icon: User        },
+  { id: 'approval',   label: 'Alur Persetujuan',   icon: FileCheck   },
+  { id: 'laporan',    label: 'Laporan & Cetak',    icon: Printer     },
 ] as const;
 type TabId = typeof TABS[number]['id'];
 
@@ -176,6 +184,9 @@ function useAutoKPI() {
 // TAB COMPONENTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// ─── UNIT BAR CHART COLORS ────────────────────────────────────────────────────
+const BAR_COLORS = ['#3b82f6','#10b981','#8b5cf6','#f59e0b','#ef4444','#06b6d4','#ec4899','#84cc16'];
+
 // ─── TAB 1: Dashboard ─────────────────────────────────────────────────────────
 function DashboardTab({ onTabChange }: { onTabChange: (t: TabId) => void }) {
   const { skp, pegawai, disiplin, kenaikanPangkat } = useAppContext();
@@ -196,6 +207,21 @@ function DashboardTab({ onTabChange }: { onTabChange: (t: TabId) => void }) {
   const rewardList = selesai.filter(s => (s.nilaiAkhir ?? 0) >= 110);
   const pembinaanList = selesai.filter(s => (s.nilaiAkhir ?? 0) < 70);
   const kpEligible = selesai.filter(s => (s.nilaiAkhir ?? 0) >= 90);
+
+  // Unit bar chart data
+  const unitChartData = useMemo(() => {
+    const map = new Map<string, { sum: number; count: number }>();
+    selesai.forEach(s => {
+      const p = pegawai.find(px => px.id === s.pegawaiId);
+      if (!p || !s.nilaiAkhir) return;
+      const u = p.unitKerja.length > 22 ? p.unitKerja.slice(0, 22) + '…' : p.unitKerja;
+      if (!map.has(u)) map.set(u, { sum: 0, count: 0 });
+      const e = map.get(u)!; e.sum += s.nilaiAkhir; e.count++;
+    });
+    return Array.from(map.entries())
+      .map(([unit, d]) => ({ unit, 'Avg KPI': parseFloat((d.sum / d.count).toFixed(1)), n: d.count }))
+      .sort((a, b) => b['Avg KPI'] - a['Avg KPI']).slice(0, 8);
+  }, [selesai, pegawai]);
 
   return (
     <div className="space-y-6">
@@ -300,6 +326,53 @@ function DashboardTab({ onTabChange }: { onTabChange: (t: TabId) => void }) {
           </div>
           <button onClick={() => onTabChange('output')} className="mt-3 w-full text-xs text-blue-600 hover:underline text-center">Lihat Detail Output & Dampak →</button>
         </div>
+      </div>
+
+      {/* Unit Bar Chart */}
+      {unitChartData.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-gray-800 text-sm">Rata-rata KPI per Unit Kerja</h3>
+            <button onClick={() => onTabChange('laporan')} className="text-xs text-blue-600 hover:underline">Lihat Laporan Lengkap →</button>
+          </div>
+          <div className="space-y-2">
+            {unitChartData.map((d, i) => {
+              const pct = Math.round((d['Avg KPI'] / 130) * 100);
+              const color = BAR_COLORS[i % BAR_COLORS.length];
+              return (
+                <div key={`kpi-bar-row-${i}`} className="flex items-center gap-3">
+                  <span className="text-[10px] text-gray-500 w-36 shrink-0 truncate" title={d.unit}>{d.unit}</span>
+                  <div className="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
+                    <div
+                      className="h-4 rounded-full"
+                      style={{ width: `${pct}%`, backgroundColor: color }}
+                    />
+                  </div>
+                  <span className="text-[11px] font-semibold text-gray-700 w-10 text-right shrink-0">{d['Avg KPI']}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex justify-between mt-2 pl-36 text-[9px] text-gray-300">
+            <span>0</span><span>32</span><span>65</span><span>97</span><span>130</span>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Nav to new tabs */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { id: 'profil' as TabId,   label: 'Profil Kinerja',   desc: 'Tren & radar per pegawai', icon: User,      cls: 'border-indigo-100 bg-indigo-50 hover:bg-indigo-100' },
+          { id: 'approval' as TabId, label: 'Alur Persetujuan', desc: 'Lifecycle SKP & approval',  icon: FileCheck, cls: 'border-blue-100 bg-blue-50 hover:bg-blue-100'    },
+          { id: 'laporan' as TabId,  label: 'Laporan & Cetak',  desc: 'Export PDF & rekap unit',  icon: Printer,   cls: 'border-gray-100 bg-gray-50 hover:bg-gray-100'    },
+        ].map(nav => (
+          <button key={nav.id} onClick={() => onTabChange(nav.id)}
+            className={`rounded-xl border p-4 text-left transition-colors ${nav.cls}`}>
+            <nav.icon className="w-5 h-5 text-gray-600 mb-2" />
+            <p className="text-sm font-semibold text-gray-800">{nav.label}</p>
+            <p className="text-[11px] text-gray-500 mt-0.5">{nav.desc}</p>
+          </button>
+        ))}
       </div>
 
       {/* Info bar */}
@@ -539,138 +612,258 @@ function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry 
   const handleDelete = (id: string) => { deleteSKP(id); setShowDeleteConfirm(null); toast.success('Data SKP dihapus'); };
   const toggleCard = (id: string) => setExpandedCards(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
+  // Avatar color palette
+  const avatarColors = [
+    'bg-blue-100 text-blue-700','bg-violet-100 text-violet-700',
+    'bg-emerald-100 text-emerald-700','bg-rose-100 text-rose-700',
+    'bg-amber-100 text-amber-700','bg-cyan-100 text-cyan-700',
+    'bg-indigo-100 text-indigo-700','bg-pink-100 text-pink-700',
+  ];
+  const getAvatarCls = (name: string) => avatarColors[(name.charCodeAt(0) || 0) % avatarColors.length];
+  const STATUS_ROW_CFG: Record<string, { pill: string; dot: string }> = {
+    'Draft':   { pill: 'bg-gray-100 text-gray-500 border border-gray-200',         dot: 'bg-gray-400'    },
+    'Aktif':   { pill: 'bg-blue-50 text-blue-600 border border-blue-200',           dot: 'bg-blue-500'    },
+    'Selesai': { pill: 'bg-emerald-50 text-emerald-700 border border-emerald-200',  dot: 'bg-emerald-500' },
+  };
+
   return (
-    <div className="space-y-4">
-      {/* Filter bar */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex flex-col sm:flex-row gap-3 items-end">
-        <select value={filterPegawai} onChange={e => setFilterPegawai(e.target.value)}
-          className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="">Semua Pegawai</option>
-          {pegawai.map(p => <option key={p.id} value={p.id}>{p.gelarDepan || ''} {p.nama} — {p.unitKerja}</option>)}
-        </select>
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-          className="w-full sm:w-40 text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="">Semua Status</option>
-          <option value="Draft">Draft</option>
-          <option value="Aktif">Aktif</option>
-          <option value="Selesai">Selesai</option>
-        </select>
-        <select value={filterTahun} onChange={e => setFilterTahun(e.target.value)}
-          className="w-full sm:w-32 text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="">Semua Tahun</option>
-          {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
-        </select>
-        <button onClick={openAdd} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors whitespace-nowrap flex-shrink-0">
+    <div className="space-y-3">
+      {/* ── Filter & Action Bar ── */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+        <div className="flex-1 relative">
+          <select value={filterPegawai} onChange={e => setFilterPegawai(e.target.value)}
+            className="w-full appearance-none text-sm bg-white border border-gray-200 rounded-xl pl-3 pr-8 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+            <option value="">Semua Pegawai</option>
+            {pegawai.map(p => <option key={p.id} value={p.id}>{p.gelarDepan || ''} {p.nama} — {p.jabatan}</option>)}
+          </select>
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+        </div>
+        <div className="relative sm:w-40">
+          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+            className="w-full appearance-none text-sm bg-white border border-gray-200 rounded-xl pl-3 pr-8 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+            <option value="">Semua Status</option>
+            <option value="Draft">Draft</option>
+            <option value="Aktif">Aktif</option>
+            <option value="Selesai">Selesai</option>
+          </select>
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+        </div>
+        <div className="relative sm:w-36">
+          <select value={filterTahun} onChange={e => setFilterTahun(e.target.value)}
+            className="w-full appearance-none text-sm bg-white border border-gray-200 rounded-xl pl-3 pr-8 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+            <option value="">Semua Tahun</option>
+            {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+        </div>
+        <button onClick={openAdd}
+          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 active:scale-95 transition-all shadow-sm whitespace-nowrap flex-shrink-0">
           <Plus className="w-4 h-4" /> Buat SKP
         </button>
       </div>
 
-      {/* SKP Cards */}
-      <div className="space-y-3">
-        {filteredSKP.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center text-gray-400">
-            <Target className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p className="text-sm">Belum ada data SKP</p>
-          </div>
-        ) : filteredSKP.map(s => {
-          const p = getPegawai(s.pegawaiId);
-          const predikatCfg = s.predikat ? PREDIKAT_CFG[s.predikat] : null;
-          const isExpanded = expandedCards.has(s.id);
-          const kpiBehavior = loadBehavior(s.id);
-          const isSupv = p?.eselon != null;
-          const hasPerilaku = Object.keys(kpiBehavior).length > 0;
-          const perilakuScore = hasPerilaku ? calcBehaviorScore(kpiBehavior, isSupv) : null;
-          const finalScore = s.nilaiAkhir != null && perilakuScore != null
-            ? Math.round(s.nilaiAkhir * 0.7 + perilakuScore * 0.3) : null;
+      {/* Count hint */}
+      <p className="text-xs text-gray-400 px-0.5">
+        {filteredSKP.length} data SKP ditemukan
+        {(filterPegawai || filterStatus || filterTahun) && (
+          <button onClick={() => { setFilterPegawai(''); setFilterStatus(''); setFilterTahun(''); }}
+            className="ml-2 text-blue-500 hover:underline">Reset filter</button>
+        )}
+      </p>
 
-          return (
-            <div key={s.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-50/50 transition-colors" onClick={() => toggleCard(s.id)}>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-semibold text-sm flex-shrink-0">
-                    {p?.nama.charAt(0)}
+      {/* ── SKP List ── */}
+      {filteredSKP.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-16 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-4">
+            <Target className="w-8 h-8 text-blue-300" />
+          </div>
+          <p className="text-sm font-medium text-gray-500">Belum ada data SKP</p>
+          <p className="text-xs text-gray-400 mt-1">Klik <strong>+ Buat SKP</strong> untuk menambahkan SKP baru</p>
+          <button onClick={openAdd}
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors">
+            <Plus className="w-4 h-4" /> Buat SKP Pertama
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          {filteredSKP.map((s, idx) => {
+            const p = getPegawai(s.pegawaiId);
+            const predikatCfg = s.predikat ? PREDIKAT_CFG[s.predikat] : null;
+            const isExpanded = expandedCards.has(s.id);
+            const kpiBehavior = loadBehavior(s.id);
+            const isSupv = p?.eselon != null;
+            const hasPerilaku = Object.keys(kpiBehavior).length > 0;
+            const perilakuScore = hasPerilaku ? calcBehaviorScore(kpiBehavior, isSupv) : null;
+            const finalScore = s.nilaiAkhir != null && perilakuScore != null
+              ? Math.round(s.nilaiAkhir * 0.7 + perilakuScore * 0.3) : null;
+            const avatarCls = getAvatarCls(p?.nama || 'A');
+            const statusCfg = STATUS_ROW_CFG[s.status] || STATUS_ROW_CFG['Draft'];
+
+            return (
+              <div key={s.id} className={idx > 0 ? 'border-t border-gray-100' : ''}>
+                {/* ── Row ── */}
+                <div
+                  className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50/60 transition-colors cursor-pointer select-none group"
+                  onClick={() => toggleCard(s.id)}
+                >
+                  {/* Avatar */}
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold flex-shrink-0 text-sm ${avatarCls}`}>
+                    {(p?.nama || '?').charAt(0).toUpperCase()}
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-800 text-sm">{getFullName(s.pegawaiId)}</p>
-                    <p className="text-xs text-gray-500">{p?.jabatan} · Sem. {s.semester} {s.tahun}</p>
+
+                  {/* Identity */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-800 truncate leading-tight">{getFullName(s.pegawaiId)}</p>
+                    <p className="text-xs text-gray-400 mt-0.5 truncate">
+                      {p?.jabatan || '–'}
+                      {p?.unitKerja ? ` · ${p.unitKerja}` : ''}
+                      {' · '}Sem. {s.semester} {s.tahun}
+                    </p>
                   </div>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap justify-end" onClick={e => e.stopPropagation()}>
-                  {s.nilaiAkhir != null && <span className="text-base font-bold text-gray-800">{s.nilaiAkhir}</span>}
-                  {finalScore != null && (
-                    <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-medium">Final: {finalScore}</span>
-                  )}
-                  {s.predikat && predikatCfg && (
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${predikatCfg.bg} ${predikatCfg.color}`}>{s.predikat}</span>
-                  )}
-                  <span className={`text-xs px-2.5 py-1 rounded-full ${STATUS_CFG[s.status]}`}>{s.status}</span>
-                  <div className="flex items-center gap-1">
-                    <button onClick={() => { setSelectedSKP(s); setShowDetailModal(true); }} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" title="Detail"><Eye className="w-4 h-4" /></button>
-                    <button onClick={() => openEdit(s)} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg" title="Edit"><Edit2 className="w-4 h-4" /></button>
-                    {s.status === 'Aktif' && <button onClick={() => openRealisasi(s)} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg" title="Input Realisasi"><Save className="w-4 h-4" /></button>}
-                    <button onClick={() => setShowDeleteConfirm(s.id)} className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg" title="Hapus"><Trash2 className="w-4 h-4" /></button>
-                  </div>
-                  {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-                </div>
-              </div>
-              {isExpanded && (
-                <div className="px-5 pb-4">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr className="text-gray-400 border-b border-gray-100">
-                          <th className="text-left pb-2 pr-4">Uraian Kegiatan / KPI</th>
-                          <th className="text-center pb-2 px-2">Target</th>
-                          <th className="text-center pb-2 px-2">Realisasi</th>
-                          <th className="text-center pb-2 px-2">Bobot</th>
-                          <th className="text-center pb-2 px-2">Capaian</th>
-                          <th className="text-left pb-2">Progress</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {s.targetKinerja.map(t => {
-                          const capai = t.realisasi != null && t.target > 0 ? Math.min(Math.round((t.realisasi / t.target) * 100), 130) : 0;
-                          return (
-                            <tr key={t.id} className="border-b border-gray-50 last:border-0">
-                              <td className="py-2.5 pr-4 text-gray-700">{t.uraianKegiatan}</td>
-                              <td className="py-2.5 text-center text-gray-600">{t.target.toLocaleString()} {t.satuan}</td>
-                              <td className="py-2.5 text-center font-medium text-gray-700">{t.realisasi != null ? t.realisasi.toLocaleString() : '—'}</td>
-                              <td className="py-2.5 text-center text-gray-600">{t.bobot}%</td>
-                              <td className="py-2.5 text-center">
-                                {t.nilaiCapaian != null ? (
-                                  <span className={`font-medium ${t.nilaiCapaian >= 100 ? 'text-green-600' : t.nilaiCapaian >= 75 ? 'text-blue-600' : 'text-yellow-600'}`}>{t.nilaiCapaian.toFixed(1)}</span>
-                                ) : '—'}
-                              </td>
-                              <td className="py-2.5 pl-4">
-                                <div className="flex items-center gap-2 min-w-28">
-                                  <div className="flex-1 bg-gray-100 rounded-full h-1.5">
-                                    <div className={`h-1.5 rounded-full ${capai >= 100 ? 'bg-green-500' : capai >= 75 ? 'bg-blue-500' : 'bg-yellow-500'}`} style={{ width: `${Math.min(capai, 100)}%` }} />
-                                  </div>
-                                  <span className="text-gray-400 w-8">{capai}%</span>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                  {s.nilaiAkhir != null && (
-                    <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
-                      <span className="text-xs text-gray-500 flex items-center gap-1"><Award className="w-3.5 h-3.5 text-gray-400" /> Nilai Akhir KPI</span>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-bold text-gray-800">{s.nilaiAkhir}</span>
-                        {perilakuScore != null && <span className="text-xs text-gray-500">+ Perilaku {perilakuScore} → Final <strong className="text-purple-700">{finalScore}</strong></span>}
-                        {s.predikat && predikatCfg && <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${predikatCfg.bg} ${predikatCfg.color}`}>{s.predikat}</span>}
-                      </div>
+
+                  {/* Right side */}
+                  <div className="flex items-center gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
+                    {s.nilaiAkhir != null && (
+                      <span className="text-lg font-bold text-gray-800 tabular-nums min-w-10 text-right">{s.nilaiAkhir}</span>
+                    )}
+                    {finalScore != null && (
+                      <span className="hidden md:inline-flex text-[11px] px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-semibold">
+                        Final {finalScore}
+                      </span>
+                    )}
+                    {s.predikat && predikatCfg && (
+                      <span className={`hidden sm:inline-flex text-[11px] px-2.5 py-1 rounded-full font-semibold ${predikatCfg.bg} ${predikatCfg.color}`}>
+                        {s.predikat}
+                      </span>
+                    )}
+                    <span className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full font-semibold ${statusCfg.pill}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusCfg.dot}`} />
+                      {s.status}
+                    </span>
+                    {/* Icons */}
+                    <div className="flex items-center gap-0.5">
+                      <button onClick={e => { e.stopPropagation(); setSelectedSKP(s); setShowDetailModal(true); }}
+                        className="p-1.5 text-gray-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Lihat Detail">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button onClick={e => { e.stopPropagation(); openEdit(s); }}
+                        className="p-1.5 text-gray-300 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors" title="Edit">
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      {s.status === 'Aktif' && (
+                        <button onClick={e => { e.stopPropagation(); openRealisasi(s); }}
+                          className="p-1.5 text-gray-300 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Input Realisasi">
+                          <Save className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button onClick={e => { e.stopPropagation(); setShowDeleteConfirm(s.id); }}
+                        className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Hapus">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-                  )}
+                    <div className="pl-0.5">
+                      {isExpanded
+                        ? <ChevronUp className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
+                        : <ChevronDown className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
+                      }
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+
+                {/* ── Expanded Detail ── */}
+                {isExpanded && (
+                  <div className="border-t border-gray-100 bg-gray-50/40 px-5 pb-5 pt-4">
+                    {/* Mobile badges */}
+                    <div className="flex items-center gap-2 mb-3 sm:hidden flex-wrap">
+                      {s.nilaiAkhir != null && <span className="text-base font-bold text-gray-800">{s.nilaiAkhir}</span>}
+                      {finalScore != null && <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-semibold">Final {finalScore}</span>}
+                      {s.predikat && predikatCfg && (
+                        <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${predikatCfg.bg} ${predikatCfg.color}`}>{s.predikat}</span>
+                      )}
+                    </div>
+
+                    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
+                      <div className="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between">
+                        <p className="text-xs font-semibold text-gray-600">{s.targetKinerja.length} Butir Kegiatan / KPI</p>
+                        {s.status === 'Aktif' && (
+                          <button onClick={() => openRealisasi(s)}
+                            className="flex items-center gap-1 text-xs text-emerald-600 border border-emerald-200 px-2.5 py-1 rounded-lg hover:bg-emerald-50 transition-colors">
+                            <Save className="w-3 h-3" /> Input Realisasi
+                          </button>
+                        )}
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="text-gray-400 bg-gray-50/80 border-b border-gray-100">
+                              <th className="text-left px-4 py-2.5 font-medium">Uraian Kegiatan / KPI</th>
+                              <th className="text-center px-3 py-2.5 font-medium whitespace-nowrap">Target</th>
+                              <th className="text-center px-3 py-2.5 font-medium whitespace-nowrap">Realisasi</th>
+                              <th className="text-center px-3 py-2.5 font-medium whitespace-nowrap">Bobot</th>
+                              <th className="text-center px-3 py-2.5 font-medium whitespace-nowrap">Capaian</th>
+                              <th className="text-left px-4 py-2.5 font-medium min-w-28">Progress</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {s.targetKinerja.map(t => {
+                              const capai = t.realisasi != null && t.target > 0
+                                ? Math.min(Math.round((t.realisasi / t.target) * 100), 130) : 0;
+                              const capaiBar = Math.min(capai, 100);
+                              const barCls = capai >= 100 ? 'bg-emerald-500' : capai >= 75 ? 'bg-blue-500' : 'bg-amber-400';
+                              const capaiCls = capai >= 100 ? 'text-emerald-600' : capai >= 75 ? 'text-blue-600' : 'text-amber-600';
+                              return (
+                                <tr key={t.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60">
+                                  <td className="px-4 py-3 text-gray-700">{t.uraianKegiatan}</td>
+                                  <td className="px-3 py-3 text-center text-gray-500 whitespace-nowrap">{t.target.toLocaleString()} {t.satuan}</td>
+                                  <td className="px-3 py-3 text-center font-semibold text-gray-700">
+                                    {t.realisasi != null ? t.realisasi.toLocaleString() : <span className="text-gray-300">—</span>}
+                                  </td>
+                                  <td className="px-3 py-3 text-center text-gray-500">{t.bobot}%</td>
+                                  <td className="px-3 py-3 text-center">
+                                    {t.nilaiCapaian != null
+                                      ? <span className={`font-bold ${capaiCls}`}>{t.nilaiCapaian.toFixed(1)}</span>
+                                      : <span className="text-gray-300">—</span>}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <div className="flex items-center gap-2 min-w-24">
+                                      <div className="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                                        <div className={`h-1.5 rounded-full ${barCls}`} style={{ width: `${capaiBar}%` }} />
+                                      </div>
+                                      <span className={`text-[10px] font-semibold w-7 text-right tabular-nums ${capaiCls}`}>{capai}%</span>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      {s.nilaiAkhir != null && (
+                        <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-white border-t border-gray-100 flex items-center justify-between flex-wrap gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Award className="w-3.5 h-3.5 text-gray-400" />
+                            <span className="text-xs text-gray-500">Nilai Akhir KPI</span>
+                            <span className="text-sm font-bold text-gray-800">{s.nilaiAkhir}</span>
+                            {perilakuScore != null && (
+                              <span className="text-xs text-gray-400">
+                                + Perilaku <strong className="text-purple-600">{perilakuScore}</strong>
+                                {' → Final '}<strong className="text-purple-700">{finalScore}</strong>
+                              </span>
+                            )}
+                          </div>
+                          {s.predikat && predikatCfg && (
+                            <span className={`text-xs px-3 py-1 rounded-full font-semibold ${predikatCfg.bg} ${predikatCfg.color}`}>{s.predikat}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* ── Form Modal ── */}
       {showFormModal && (
@@ -1220,9 +1413,34 @@ function CascadingTab() {
   );
 }
 
-// ─── TAB 6: Output & Dampak ───────────────────────────────────────────────────
+// ─── REMUNERASI HELPER ────────────────────────────────────────────────────────
+const GOLONGAN_BASE: Record<string, number> = {
+  'I/a':2000,'I/b':2100,'I/c':2200,'I/d':2350,
+  'II/a':2600,'II/b':2750,'II/c':2900,'II/d':3100,
+  'III/a':3300,'III/b':3500,'III/c':3700,'III/d':3900,
+  'IV/a':4200,'IV/b':4400,'IV/c':4600,'IV/d':4800,'IV/e':5000,
+};
+const REMUNERASI_MULTIPLIER: Record<string, number> = {
+  'Sangat Baik': 1.10, 'Baik': 1.00, 'Cukup': 0.85, 'Kurang': 0.70, 'Sangat Kurang': 0.50,
+};
+function getRemBase(golongan: string) {
+  const key = Object.keys(GOLONGAN_BASE).find(k => golongan?.startsWith(k));
+  return key ? GOLONGAN_BASE[key] : 3000;
+}
+
+function loadCoaching(skpId: string) {
+  try { const r = localStorage.getItem(`skp_coaching_${skpId}`); return r || ''; } catch { return ''; }
+}
+function saveCoaching(skpId: string, val: string) {
+  try { localStorage.setItem(`skp_coaching_${skpId}`, val); } catch {}
+}
+
+// ─── TAB 6: Output & Dampak ��──────────────────────────────────────────────────
 function OutputDampakTab() {
   const { skp, pegawai, kenaikanPangkat, disiplin } = useAppContext();
+
+  const [coachingNotes, setCoachingNotes] = useState<Record<string, string>>({});
+  const [showRemunerasi, setShowRemunerasi] = useState(false);
 
   const employees = useMemo(() => {
     const latestSKPByPegawai = new Map<string, SKPRecord>();
@@ -1242,7 +1460,11 @@ function OutputDampakTab() {
       const predikat = getNilaiPredikat(finalScore);
       const hasKPRecent = kenaikanPangkat.some(kp => kp.pegawaiId === pid && kp.status === 'Selesai');
       const hasDisiplin = disiplin.some(d => d.pegawaiId === pid && d.status !== 'Selesai');
-      return { pid, p, s, kpiScore, perilakuScore, finalScore, predikat, hasKPRecent, hasDisiplin };
+      // Remunerasi estimate
+      const remBase = getRemBase(p?.golongan || '');
+      const remMulti = REMUNERASI_MULTIPLIER[predikat] || 1.0;
+      const remEstimate = Math.round(remBase * remMulti);
+      return { pid, p, s, kpiScore, perilakuScore, finalScore, predikat, hasKPRecent, hasDisiplin, remEstimate };
     }).sort((a, b) => b.finalScore - a.finalScore);
   }, [skp, pegawai, kenaikanPangkat, disiplin]);
 
@@ -1262,9 +1484,15 @@ function OutputDampakTab() {
     <div className="space-y-5">
       {/* Formula card */}
       <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl p-5 text-white">
-        <div className="flex items-center gap-2 mb-3">
-          <TrendingUp className="w-4 h-4 text-yellow-400" />
-          <p className="text-sm font-semibold">Formula Final Score</p>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-yellow-400" />
+            <p className="text-sm font-semibold">Formula Final Score & Dampak HR</p>
+          </div>
+          <button onClick={() => setShowRemunerasi(v => !v)}
+            className="text-xs px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
+            {showRemunerasi ? 'Sembunyikan' : 'Tampilkan'} Estimasi Remunerasi
+          </button>
         </div>
         <div className="grid grid-cols-3 gap-4 text-center">
           <div className="p-3 bg-white/10 rounded-xl">
@@ -1279,7 +1507,21 @@ function OutputDampakTab() {
             <p className="text-[10px] text-gray-400">Dari Penilaian Perilaku</p>
           </div>
         </div>
-        <p className="text-center text-xs text-gray-400 mt-3">Final Score = (KPI × 0.7) + (Perilaku × 0.3) | Sesuai PermenPAN-RB No. 6/2022</p>
+        <p className="text-center text-xs text-gray-400 mt-3">Final Score = (KPI × 0.7) + (Perilaku × 0.3) · PermenPAN-RB No. 6/2022</p>
+        {showRemunerasi && (
+          <div className="mt-4 p-3 bg-white/5 rounded-xl border border-white/10">
+            <p className="text-xs font-semibold text-yellow-300 mb-2">📊 Tabel Estimasi Remunerasi (Tunjangan Kinerja)</p>
+            <div className="grid grid-cols-3 gap-2 text-[10px]">
+              {Object.entries(REMUNERASI_MULTIPLIER).map(([pred, multi]) => (
+                <div key={pred} className="flex items-center justify-between bg-white/10 rounded-lg px-2 py-1.5">
+                  <span className="text-gray-300">{pred}</span>
+                  <span className="text-yellow-300 font-bold">{(multi * 100).toFixed(0)}%</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-[9px] text-gray-500 mt-2">* Estimasi berdasarkan golongan × multiplier predikat. Angka aktual mengacu pada Perpres Tunjangan Kinerja.</p>
+          </div>
+        )}
       </div>
 
       {/* Impact Zones */}
@@ -1294,38 +1536,59 @@ function OutputDampakTab() {
             <div className="space-y-2">
               {zone.list.map(e => {
                 const predikatCfg = PREDIKAT_CFG[e.predikat];
+                const isCoachingZone = zone.label.includes('Pembinaan') || zone.label.includes('Monitoring');
+                const coaching = coachingNotes[e.pid] ?? loadCoaching(e.s.id);
                 return (
-                  <div key={e.pid} className="flex items-center justify-between bg-white rounded-xl px-4 py-3 shadow-sm">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                        {e.p?.nama.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-800 leading-tight">{e.p ? `${e.p.gelarDepan || ''} ${e.p.nama}`.trim() : e.pid}</p>
-                        <p className="text-[10px] text-gray-500">{e.p?.jabatan} · Sem. {e.s.semester}/{e.s.tahun}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 text-right">
-                      <div className="text-right">
-                        <p className="text-[10px] text-gray-500">KPI</p>
-                        <p className="text-xs font-semibold text-blue-600">{e.kpiScore}</p>
-                      </div>
-                      {e.perilakuScore != null && (
-                        <div className="text-right">
-                          <p className="text-[10px] text-gray-500">Perilaku</p>
-                          <p className="text-xs font-semibold text-purple-600">{e.perilakuScore}</p>
+                  <div key={e.pid} className="bg-white rounded-xl px-4 py-3 shadow-sm border border-gray-50">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                          {e.p?.nama.charAt(0)}
                         </div>
-                      )}
-                      <div className="text-right">
-                        <p className="text-[10px] text-gray-500">Final</p>
-                        <p className={`text-sm font-bold ${predikatCfg?.color ?? 'text-gray-800'}`}>{e.finalScore}</p>
+                        <div>
+                          <p className="text-sm font-medium text-gray-800 leading-tight">{e.p ? `${e.p.gelarDepan || ''} ${e.p.nama}`.trim() : e.pid}</p>
+                          <p className="text-[10px] text-gray-500">{e.p?.jabatan?.slice(0,30)} · Sem. {e.s.semester}/{e.s.tahun}</p>
+                        </div>
                       </div>
-                      <div>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${predikatCfg?.bg ?? 'bg-gray-100'} ${predikatCfg?.color ?? 'text-gray-600'}`}>{e.predikat}</span>
-                        {e.hasDisiplin && <p className="text-[9px] text-red-500 mt-0.5">⚠ Ada disiplin aktif</p>}
-                        {e.hasKPRecent && <p className="text-[9px] text-emerald-600 mt-0.5">✓ KP sebelumnya selesai</p>}
+                      <div className="flex items-center gap-2 flex-wrap justify-end">
+                        <div className="text-center px-2">
+                          <p className="text-[10px] text-gray-400">KPI</p>
+                          <p className="text-xs font-bold text-blue-600">{e.kpiScore}</p>
+                        </div>
+                        {e.perilakuScore != null && (
+                          <div className="text-center px-2">
+                            <p className="text-[10px] text-gray-400">Perilaku</p>
+                            <p className="text-xs font-bold text-purple-600">{e.perilakuScore}</p>
+                          </div>
+                        )}
+                        <div className="text-center px-2">
+                          <p className="text-[10px] text-gray-400">Final</p>
+                          <p className={`text-sm font-bold ${predikatCfg?.color ?? 'text-gray-800'}`}>{e.finalScore}</p>
+                        </div>
+                        {showRemunerasi && (
+                          <div className="text-center px-2">
+                            <p className="text-[10px] text-gray-400">Est. Remun.</p>
+                            <p className="text-xs font-bold text-amber-600">{e.remEstimate.toLocaleString('id')}rb</p>
+                          </div>
+                        )}
+                        <div>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${predikatCfg?.bg ?? 'bg-gray-100'} ${predikatCfg?.color ?? 'text-gray-600'}`}>{e.predikat}</span>
+                          {e.hasDisiplin && <p className="text-[9px] text-red-500 mt-0.5">⚠ Disiplin aktif</p>}
+                          {e.hasKPRecent && <p className="text-[9px] text-emerald-600 mt-0.5">✓ KP selesai</p>}
+                        </div>
                       </div>
                     </div>
+                    {isCoachingZone && (
+                      <div className="mt-2 pt-2 border-t border-gray-50">
+                        <input
+                          type="text"
+                          defaultValue={coaching}
+                          onBlur={ev => { saveCoaching(e.s.id, ev.target.value); setCoachingNotes(prev => ({ ...prev, [e.pid]: ev.target.value })); }}
+                          placeholder="📝 Catatan pembinaan / coaching dari atasan..."
+                          className="w-full text-[11px] border border-dashed border-orange-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-orange-400 bg-orange-50/40 placeholder-gray-400"
+                        />
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -1372,10 +1635,18 @@ export default function SKP() {
             Sasaran Kinerja Pegawai · Cascading BSC/OKR → SKP/KPI · PermenPAN-RB No. 6/2022
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap justify-end">
           <span className="text-xs px-2.5 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg flex items-center gap-1">
             <Zap className="w-3 h-3" /> Automated KPI Sync: ON
           </span>
+          <button onClick={() => setActiveTab('approval')}
+            className="text-xs px-2.5 py-1.5 bg-blue-100 text-blue-700 rounded-lg flex items-center gap-1 hover:bg-blue-200 transition-colors">
+            <FileCheck className="w-3 h-3" /> Approval Workflow
+          </button>
+          <button onClick={() => setActiveTab('laporan')}
+            className="text-xs px-2.5 py-1.5 bg-gray-100 text-gray-700 rounded-lg flex items-center gap-1 hover:bg-gray-200 transition-colors">
+            <Printer className="w-3 h-3" /> Cetak PDF
+          </button>
         </div>
       </div>
 
@@ -1401,6 +1672,9 @@ export default function SKP() {
       {activeTab === 'perilaku'   && <PenilaianPerilakuTab />}
       {activeTab === 'cascading'  && <CascadingTab />}
       {activeTab === 'output'     && <OutputDampakTab />}
+      {activeTab === 'profil'     && <ProfilKinerjaTab />}
+      {activeTab === 'approval'   && <ApprovalTab />}
+      {activeTab === 'laporan'    && <LaporanTab />}
     </div>
   );
 }
