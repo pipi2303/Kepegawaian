@@ -6,11 +6,12 @@ import {
   Menu, Bell, ChevronDown, Search, Settings,
   Hospital, UserCircle, ChevronLeft, ShieldAlert, GraduationCap, Mail,
   ShieldCheck, HeartPulse, DollarSign, CalendarClock, Heart,
-  FileSignature, Award, ArrowRightLeft, Users2, Scale, Network,
+  FileSignature, Award, ArrowRightLeft, Users2, Scale, Network, Gauge,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { toast } from 'sonner';
 import GlobalSearch from './GlobalSearch';
+import AskIntramedika from './AskIntramedika';
 
 const menuItems = [
   {
@@ -47,6 +48,7 @@ const menuItems = [
     section: 'KINERJA & PENGEMBANGAN',
     items: [
       { path: '/skp', label: 'SKP & Penilaian Kinerja', icon: Target },
+      { path: '/performance', label: 'Performance Management', icon: Gauge },
       { path: '/diklat', label: 'Diklat & Kompetensi', icon: GraduationCap },
     ],
   },
@@ -372,6 +374,9 @@ function Layout() {
 
       {/* Global Search Modal */}
       <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
+
+      {/* Ask INTRAMEDIKA – Floating Digital Assistant */}
+      <AskIntramedika />
     </div>
   );
 }

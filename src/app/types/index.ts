@@ -84,409 +84,122 @@ export interface DokumenPegawai {
   status: StatusDokumen;
 }
 
-// ─── ABSENSI ─────────────────────────────────────────────────────────────────
-export interface AbsensiRecord {
-  id: string;
-  pegawaiId: string;
-  tanggal: string;
-  jamMasuk?: string;
-  jamKeluar?: string;
-  status: 'Hadir' | 'Izin' | 'Sakit' | 'Cuti' | 'Alpha' | 'Libur' | 'Dinas Luar';
-  keterangan?: string;
-}
+// ─── PERFORMANCE MANAGEMENT ──────────────────────────────────────────────────
+export type BSCPerspektiveName = 'Financial' | 'Customer' | 'Internal Process' | 'Learning & Growth';
 
-// ─── CUTI ─────────────────────────────────────────────────────────────────────
-export interface CutiRecord {
+export interface BSCObjective {
   id: string;
-  pegawaiId: string;
-  jenisCuti: string;
-  tanggalMulai: string;
-  tanggalSelesai: string;
-  jumlahHari: number;
-  alasan: string;
-  status: 'Pending' | 'Disetujui' | 'Ditolak';
-  disetujuiOleh?: string;
-  tanggalPengajuan: string;
-  approvalLevels?: ApprovalLevel[];
-  currentLevel?: number;
-}
-
-export interface SisaCuti {
-  pegawaiId: string;
-  tahun: number;
-  jenis: string;
-  kuota: number;
-  terpakai: number;
-  sisa: number;
-}
-
-// ─── SKP ──────────────────────────────────────────────────────────────────────
-export interface SKPRecord {
-  id: string;
-  pegawaiId: string;
-  tahun: number;
-  semester: 1 | 2;
-  targetKinerja: SKPItem[];
-  nilaiAkhir?: number;
-  predikat?: string;
-  status: 'Draft' | 'Aktif' | 'Selesai';
-  catatan?: string;
-}
-
-export interface SKPItem {
-  id: string;
-  uraianKegiatan: string;
+  perspektif: BSCPerspektiveName;
+  departmentId: string;
+  title: string;
+  kpi: string;
   target: number;
-  satuan: string;
-  realisasi?: number;
-  nilaiCapaian?: number;
-  bobot: number;
+  actual: number;
+  unit: string;
+  weight: number;
+  period: string;
+  status: 'On Track' | 'At Risk' | 'Behind' | 'Achieved';
 }
 
-// ─── RIWAYAT JABATAN ─────────────────────────────────────────────────────────
-export interface RiwayatJabatan {
+export interface DepartmentScorecard {
   id: string;
-  pegawaiId: string;
-  jabatan: string;
-  unitKerja: string;
-  golongan: string;
-  tmtMulai: string;
-  tmtSelesai?: string;
-  nomorSK: string;
-  tanggalSK: string;
-  jenisJabatan: 'Struktural' | 'Fungsional' | 'Pelaksana';
+  name: string;
+  headName: string;
+  score: number;
+  financialScore: number;
+  customerScore: number;
+  internalScore: number;
+  learningScore: number;
+  trend: number[];
 }
 
-// ─── KENAIKAN PANGKAT ─────────────────────────────────────────────────────────
-export interface KenaikanPangkat {
+export type OKRLevel = 'Organisasi' | 'Divisi' | 'Tim' | 'Individu';
+export type OKRStatus = 'Draft' | 'Aktif' | 'Selesai' | 'Dibatalkan';
+export type ConfidenceLevel = 'Tinggi' | 'Sedang' | 'Rendah';
+
+export interface OKRCheckIn {
   id: string;
-  pegawaiId: string;
-  golonganLama: string;
-  golonganBaru: string;
-  pangkatLama: string;
-  pangkatBaru: string;
-  jenisKenaikan: string;
-  periodeUsulan: string;
-  tanggalBerlaku?: string;
-  status: 'Proses' | 'Selesai' | 'Ditolak';
-  nomorSK?: string;
-  catatan?: string;
-  eselon?: string;
-  jabatan?: string;
+  date: string;
+  value: number;
+  note: string;
+  createdBy: string;
 }
 
-// ─── DISIPLIN ────────────────────────────────────────────────────────────────
-export interface DisiplinRecord {
+export interface OKRKeyResult {
   id: string;
-  pegawaiId: string;
-  jenisHukuman: string;
-  tingkatHukuman: 'Ringan' | 'Sedang' | 'Berat';
-  tanggalKejadian: string;
-  tanggalSK?: string;
-  nomorSK?: string;
-  kronologi: string;
-  status: 'Investigasi' | 'Proses' | 'Selesai' | 'Banding';
-  pejabatPenetap?: string;
+  objectiveId: string;
+  title: string;
+  startValue: number;
+  targetValue: number;
+  currentValue: number;
+  unit: string;
+  confidence: ConfidenceLevel;
+  checkIns: OKRCheckIn[];
 }
 
-// ─── DIKLAT ──────────────────────────────────────────────────────────────────
-export interface DiklatRecord {
+export interface OKRObjective {
   id: string;
-  pegawaiId: string;
-  namaDiklat: string;
-  jenisDiklat: 'Teknis' | 'Fungsional' | 'Manajerial' | 'Sosiokultural' | 'Orientasi';
-  penyelenggara: string;
-  tempatPelaksanaan: string;
-  tanggalMulai: string;
-  tanggalSelesai: string;
-  jumlahJP: number;
-  nomorSertifikat?: string;
-  status: 'Direncanakan' | 'Berlangsung' | 'Selesai';
+  level: OKRLevel;
+  ownerId: string;
+  ownerName: string;
+  departmentId?: string;
+  title: string;
+  description: string;
+  period: string;
+  parentId?: string;
+  keyResults: OKRKeyResult[];
+  status: OKRStatus;
+  bscLink?: BSCPerspektiveName;
 }
 
-// ─── APP USER ─────────────────────────────────────────────────────────────────
-export interface AppUser {
+export interface PerformanceReview {
   id: string;
-  username: string;
-  password: string;
-  nama: string;
-  role: 'admin' | 'direktur' | 'kepala_unit' | 'pegawai';
-  jabatan: string;
-  golongan?: string;
-  unitKerja?: string;
-  pegawaiId?: string;
+  revieweeId: string;
+  revieweeName: string;
+  reviewerName: string;
+  period: string;
+  bscScore: number;
+  okrScore: number;
+  finalScore: number;
+  rating: 'A' | 'B' | 'C' | 'D' | 'E';
+  strengths: string;
+  improvements: string;
+  feedback: string;
+  status: 'Draft' | 'Submitted' | 'Diakui';
+  createdAt: string;
 }
 
-// ─── CREDENTIALING & LISENSI ──────────────────────────────────────────────────
-export interface STRRecord {
-  id: string;
-  pegawaiId: string;
-  nomorSTR: string;
-  jenisTenaga: string;
-  konsil: string;
-  tanggalTerbit: string;
-  tanggalExpired: string;
-  status: 'Aktif' | 'Akan Expired' | 'Expired';
-  catatan?: string;
+export interface IntegrationWeights {
+  bscWeight: number;
+  okrWeight: number;
+  financialWeight: number;
+  customerWeight: number;
+  internalWeight: number;
+  learningWeight: number;
 }
 
-export interface SIPRecord {
-  id: string;
-  pegawaiId: string;
-  nomorSIP: string;
-  jenisDokumen: 'SIP' | 'SIK';
-  jenisPraktik?: string;
-  fasyankes: string;
-  instansiPenerbit: string;
-  tanggalTerbit: string;
-  tanggalExpired: string;
-  status: 'Aktif' | 'Akan Expired' | 'Expired';
-  catatan?: string;
+// ─── KPI COMBINED (BSC ↔ OKR) ────────────────────────────────────────────────
+/** Definisi satu KPI dalam framework kombinasi BSC+OKR */
+export interface KPIDefinition {
+  kpiId: string;              // same as BSCObjective.id
+  definisi: string;           // penjelasan lengkap KPI
+  formula: string;            // cara menghitung
+  frekuensi: 'Harian' | 'Mingguan' | 'Bulanan' | 'Kuartalan' | 'Tahunan';
+  dataSource: string;         // sumber data
+  pic: string;                // penanggung jawab pengukuran
+  linkedKRIds: string[];      // OKR Key Result IDs yang mendukung BSC ini
+  bscContrib: number;         // bobot kontribusi BSC (0-100)
+  okrContrib: number;         // bobot kontribusi OKR (0-100)
 }
 
-export interface KewenangaKlinis {
-  id: string;
-  kode: string;
-  namaKewenangan: string;
-  kategori: string;
-  level: 'Mandiri' | 'Dengan Supervisi' | 'Tidak Berwenang';
-  catatan?: string;
+/** Hasil pengukuran kombinasi satu KPI */
+export interface KPICombinedScore {
+  kpiId: string;
+  bscScore: number;           // skor 0-100 dari BSC
+  okrScore: number;           // skor 0-100 dari OKR
+  combinedScore: number;      // final weighted score
+  delta: number;              // selisih dari target (positif = melebihi)
+  trend: 'naik' | 'turun' | 'stabil';
 }
 
-export interface CredentialingRecord {
-  id: string;
-  pegawaiId: string;
-  jenis: 'Kredensial Awal' | 'Re-kredensial';
-  tanggalPengajuan: string;
-  tanggalKredensial?: string;
-  tanggalExpired?: string;
-  statusKredensial: 'Pengajuan' | 'Verifikasi Dokumen' | 'Peer Review' | 'Komite Medik' | 'Selesai' | 'Ditolak';
-  kewenangan: KewenangaKlinis[];
-  rekomendasiKomite?: string;
-  disetujuiOleh?: string;
-  catatanKomite?: string;
-}
-
-export interface CPDRecord {
-  id: string;
-  pegawaiId: string;
-  tahun: number;
-  namaKegiatan: string;
-  jenisKegiatan: 'Seminar' | 'Workshop' | 'Webinar' | 'Pelatihan' | 'Publikasi' | 'Mengajar' | 'Keanggotaan Organisasi' | 'Lainnya';
-  penyelenggara: string;
-  tanggal: string;
-  skp: number;
-  nomorSertifikat?: string;
-  diakuiOleh: string;
-  status: 'Diverifikasi' | 'Pending' | 'Ditolak';
-}
-
-// ─── K3RS ────────────────────────────────────────────────────────────────────
-export type JenisInsidenK3RS =
-  'Kecelakaan Kerja' | 'Pajanan Jarum Suntik' | 'Pajanan Cairan Tubuh' |
-  'Pajanan Radiasi' | 'Kecelakaan Bahan Kimia' | 'Near Miss' | 'KTD Pegawai' | 'Lainnya';
-
-export interface InsidenK3RS {
-  id: string;
-  pegawaiId: string;
-  tanggal: string;
-  jenisInsiden: JenisInsidenK3RS;
-  lokasi: string;
-  deskripsi: string;
-  tindakanSegera?: string;
-  tindakLanjut?: string;
-  keparahan: 'Ringan' | 'Sedang' | 'Berat';
-  statusLaporan: 'Dilaporkan' | 'Investigasi' | 'Selesai';
-  tanggalTindakLanjut?: string;
-}
-
-export interface VaksinasiRecord {
-  id: string;
-  pegawaiId: string;
-  jenisVaksin: string;
-  dosis: number;
-  tanggalVaksin: string;
-  fasilitasVaksin: string;
-  tanggalBooster?: string;
-  status: 'Lengkap' | 'Sebagian' | 'Belum';
-}
-
-export interface MCURecord {
-  id: string;
-  pegawaiId: string;
-  tanggal: string;
-  jenisMCU: 'Awal' | 'Awal Kerja' | 'Berkala' | 'Khusus' | 'Khusus Pajanan' | 'Pra-Pensiun';
-  hasilMCU: 'Layak Kerja' | 'Layak dengan Syarat' | 'Tidak Layak';
-  catatan?: string;
-  rekomendasiDokter?: string;
-  tanggalBerikutnya?: string;
-  fasilitasMCU?: string;
-}
-
-// ─── PENGGAJIAN ───────────────────────────────────────────────────────────────
-export interface SlipGaji {
-  id: string;
-  pegawaiId: string;
-  bulan: number;
-  tahun: number;
-  gajiPokok: number;
-  tunjanganJabatan: number;
-  tunjanganFungsional: number;
-  tunjanganKinerja: number;
-  tunjanganBeras: number;
-  tunjanganAnak: number;
-  tunjanganIstri: number;
-  tambahanLain?: any[];
-  totalBruto: number;
-  potonganTaspen: number;
-  potonganBPJSKes: number;
-  potonganBPJSTK: number;
-  potonganPPh21: number;
-  potonganLain?: any[];
-  totalPotongan: number;
-  totalNetto: number;
-  status: 'Draft' | 'Disetujui' | 'Dibayar';
-  tanggalDibayar?: string;
-}
-
-// ─── PENJADWALAN ─────────────────────────────────────────────────────────────
-export interface JadwalShift {
-  id: string;
-  pegawaiId: string;
-  tanggal: string;
-  jenisShift: 'Pagi' | 'Sore' | 'Malam' | 'On-Call' | 'Libur' | 'Lepas';
-  jamMulai?: string;
-  jamSelesai?: string;
-  unitKerja: string;
-  keterangan?: string;
-  status?: 'Aktif' | 'Batal' | 'Swap';
-}
-
-// ─── BPJS ────────────────────────────────────────────────────────────────────
-export interface TanggunganBPJS {
-  id?: string;
-  nama: string;
-  hubungan: string;
-  tanggalLahir?: string;
-  nomorKartu?: string;
-  statusTanggungan: 'Aktif' | 'Nonaktif';
-}
-
-export interface BPJSRecord {
-  id: string;
-  pegawaiId: string;
-  nomorKartuKesehatan?: string;
-  kelasBPJSKes?: 'I' | 'II' | 'III';
-  statusBPJSKes: 'Aktif' | 'Tidak Aktif' | 'Belum Terdaftar';
-  nomorBPJSTK?: string;
-  statusBPJSTK: 'Aktif' | 'Tidak Aktif' | 'Belum Terdaftar';
-  tanggungan: TanggunganBPJS[];
-  iuranKesehatan?: number;
-  iuranKetenagakerjaan?: number;
-  tanggalDaftar?: string;
-}
-
-// ─── KONTRAK ─────────────────────────────────────────────────────────────────
-export interface KontrakRecord {
-  id: string;
-  pegawaiId: string;
-  jenisKontrak: 'PKWT' | 'PKWTT' | 'Dokter Mitra' | 'Dokter Paruh Waktu' | 'Tenaga Alih Daya';
-  nomorKontrak: string;
-  tanggalMulai: string;
-  tanggalSelesai?: string;
-  jabatanKontrak?: string;
-  unitKerja?: string;
-  nilaiKontrak?: number;
-  jadwalPraktik?: string;
-  statusKontrak: 'Aktif' | 'Berakhir' | 'Diperpanjang' | 'Dibatalkan';
-  catatanKontrak?: string;
-}
-
-// ─── PENGHARGAAN ─────────────────────────────────────────────────────────────
-export type JenisPenghargaan =
-  'Satyalancana Karya Satya 10 Tahun' | 'Satyalancana Karya Satya 20 Tahun' | 'Satyalancana Karya Satya 30 Tahun' |
-  'ASN Teladan Tingkat Nasional' | 'ASN Teladan Tingkat Provinsi' | 'Nakes Teladan RS' |
-  'Pegawai Inovatif' | 'Penghargaan Direktur' | 'Penghargaan Gubernur' | 'Penghargaan Presiden' | 'Penghargaan Lainnya';
-
-export interface PenghargaanRecord {
-  id: string;
-  pegawaiId: string;
-  jenisPenghargaan: JenisPenghargaan;
-  tanggalPemberian: string;
-  nomorSK?: string;
-  instansiPemberi?: string;
-  tingkat?: 'Nasional' | 'Provinsi' | 'Kota/Kabupaten' | 'Instansi';
-  keterangan?: string;
-}
-
-// ─── MUTASI ──────────────────────────────────────────────────────────────────
-export interface MutasiRecord {
-  id: string;
-  pegawaiId: string;
-  jenisMutasi: 'Mutasi Internal' | 'Mutasi Eksternal' | 'Rotasi' | 'Promosi Jabatan' | 'Promosi Fungsional' | 'Demosi';
-  unitKerjaAsal?: string;
-  jabatanAsal?: string;
-  unitKerjaTujuan?: string;
-  jabatanTujuan?: string;
-  golonganAsal?: string;
-  golonganTujuan?: string;
-  tanggalUsulan: string;
-  tanggalBerlaku?: string;
-  nomorSK?: string;
-  status: 'Usulan' | 'Disetujui' | 'Berlaku' | 'Ditolak';
-  alasan?: string;
-  catatanPejabat?: string;
-}
-
-// ─── KOMITE RS ───────────────────────────────────────────────────────────────
-export interface AnggotaKomite {
-  id: string;
-  pegawaiId: string;
-  namaKomite: string;
-  subKomite?: string;
-  jabatanKomite: string;
-  tanggalMulai: string;
-  tanggalSelesai?: string;
-  statusKomite: 'Aktif' | 'Nonaktif' | 'Tidak Aktif';
-  nomorSK?: string;
-}
-
-export interface KegiatanKomite {
-  id: string;
-  namaKomite: string;
-  tanggal: string;
-  jenisKegiatan: 'Rapat Rutin' | 'Sidang' | 'Sidang Kredensial' | 'Sidang Disiplin' | 'Workshop' | 'Audit' | 'Evaluasi Kinerja' | 'Rapat Luar Biasa';
-  agenda?: string;
-  peserta?: string[];
-  status: 'Dijadwalkan' | 'Berlangsung' | 'Selesai';
-  hasilKeputusan?: string;
-}
-
-// ─── HUBUNGAN INDUSTRIAL ─────────────────────────────────────────────────────
-export interface GrievanceRecord {
-  id: string;
-  pegawaiId: string;
-  tanggalPengaduan: string;
-  kategori: string;
-  deskripsi: string;
-  status: 'Diterima' | 'Mediasi' | 'Selesai' | 'Diteruskan ke Disnaker';
-  resolusi?: string;
-  tanggalResolusi?: string;
-  mediator?: string;
-}
-
-export interface PHKRecord {
-  id: string;
-  pegawaiId: string;
-  alasanPHK: string;
-  jenisPHK: string;
-  tanggalPHK: string;
-  masaKerja?: string;
-  pesangon?: number;
-  uangPisah?: number;
-  uangPenggantianHak?: number;
-  totalPesangon?: number;
-  nomorSK?: string;
-  status: 'Proses' | 'Selesai';
-  catatan?: string;
-}
+// ─── ABSENSI ─────────────────────────────────────────────────────────────────

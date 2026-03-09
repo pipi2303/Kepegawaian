@@ -516,8 +516,8 @@ const LetterFooter = ({ form, isLetter }: { form: SuratForm; isLetter: boolean }
       <p className="text-sm mt-2 font-semibold">DIREKTUR RSUD ABDUL MOELOEK</p>
       <p className="text-sm">PROVINSI LAMPUNG,</p>
       <div className="h-20" />
-      <p className="text-sm font-bold underline">dr. HERY DJOKO SUBANDRIYO, Sp.OG., M.Kes.</p>
-      <p className="text-sm">NIP. 19660721 199703 1 004</p>
+      <p className="text-sm font-bold underline">dr. IMAM GHOZALI, Sp.An., M.Kes.</p>
+      <p className="text-sm">NIP. 19680415 199703 1 001</p>
     </div>
   </div>
 );

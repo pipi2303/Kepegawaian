@@ -32,11 +32,12 @@ const Mutasi             = lazy(() => import('./pages/Mutasi'));
 const KomiteRS           = lazy(() => import('./pages/KomiteRS'));
 const HubunganIndustrial = lazy(() => import('./pages/HubunganIndustrial'));
 const OrganisasiTree     = lazy(() => import('./pages/OrganisasiTree'));
+const PerformanceManagement = lazy(() => import('./pages/PerformanceManagement'));
 
 // ─── Router Singleton ─────────────────────────────────────────────────────────
 // Singleton mencegah RouterProvider menerima instance router baru saat HMR
 // (router baru → React Router unmount/remount context → useNavigate error).
-const ROUTER_KEY = '__hrAppRouter_v7';
+const ROUTER_KEY = '__hrAppRouter_v8';
 type RouterType = ReturnType<typeof createBrowserRouter>;
 
 function buildRouter(): RouterType {
@@ -73,6 +74,7 @@ function buildRouter(): RouterType {
             { path: 'komite-rs',                Component: KomiteRS },
             { path: 'hubungan-industrial',      Component: HubunganIndustrial },
             { path: 'organisasi',               Component: OrganisasiTree },
+            { path: 'performance',              Component: PerformanceManagement },
             { path: '*',                        Component: NotFound },
           ],
         },
@@ -83,7 +85,7 @@ function buildRouter(): RouterType {
 }
 
 // Bersihkan cache router versi lama dari globalThis
-(['__hrAppRouter_v3', '__hrAppRouter_v4', '__hrAppRouter_v5', '__hrAppRouter_v6'] as string[]).forEach(key => {
+(['__hrAppRouter_v3', '__hrAppRouter_v4', '__hrAppRouter_v5', '__hrAppRouter_v6', '__hrAppRouter_v7'] as string[]).forEach(key => {
   delete (globalThis as Record<string, unknown>)[key];
 });
 

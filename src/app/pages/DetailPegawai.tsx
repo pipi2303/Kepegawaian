@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router';
 import {
   User, Briefcase, Calendar, TrendingUp, Target, FolderOpen,
   ArrowLeft, Printer, Edit2, Award, Phone, Mail, Clock, GraduationCap,
-  Users, BadgeCheck,
+  Users, BadgeCheck, Gauge,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { PANGKAT_GOLONGAN } from '../data/constants';
@@ -11,6 +11,7 @@ import { EmployeeAvatar } from '../components/EmployeeAvatar';
 import EditPegawaiModal from '../components/EditPegawaiModal';
 import { DokumenPegawaiTab } from '../components/DokumenPegawaiTab';
 import { DataKeluargaTab } from '../components/DataKeluargaTab';
+import { MyPerformanceTab } from '../components/MyPerformanceTab';
 import { toast } from 'sonner';
 import type { Pegawai } from '../types';
 
@@ -22,13 +23,14 @@ const InfoRow = ({ label, value }: { label: string; value?: string | number }) =
 );
 
 const tabs = [
-  { id: 'profil',   label: 'Profil',          icon: User },
-  { id: 'keluarga', label: 'Data Keluarga',    icon: Users },
-  { id: 'jabatan',  label: 'Riwayat Jabatan',  icon: Briefcase },
-  { id: 'cuti',     label: 'Riwayat Cuti',     icon: Calendar },
-  { id: 'pangkat',  label: 'Kenaikan Pangkat', icon: TrendingUp },
-  { id: 'skp',      label: 'SKP',              icon: Target },
-  { id: 'dokumen',  label: 'Dokumen',          icon: FolderOpen },
+  { id: 'profil',      label: 'Profil',             icon: User       },
+  { id: 'keluarga',    label: 'Data Keluarga',       icon: Users      },
+  { id: 'jabatan',     label: 'Riwayat Jabatan',     icon: Briefcase  },
+  { id: 'cuti',        label: 'Riwayat Cuti',        icon: Calendar   },
+  { id: 'pangkat',     label: 'Kenaikan Pangkat',    icon: TrendingUp },
+  { id: 'skp',         label: 'SKP',                 icon: Target     },
+  { id: 'performance', label: 'My Performance',      icon: Gauge      },
+  { id: 'dokumen',     label: 'Dokumen',             icon: FolderOpen },
 ];
 
 export default function DetailPegawai() {
@@ -473,6 +475,11 @@ export default function DetailPegawai() {
           {/* Dokumen Tab */}
           {activeTab === 'dokumen' && (
             <DokumenPegawaiTab pegawaiId={id ?? ''} />
+          )}
+
+          {/* My Performance Tab */}
+          {activeTab === 'performance' && (
+            <MyPerformanceTab pegawai={pegawaiData} />
           )}
         </div>
       </div>
