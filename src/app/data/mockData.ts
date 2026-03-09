@@ -259,6 +259,7 @@ function _bldE(row: RawEmp, seq: number): Pegawai {
     tanggalMasuk: `${jyr}-03-01`,
     batasPensiun: bp,
     masaKerja: isStd ? `${2026 - jyr} Tahun 0 Bulan` : '',
+    badge: `RSAM-${jyr}-${String(seq).padStart(4, '0')}`,
   };
 }
 
@@ -525,6 +526,9 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2028-04-30',
     masaKerja: '29 Tahun 0 Bulan',
     eselon: 'Eselon II/b',
+    badge: 'RSAM-1997-0001',
+    foto: 'https://jurnallampung.com/wp-content/uploads/2025/10/IMG-20251008-WA0027.jpg',
+    sertifikat: ['STR Dokter Spesialis Anestesiologi', 'SIP Dokter Spesialis', 'ACLS', 'Patient Safety Officer', 'Sertifikat Manajemen RS'],
   },
   {
     id: 'P002',
@@ -557,6 +561,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2032-06-30',
     masaKerja: '26 Tahun 0 Bulan',
     eselon: 'Eselon II/b',
+    badge: 'RSAM-2000-0002',
+    sertifikat: ['STR Dokter', 'SIP Dokter', 'ACLS', 'MARS Manajemen Rumah Sakit', 'Patient Safety'],
   },
   {
     id: 'P003',
@@ -589,6 +595,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2030-07-31',
     masaKerja: '28 Tahun 0 Bulan',
     eselon: 'Eselon II/b',
+    badge: 'RSAM-1998-0003',
+    sertifikat: ['STR Dokter Spesialis Obstetri & Ginekologi', 'SIP Dokter Spesialis', 'ACLS', 'ALSO Provider', 'Sertifikat USG Obstetri'],
   },
   {
     id: 'P004',
@@ -621,6 +629,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2028-09-30',
     masaKerja: '29 Tahun 0 Bulan',
     eselon: 'Eselon II/b',
+    badge: 'RSAM-1997-0004',
+    sertifikat: ['STR Dokter Spesialis Bedah', 'SIP Dokter Spesialis', 'ATLS', 'ACLS', 'Sertifikat Laparoskopi'],
   },
   {
     id: 'P005',
@@ -652,6 +662,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2032-08-31',
     masaKerja: '25 Tahun 0 Bulan',
     eselon: 'Eselon III/b',
+    badge: 'RSAM-2001-0005',
+    sertifikat: ['Bendahara Pengeluaran', 'Sertifikat SAP HRIS', 'Sertifikat Keuangan Negara', 'Pengadaan Barang/Jasa'],
   },
   {
     id: 'P006',
@@ -684,6 +696,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2033-05-31',
     masaKerja: '24 Tahun 0 Bulan',
     eselon: 'Eselon III/a',
+    badge: 'RSAM-2002-0006',
+    sertifikat: ['STR Dokter', 'SIP Dokter', 'ACLS', 'MARS Manajemen RS', 'Sertifikat Audit Klinik'],
   },
   {
     id: 'P007',
@@ -716,6 +730,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2035-11-30',
     masaKerja: '22 Tahun 0 Bulan',
     eselon: 'Eselon III/a',
+    badge: 'RSAM-2004-0007',
+    sertifikat: ['STR Dokter Gigi', 'SIP Dokter Gigi', 'BLS', 'Sertifikat Manajemen Kesehatan', 'Sertifikat OSCE'],
   },
   {
     id: 'P008',
@@ -748,6 +764,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2037-03-31',
     masaKerja: '21 Tahun 0 Bulan',
     eselon: 'Eselon III/a',
+    badge: 'RSAM-2005-0008',
+    sertifikat: ['STR Perawat', 'SIP Perawat', 'BTCLS', 'Sertifikat Hukum Kesehatan', 'Sertifikat Mediasi'],
   },
   {
     id: 'P009',
@@ -779,6 +797,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2036-10-31',
     masaKerja: '20 Tahun 11 Bulan',
     eselon: 'Eselon III/a',
+    badge: 'RSAM-2005-0009',
+    sertifikat: ['STR Perawat', 'SIP Perawat', 'BTCLS', 'Sertifikat Manajemen SDM', 'Sertifikat PPSDM Kesehatan'],
   },
   {
     id: 'P010',
@@ -811,6 +831,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2038-07-31',
     masaKerja: '19 Tahun 11 Bulan',
     eselon: 'Eselon III/b',
+    badge: 'RSAM-2006-0010',
+    sertifikat: ['STR Dokter', 'SIP Dokter', 'ACLS', 'Sertifikat Health Service Management', 'Sertifikat Perencanaan RS'],
   },
   {
     id: 'P011',
@@ -842,6 +864,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2041-05-31',
     masaKerja: '17 Tahun 11 Bulan',
     eselon: 'Eselon III/b',
+    badge: 'RSAM-2008-0011',
+    sertifikat: ['Sertifikat Pengadaan Barang/Jasa', 'Sertifikat Manajemen Perkantoran', 'Sertifikat SIASN', 'Bendahara Pengeluaran'],
   },
   {
     id: 'P012',
@@ -874,6 +898,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2036-02-28',
     masaKerja: '20 Tahun 11 Bulan',
     eselon: 'Eselon III/a',
+    badge: 'RSAM-2005-0012',
+    sertifikat: ['STR Dokter', 'SIP Dokter', 'ACLS', 'Sertifikat Manajemen Keperawatan', 'Sertifikat Audit Mutu'],
   },
   {
     id: 'P013',
@@ -906,6 +932,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2039-09-30',
     masaKerja: '18 Tahun 11 Bulan',
     eselon: 'Non-Eselon',
+    badge: 'RSAM-2007-0013',
+    sertifikat: ['STR Perawat', 'SIP Perawat', 'BTCLS', 'Sertifikat Perawat Spesialis KMB', 'WOCN Certified'],
   },
   {
     id: 'P014',
@@ -938,6 +966,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2044-04-30',
     masaKerja: '20 Tahun 0 Bulan',
     eselon: 'Non-Eselon',
+    badge: 'RSAM-2006-0014',
+    sertifikat: ['STR Dokter', 'SIP Dokter', 'ACLS', 'Sertifikat Hukum Medis', 'Sertifikat Audit Pelayanan'],
   },
   {
     id: 'P015',
@@ -969,6 +999,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2047-05-31',
     masaKerja: '18 Tahun 11 Bulan',
     eselon: 'Non-Eselon',
+    badge: 'RSAM-2007-0015',
+    sertifikat: ['STR Dokter', 'SIP Dokter', 'ACLS', 'BLS Provider'],
   },
   {
     id: 'P016',
@@ -1000,6 +1032,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2035-06-30',
     masaKerja: '21 Tahun 11 Bulan',
     eselon: 'Non-Eselon',
+    badge: 'RSAM-2004-0016',
+    sertifikat: ['STR Perawat', 'SIP Perawat', 'BTCLS', 'Sertifikat Manajemen', 'Sertifikat MAKP'],
   },
   {
     id: 'P017',
@@ -1031,6 +1065,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2038-08-31',
     masaKerja: '19 Tahun 11 Bulan',
     eselon: 'Non-Eselon',
+    badge: 'RSAM-2006-0017',
+    sertifikat: ['Sertifikat Keuangan RS', 'Sertifikat Manajemen', 'Bendahara Pengeluaran', 'Sertifikat SPIP'],
   },
   {
     id: 'P018',
@@ -1063,6 +1099,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2040-03-31',
     masaKerja: '18 Tahun 11 Bulan',
     eselon: 'Non-Eselon',
+    badge: 'RSAM-2007-0018',
+    sertifikat: ['STR Perawat', 'SIP Perawat', 'BTCLS', 'Sertifikat Pelatih (ToT)', 'Sertifikat Kompetensi Ners'],
   },
   {
     id: 'P019',
@@ -1094,6 +1132,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2044-07-31',
     masaKerja: '16 Tahun 0 Bulan',
     eselon: 'Non-Eselon',
+    badge: 'RSAM-2010-0019',
+    sertifikat: ['STR Perawat', 'SIP Perawat', 'BTCLS', 'Sertifikat Hukum Kesehatan'],
   },
   {
     id: 'P020',
@@ -1125,6 +1165,8 @@ export const dataPegawai: Pegawai[] = [
     batasPensiun: '2038-04-30',
     masaKerja: '18 Tahun 11 Bulan',
     eselon: 'Non-Eselon',
+    badge: 'RSAM-2007-0020',
+    sertifikat: ['Sertifikat Epidemiologi', 'K3 Rumah Sakit', 'Sertifikat Manajemen Bencana', 'SKM Tersertifikasi'],
   },
   ..._EXT_PEGAWAI,
 ];
@@ -1265,78 +1307,133 @@ export const dataRiwayatJabatan: RiwayatJabatan[] = [
 ];
 
 export const dataKenaikanPangkat: KenaikanPangkat[] = [
-  {
-    id: 'KP001', pegawaiId: 'P006',
-    golonganLama: 'IV/a', golonganBaru: 'IV/b',
-    pangkatLama: 'Pembina', pangkatBaru: 'Pembina Tingkat I',
-    jenisKenaikan: 'Kenaikan Pangkat Reguler',
-    periodeUsulan: 'April 2021', tanggalBerlaku: '2021-04-01',
-    status: 'Selesai', nomorSK: 'SK.800/KP-004/2021',
-    jabatan: 'Kepala Bidang Pelayanan Medik', eselon: 'Eselon III/a',
-  },
-  {
-    id: 'KP002', pegawaiId: 'P009',
-    golonganLama: 'III/d', golonganBaru: 'IV/a',
-    pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina',
-    jenisKenaikan: 'Kenaikan Pangkat Reguler',
-    periodeUsulan: 'April 2022', tanggalBerlaku: '2022-04-01',
-    status: 'Selesai', nomorSK: 'SK.800/KP-004/2022',
-    jabatan: 'Kepala Bidang Pengembangan SDM', eselon: 'Eselon III/a',
-  },
-  {
-    id: 'KP003', pegawaiId: 'P013',
-    golonganLama: 'III/d', golonganBaru: 'IV/a',
-    pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina',
-    jenisKenaikan: 'Kenaikan Pangkat Fungsional',
-    periodeUsulan: 'April 2023', tanggalBerlaku: '2023-04-01',
-    status: 'Selesai', nomorSK: 'SK.800/KP-004/2023',
-    jabatan: 'Subkoordinator Substansi Bidang Keperawatan', eselon: 'Non-Eselon',
-  },
-  {
-    id: 'KP004', pegawaiId: 'P007',
-    golonganLama: 'IV/a', golonganBaru: 'IV/b',
-    pangkatLama: 'Pembina', pangkatBaru: 'Pembina Tingkat I',
-    jenisKenaikan: 'Kenaikan Pangkat Reguler',
-    periodeUsulan: 'April 2023', tanggalBerlaku: '2023-04-01',
-    status: 'Selesai', nomorSK: 'SK.800/KP-004/2023-B',
-    jabatan: 'Kepala Bidang Penunjang Medik', eselon: 'Eselon III/a',
-  },
-  {
-    id: 'KP005', pegawaiId: 'P019',
-    golonganLama: 'III/c', golonganBaru: 'III/d',
-    pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I',
-    jenisKenaikan: 'Kenaikan Pangkat Reguler',
-    periodeUsulan: 'Oktober 2022', tanggalBerlaku: '2022-10-01',
-    status: 'Selesai', nomorSK: 'SK.800/KP-010/2022',
-    jabatan: 'Subkoordinator Substansi Bidang Hukum', eselon: 'Non-Eselon',
-  },
-  {
-    id: 'KP006', pegawaiId: 'P011',
-    golonganLama: 'III/c', golonganBaru: 'III/d',
-    pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I',
-    jenisKenaikan: 'Kenaikan Pangkat Reguler',
-    periodeUsulan: 'Oktober 2020', tanggalBerlaku: '2020-10-01',
-    status: 'Selesai', nomorSK: 'SK.800/KP-010/2020',
-    jabatan: 'Kepala Bagian Umum', eselon: 'Eselon III/b',
-  },
-  {
-    id: 'KP007', pegawaiId: 'P010',
-    golonganLama: 'III/d', golonganBaru: 'IV/a',
-    pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina',
-    jenisKenaikan: 'Kenaikan Pangkat Reguler',
-    periodeUsulan: 'Oktober 2022', tanggalBerlaku: '2022-10-01',
-    status: 'Selesai', nomorSK: 'SK.800/KP-010/2022-B',
-    jabatan: 'Kepala Bagian Perencanaan & Anggaran', eselon: 'Eselon III/b',
-  },
-  {
-    id: 'KP008', pegawaiId: 'P020',
-    golonganLama: 'III/d', golonganBaru: 'IV/a',
-    pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina',
-    jenisKenaikan: 'Kenaikan Pangkat Fungsional',
-    periodeUsulan: 'April 2026',
-    status: 'Proses',
-    jabatan: 'Subkoordinator Substansi Bidang Penunjang Medik', eselon: 'Non-Eselon',
-  },
+  // ── P001 · Imam Ghozali · dr. Sp.An · masuk 1997 · IV/b ──────────────────
+  { id: 'KP009', pegawaiId: 'P001', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2001', tanggalBerlaku: '2001-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-012/2001', jabatan: 'Dokter Umum', eselon: 'Non-Eselon' },
+  { id: 'KP010', pegawaiId: 'P001', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2005', tanggalBerlaku: '2005-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-009/2005', jabatan: 'Dokter Spesialis Anestesiologi Pertama', eselon: 'Non-Eselon' },
+  { id: 'KP011', pegawaiId: 'P001', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Fungsional', periodeUsulan: 'April 2011', tanggalBerlaku: '2011-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-005/2011', jabatan: 'Dokter Spesialis Anestesiologi Madya', eselon: 'Non-Eselon' },
+  { id: 'KP012', pegawaiId: 'P001', golonganLama: 'IV/a', golonganBaru: 'IV/b', pangkatLama: 'Pembina', pangkatBaru: 'Pembina Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Pilihan', periodeUsulan: 'April 2020', tanggalBerlaku: '2020-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-003/2020', jabatan: 'Direktur RSUD Abdul Moeloek', eselon: 'Eselon II/b' },
+
+  // ── P002 · Elitha Martarina · dr. MARS · masuk 2000 · IV/c ───────────────
+  { id: 'KP013', pegawaiId: 'P002', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2004', tanggalBerlaku: '2004-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-018/2004', jabatan: 'Dokter Umum', eselon: 'Non-Eselon' },
+  { id: 'KP014', pegawaiId: 'P002', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2008', tanggalBerlaku: '2008-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-011/2008', jabatan: 'Dokter Umum', eselon: 'Non-Eselon' },
+  { id: 'KP015', pegawaiId: 'P002', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2012', tanggalBerlaku: '2012-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-007/2012', jabatan: 'Dokter Umum Madya', eselon: 'Non-Eselon' },
+  { id: 'KP016', pegawaiId: 'P002', golonganLama: 'IV/a', golonganBaru: 'IV/b', pangkatLama: 'Pembina', pangkatBaru: 'Pembina Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2016', tanggalBerlaku: '2016-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-004/2016', jabatan: 'Dokter Umum Utama', eselon: 'Non-Eselon' },
+  { id: 'KP017', pegawaiId: 'P002', golonganLama: 'IV/b', golonganBaru: 'IV/c', pangkatLama: 'Pembina Tingkat I', pangkatBaru: 'Pembina Utama Muda', jenisKenaikan: 'Kenaikan Pangkat Pilihan', periodeUsulan: 'April 2022', tanggalBerlaku: '2022-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-002/2022', jabatan: 'Wakil Direktur Pendidikan, Pengembangan SDM dan Hukum', eselon: 'Eselon II/b' },
+
+  // ── P003 · Marzuqi Sayuti · dr. Sp.OG · masuk 1998 · IV/c ────────────────
+  { id: 'KP018', pegawaiId: 'P003', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2002', tanggalBerlaku: '2002-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-015/2002', jabatan: 'Dokter Umum', eselon: 'Non-Eselon' },
+  { id: 'KP019', pegawaiId: 'P003', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'Oktober 2006', tanggalBerlaku: '2006-10-01', status: 'Selesai', nomorSK: 'SK.823/KP-021/2006', jabatan: 'Dokter Spesialis Obstetri dan Ginekologi Pertama', eselon: 'Non-Eselon' },
+  { id: 'KP020', pegawaiId: 'P003', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Fungsional', periodeUsulan: 'April 2011', tanggalBerlaku: '2011-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-006/2011', jabatan: 'Dokter Spesialis Obstetri dan Ginekologi Muda', eselon: 'Non-Eselon' },
+  { id: 'KP021', pegawaiId: 'P003', golonganLama: 'IV/a', golonganBaru: 'IV/b', pangkatLama: 'Pembina', pangkatBaru: 'Pembina Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'Oktober 2015', tanggalBerlaku: '2015-10-01', status: 'Selesai', nomorSK: 'SK.823/KP-017/2015', jabatan: 'Dokter Spesialis Obstetri dan Ginekologi Madya', eselon: 'Non-Eselon' },
+  { id: 'KP022', pegawaiId: 'P003', golonganLama: 'IV/b', golonganBaru: 'IV/c', pangkatLama: 'Pembina Tingkat I', pangkatBaru: 'Pembina Utama Muda', jenisKenaikan: 'Kenaikan Pangkat Pilihan', periodeUsulan: 'April 2021', tanggalBerlaku: '2021-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-003/2021', jabatan: 'Wakil Direktur Umum dan Keuangan', eselon: 'Eselon II/b' },
+
+  // ── P004 · Yusmaidi · dr. Sp.B · masuk 1997 · IV/c ──────────────────────
+  { id: 'KP023', pegawaiId: 'P004', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2001', tanggalBerlaku: '2001-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-013/2001', jabatan: 'Dokter Umum', eselon: 'Non-Eselon' },
+  { id: 'KP024', pegawaiId: 'P004', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2005', tanggalBerlaku: '2005-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-010/2005', jabatan: 'Dokter Spesialis Bedah Pertama', eselon: 'Non-Eselon' },
+  { id: 'KP025', pegawaiId: 'P004', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Fungsional', periodeUsulan: 'April 2009', tanggalBerlaku: '2009-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-008/2009', jabatan: 'Dokter Spesialis Bedah Muda', eselon: 'Non-Eselon' },
+  { id: 'KP026', pegawaiId: 'P004', golonganLama: 'IV/a', golonganBaru: 'IV/b', pangkatLama: 'Pembina', pangkatBaru: 'Pembina Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'Oktober 2014', tanggalBerlaku: '2014-10-01', status: 'Selesai', nomorSK: 'SK.823/KP-019/2014', jabatan: 'Dokter Spesialis Bedah Madya', eselon: 'Non-Eselon' },
+  { id: 'KP027', pegawaiId: 'P004', golonganLama: 'IV/b', golonganBaru: 'IV/c', pangkatLama: 'Pembina Tingkat I', pangkatBaru: 'Pembina Utama Muda', jenisKenaikan: 'Kenaikan Pangkat Pilihan', periodeUsulan: 'Oktober 2020', tanggalBerlaku: '2020-10-01', status: 'Selesai', nomorSK: 'SK.823/KP-022/2020', jabatan: 'Wakil Direktur Keperawatan, Pelayanan dan Penunjang Medik', eselon: 'Eselon II/b' },
+
+  // ── P005 · Nanny Ricardini · SE M.Kes · masuk 2001 · IV/b ────────────────
+  { id: 'KP028', pegawaiId: 'P005', golonganLama: 'III/a', golonganBaru: 'III/b', pangkatLama: 'Penata Muda', pangkatBaru: 'Penata Muda Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2005', tanggalBerlaku: '2005-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-024/2005', jabatan: 'Analis Keuangan Pertama', eselon: 'Non-Eselon' },
+  { id: 'KP029', pegawaiId: 'P005', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2009', tanggalBerlaku: '2009-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-016/2009', jabatan: 'Analis Keuangan Muda', eselon: 'Non-Eselon' },
+  { id: 'KP030', pegawaiId: 'P005', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2013', tanggalBerlaku: '2013-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-013/2013', jabatan: 'Analis Keuangan Madya', eselon: 'Non-Eselon' },
+  { id: 'KP031', pegawaiId: 'P005', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2017', tanggalBerlaku: '2017-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-009/2017', jabatan: 'Analis Keuangan Utama', eselon: 'Non-Eselon' },
+  { id: 'KP032', pegawaiId: 'P005', golonganLama: 'IV/a', golonganBaru: 'IV/b', pangkatLama: 'Pembina', pangkatBaru: 'Pembina Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Pilihan', periodeUsulan: 'April 2022', tanggalBerlaku: '2022-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-005/2022', jabatan: 'Kepala Bagian Keuangan', eselon: 'Eselon III/b' },
+
+  // ── P006 · Surya Puspa Dewi · dr. MARS · masuk 2002 · IV/b ───────────────
+  { id: 'KP033', pegawaiId: 'P006', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2006', tanggalBerlaku: '2006-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-020/2006', jabatan: 'Dokter Umum', eselon: 'Non-Eselon' },
+  { id: 'KP034', pegawaiId: 'P006', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2010', tanggalBerlaku: '2010-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-014/2010', jabatan: 'Dokter Umum Muda', eselon: 'Non-Eselon' },
+  { id: 'KP035', pegawaiId: 'P006', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2015', tanggalBerlaku: '2015-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-011/2015', jabatan: 'Dokter Umum Madya', eselon: 'Non-Eselon' },
+  // KP001: IV/a → IV/b (2021)
+
+  // ── P007 · Hellen Veranica · drg. M.Kes · masuk 2004 · IV/b ─────────────
+  { id: 'KP036', pegawaiId: 'P007', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2008', tanggalBerlaku: '2008-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-025/2008', jabatan: 'Dokter Gigi Pertama', eselon: 'Non-Eselon' },
+  { id: 'KP037', pegawaiId: 'P007', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2013', tanggalBerlaku: '2013-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-015/2013', jabatan: 'Dokter Gigi Muda', eselon: 'Non-Eselon' },
+  { id: 'KP038', pegawaiId: 'P007', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2017', tanggalBerlaku: '2017-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-010/2017', jabatan: 'Dokter Gigi Madya', eselon: 'Non-Eselon' },
+  // KP004: IV/a → IV/b (2023)
+
+  // ── P008 · Akhmad Sapri · Ns. S.Kep M.H · masuk 2005 · IV/a ─────────────
+  { id: 'KP039', pegawaiId: 'P008', golonganLama: 'III/a', golonganBaru: 'III/b', pangkatLama: 'Penata Muda', pangkatBaru: 'Penata Muda Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2009', tanggalBerlaku: '2009-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-017/2009', jabatan: 'Perawat Pertama', eselon: 'Non-Eselon' },
+  { id: 'KP040', pegawaiId: 'P008', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2013', tanggalBerlaku: '2013-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-014/2013', jabatan: 'Perawat Muda', eselon: 'Non-Eselon' },
+  { id: 'KP041', pegawaiId: 'P008', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2017', tanggalBerlaku: '2017-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-011/2017', jabatan: 'Perawat Madya', eselon: 'Non-Eselon' },
+  { id: 'KP042', pegawaiId: 'P008', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Pilihan', periodeUsulan: 'April 2021', tanggalBerlaku: '2021-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-006/2021', jabatan: 'Kepala Bidang Hukum', eselon: 'Eselon III/a' },
+
+  // ── P009 · Yenny Ekawati · S.Kep M.Kes · masuk 2005 · IV/a ─────────────
+  { id: 'KP043', pegawaiId: 'P009', golonganLama: 'III/a', golonganBaru: 'III/b', pangkatLama: 'Penata Muda', pangkatBaru: 'Penata Muda Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2009', tanggalBerlaku: '2009-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-018/2009', jabatan: 'Perawat Pertama', eselon: 'Non-Eselon' },
+  { id: 'KP044', pegawaiId: 'P009', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2013', tanggalBerlaku: '2013-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-015/2013', jabatan: 'Perawat Muda', eselon: 'Non-Eselon' },
+  { id: 'KP045', pegawaiId: 'P009', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2017', tanggalBerlaku: '2017-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-012/2017', jabatan: 'Perawat Madya', eselon: 'Non-Eselon' },
+  // KP002: III/d → IV/a (2022)
+
+  // ── P010 · Nina Virginawati · dr. M.HSM · masuk 2006 · IV/a ─────────────
+  { id: 'KP046', pegawaiId: 'P010', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2010', tanggalBerlaku: '2010-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-016/2010', jabatan: 'Dokter Umum Pertama', eselon: 'Non-Eselon' },
+  { id: 'KP047', pegawaiId: 'P010', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'Oktober 2014', tanggalBerlaku: '2014-10-01', status: 'Selesai', nomorSK: 'SK.823/KP-020/2014', jabatan: 'Dokter Umum Muda', eselon: 'Non-Eselon' },
+  // KP007: III/d → IV/a (2022)
+
+  // ── P011 · Sabariah Hasan · SE · masuk 2008 · III/d ─────────────────────
+  { id: 'KP048', pegawaiId: 'P011', golonganLama: 'III/a', golonganBaru: 'III/b', pangkatLama: 'Penata Muda', pangkatBaru: 'Penata Muda Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2012', tanggalBerlaku: '2012-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-022/2012', jabatan: 'Analis SDM Aparatur Pertama', eselon: 'Non-Eselon' },
+  { id: 'KP049', pegawaiId: 'P011', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2016', tanggalBerlaku: '2016-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-018/2016', jabatan: 'Analis SDM Aparatur Muda', eselon: 'Non-Eselon' },
+  // KP006: III/c → III/d (2020)
+
+  // ── P012 · Asih Hendrastuti · dr. M.Kes · masuk 2005 · IV/a ─────────────
+  { id: 'KP050', pegawaiId: 'P012', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2009', tanggalBerlaku: '2009-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-019/2009', jabatan: 'Dokter Umum Pertama', eselon: 'Non-Eselon' },
+  { id: 'KP051', pegawaiId: 'P012', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2013', tanggalBerlaku: '2013-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-016/2013', jabatan: 'Dokter Umum Muda', eselon: 'Non-Eselon' },
+  { id: 'KP052', pegawaiId: 'P012', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Pilihan', periodeUsulan: 'Oktober 2021', tanggalBerlaku: '2021-10-01', status: 'Selesai', nomorSK: 'SK.823/KP-007/2021', jabatan: 'Kepala Bidang Keperawatan', eselon: 'Eselon III/a' },
+
+  // ── P013 · Septi Kurniasari · Ns. M.Kep · masuk 2007 · IV/a ─────────────
+  { id: 'KP053', pegawaiId: 'P013', golonganLama: 'III/a', golonganBaru: 'III/b', pangkatLama: 'Penata Muda', pangkatBaru: 'Penata Muda Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2011', tanggalBerlaku: '2011-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-008/2011', jabatan: 'Perawat Pertama', eselon: 'Non-Eselon' },
+  { id: 'KP054', pegawaiId: 'P013', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2015', tanggalBerlaku: '2015-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-012/2015', jabatan: 'Perawat Muda', eselon: 'Non-Eselon' },
+  { id: 'KP055', pegawaiId: 'P013', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Fungsional', periodeUsulan: 'April 2019', tanggalBerlaku: '2019-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-009/2019', jabatan: 'Perawat Madya (Sp.KMB)', eselon: 'Non-Eselon' },
+  // KP003: III/d → IV/a (2023)
+
+  // ── P014 · Edy Ramdhani · dr. M.H · masuk 2006 · IV/a ───────────────────
+  { id: 'KP056', pegawaiId: 'P014', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2010', tanggalBerlaku: '2010-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-017/2010', jabatan: 'Dokter Umum Pertama', eselon: 'Non-Eselon' },
+  { id: 'KP057', pegawaiId: 'P014', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2014', tanggalBerlaku: '2014-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-013/2014', jabatan: 'Dokter Umum Muda', eselon: 'Non-Eselon' },
+  { id: 'KP058', pegawaiId: 'P014', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2022', tanggalBerlaku: '2022-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-008/2022', jabatan: 'Subkoordinator Substansi Bidang Pelayanan Medik', eselon: 'Non-Eselon' },
+
+  // ── P015 · Mira Yustiawati · dr. · masuk 2007 · IV/a ────────────────────
+  { id: 'KP059', pegawaiId: 'P015', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2011', tanggalBerlaku: '2011-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-009/2011', jabatan: 'Dokter Umum Pertama', eselon: 'Non-Eselon' },
+  { id: 'KP060', pegawaiId: 'P015', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2015', tanggalBerlaku: '2015-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-013/2015', jabatan: 'Dokter Umum Muda', eselon: 'Non-Eselon' },
+  { id: 'KP061', pegawaiId: 'P015', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'Oktober 2023', tanggalBerlaku: '2023-10-01', status: 'Selesai', nomorSK: 'SK.823/KP-014/2023', jabatan: 'Dokter Umum Madya', eselon: 'Non-Eselon' },
+
+  // ── P016 · Taty Wiryani · S.Kep M.M · masuk 2004 · IV/a ─────────────────
+  { id: 'KP062', pegawaiId: 'P016', golonganLama: 'III/a', golonganBaru: 'III/b', pangkatLama: 'Penata Muda', pangkatBaru: 'Penata Muda Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2008', tanggalBerlaku: '2008-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-026/2008', jabatan: 'Perawat Pertama', eselon: 'Non-Eselon' },
+  { id: 'KP063', pegawaiId: 'P016', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2012', tanggalBerlaku: '2012-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-023/2012', jabatan: 'Perawat Muda', eselon: 'Non-Eselon' },
+  { id: 'KP064', pegawaiId: 'P016', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2016', tanggalBerlaku: '2016-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-019/2016', jabatan: 'Perawat Madya', eselon: 'Non-Eselon' },
+  { id: 'KP065', pegawaiId: 'P016', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'Oktober 2022', tanggalBerlaku: '2022-10-01', status: 'Selesai', nomorSK: 'SK.823/KP-016/2022', jabatan: 'Subkoordinator Substansi Bidang Keperawatan', eselon: 'Non-Eselon' },
+
+  // ── P017 · Esti Comalaria · SE M.M · masuk 2006 · IV/a ──────────────────
+  { id: 'KP066', pegawaiId: 'P017', golonganLama: 'III/a', golonganBaru: 'III/b', pangkatLama: 'Penata Muda', pangkatBaru: 'Penata Muda Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2010', tanggalBerlaku: '2010-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-019/2010', jabatan: 'Analis Keuangan Pertama', eselon: 'Non-Eselon' },
+  { id: 'KP067', pegawaiId: 'P017', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2014', tanggalBerlaku: '2014-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-014/2014', jabatan: 'Analis Keuangan Muda', eselon: 'Non-Eselon' },
+  { id: 'KP068', pegawaiId: 'P017', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2018', tanggalBerlaku: '2018-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-010/2018', jabatan: 'Analis Keuangan Madya', eselon: 'Non-Eselon' },
+  { id: 'KP069', pegawaiId: 'P017', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Pilihan', periodeUsulan: 'Oktober 2022', tanggalBerlaku: '2022-10-01', status: 'Selesai', nomorSK: 'SK.823/KP-017/2022', jabatan: 'Subkoordinator Substansi Bidang Penunjang Medik', eselon: 'Non-Eselon' },
+
+  // ── P018 · Jumiah · Ns. S.Kep · masuk 2007 · IV/a ───────────────────────
+  { id: 'KP070', pegawaiId: 'P018', golonganLama: 'III/a', golonganBaru: 'III/b', pangkatLama: 'Penata Muda', pangkatBaru: 'Penata Muda Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2011', tanggalBerlaku: '2011-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-010/2011', jabatan: 'Perawat Pertama', eselon: 'Non-Eselon' },
+  { id: 'KP071', pegawaiId: 'P018', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2015', tanggalBerlaku: '2015-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-014/2015', jabatan: 'Perawat Muda', eselon: 'Non-Eselon' },
+  { id: 'KP072', pegawaiId: 'P018', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2019', tanggalBerlaku: '2019-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-010/2019', jabatan: 'Perawat Madya', eselon: 'Non-Eselon' },
+  { id: 'KP073', pegawaiId: 'P018', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'Oktober 2023', tanggalBerlaku: '2023-10-01', status: 'Selesai', nomorSK: 'SK.823/KP-015/2023', jabatan: 'Subkoordinator Substansi Bidang Pengembangan SDM', eselon: 'Non-Eselon' },
+
+  // ── P019 · Ilhamdani · S.Kep M.H · masuk 2010 · III/d ───────────────────
+  { id: 'KP074', pegawaiId: 'P019', golonganLama: 'III/a', golonganBaru: 'III/b', pangkatLama: 'Penata Muda', pangkatBaru: 'Penata Muda Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2014', tanggalBerlaku: '2014-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-025/2014', jabatan: 'Perawat Pertama', eselon: 'Non-Eselon' },
+  { id: 'KP075', pegawaiId: 'P019', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2018', tanggalBerlaku: '2018-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-011/2018', jabatan: 'Perawat Muda', eselon: 'Non-Eselon' },
+  // KP005: III/c → III/d (2022)
+
+  // ── P020 · Susilawati · SKM MM · masuk 2007 · IV/a (Proses) ─────────────
+  { id: 'KP076', pegawaiId: 'P020', golonganLama: 'III/a', golonganBaru: 'III/b', pangkatLama: 'Penata Muda', pangkatBaru: 'Penata Muda Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2011', tanggalBerlaku: '2011-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-011/2011', jabatan: 'Epidemiolog Kesehatan Pertama', eselon: 'Non-Eselon' },
+  { id: 'KP077', pegawaiId: 'P020', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2015', tanggalBerlaku: '2015-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-015/2015', jabatan: 'Epidemiolog Kesehatan Muda', eselon: 'Non-Eselon' },
+  { id: 'KP078', pegawaiId: 'P020', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2019', tanggalBerlaku: '2019-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-011/2019', jabatan: 'Epidemiolog Kesehatan Madya', eselon: 'Non-Eselon' },
+  // KP008: III/d → IV/a (Proses, April 2026)
+
+  // ── KP001–KP008 (existing) ────────────────────────────────────────────────
+  { id: 'KP001', pegawaiId: 'P006', golonganLama: 'IV/a', golonganBaru: 'IV/b', pangkatLama: 'Pembina', pangkatBaru: 'Pembina Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2021', tanggalBerlaku: '2021-04-01', status: 'Selesai', nomorSK: 'SK.800/KP-004/2021', jabatan: 'Kepala Bidang Pelayanan Medik', eselon: 'Eselon III/a' },
+  { id: 'KP002', pegawaiId: 'P009', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2022', tanggalBerlaku: '2022-04-01', status: 'Selesai', nomorSK: 'SK.800/KP-004/2022', jabatan: 'Kepala Bidang Pengembangan SDM', eselon: 'Eselon III/a' },
+  { id: 'KP003', pegawaiId: 'P013', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Fungsional', periodeUsulan: 'April 2023', tanggalBerlaku: '2023-04-01', status: 'Selesai', nomorSK: 'SK.800/KP-004/2023', jabatan: 'Subkoordinator Substansi Bidang Keperawatan', eselon: 'Non-Eselon' },
+  { id: 'KP004', pegawaiId: 'P007', golonganLama: 'IV/a', golonganBaru: 'IV/b', pangkatLama: 'Pembina', pangkatBaru: 'Pembina Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2023', tanggalBerlaku: '2023-04-01', status: 'Selesai', nomorSK: 'SK.800/KP-004/2023-B', jabatan: 'Kepala Bidang Penunjang Medik', eselon: 'Eselon III/a' },
+  { id: 'KP005', pegawaiId: 'P019', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'Oktober 2022', tanggalBerlaku: '2022-10-01', status: 'Selesai', nomorSK: 'SK.800/KP-010/2022', jabatan: 'Subkoordinator Substansi Bidang Hukum', eselon: 'Non-Eselon' },
+  { id: 'KP006', pegawaiId: 'P011', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'Oktober 2020', tanggalBerlaku: '2020-10-01', status: 'Selesai', nomorSK: 'SK.800/KP-010/2020', jabatan: 'Kepala Bagian Umum', eselon: 'Eselon III/b' },
+  { id: 'KP007', pegawaiId: 'P010', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'Oktober 2022', tanggalBerlaku: '2022-10-01', status: 'Selesai', nomorSK: 'SK.800/KP-010/2022-B', jabatan: 'Kepala Bagian Perencanaan & Anggaran', eselon: 'Eselon III/b' },
+  { id: 'KP008', pegawaiId: 'P020', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Fungsional', periodeUsulan: 'April 2026', status: 'Proses', jabatan: 'Subkoordinator Substansi Bidang Penunjang Medik', eselon: 'Non-Eselon' },
 ];
 
 export const dataSKP: SKPRecord[] = [

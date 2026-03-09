@@ -40,6 +40,48 @@ export interface Pegawai {
   batasPensiun: string;
   masaKerja: string;
   eselon?: string;
+  badge?: string;          // Nomor / kode badge ID pegawai
+  foto?: string;         // base64 data URL atau URL eksternal
+  sertifikat?: string[]; // Daftar nama sertifikat / kompetensi keahlian
+}
+
+// ─── DATA KELUARGA ────────────────────────────────────────────────────────────
+export type HubunganKeluarga = 'Suami' | 'Istri' | 'Anak' | 'Orang Tua' | 'Mertua' | 'Saudara Kandung' | 'Lainnya';
+
+export interface DataKeluarga {
+  id: string;
+  pegawaiId: string;
+  hubungan: HubunganKeluarga;
+  nama: string;
+  jenisKelamin: 'L' | 'P';
+  tempatLahir: string;
+  tanggalLahir: string;
+  nomorKTP?: string;
+  agama?: string;
+  pendidikan?: string;
+  pekerjaan?: string;
+  statusHidup: 'Hidup' | 'Meninggal';
+  tunjangan: boolean;   // apakah terdaftar sebagai tanggungan / penerima tunjangan
+  keterangan?: string;
+}
+
+// ─── DOKUMEN PEGAWAI ──────────────────────────────────────────────────────────
+export type KategoriDokumen = 'Identitas Diri' | 'Kepegawaian' | 'Pendidikan & Sertifikasi' | 'Dokumen Rumah Sakit';
+export type StatusDokumen = 'Valid' | 'Kadaluarsa' | 'Segera Kadaluarsa' | 'Belum Upload';
+
+export interface DokumenPegawai {
+  id: string;
+  pegawaiId: string;
+  kategori: KategoriDokumen;
+  namaDokumen: string;
+  nomorDokumen?: string;
+  tanggalTerbit?: string;
+  tanggalKadaluarsa?: string;
+  instansiPenerbit?: string;
+  keterangan?: string;
+  fileUrl?: string;        // base64 atau URL
+  fileName?: string;
+  status: StatusDokumen;
 }
 
 // ─── ABSENSI ─────────────────────────────────────────────────────────────────

@@ -3,12 +3,13 @@ import { createBrowserRouter } from 'react-router';
 import Layout from './components/Layout';
 import Root   from './components/Root';
 import NotFound from './components/NotFound';
+// Dashboard di-import langsung (bukan lazy) untuk mencegah
+// "Failed to fetch dynamically imported module" pada file berukuran besar
+// di lingkungan Figma Make dev server.
+import Dashboard from './pages/Dashboard';
 
-// Menggunakan React.lazy() dengan import() biasa — tanpa manualChunks agresif di vite.config.ts,
-// semua dependencies di-bundle bersama chunk utama, menghindari cascading chunk loading failures.
-
+// Semua halaman lain tetap lazy-loaded untuk performa optimal.
 const Login              = lazy(() => import('./pages/Login'));
-const Dashboard          = lazy(() => import('./pages/Dashboard'));
 const DataPegawai        = lazy(() => import('./pages/DataPegawai'));
 const DetailPegawai      = lazy(() => import('./pages/DetailPegawai'));
 const Absensi            = lazy(() => import('./pages/Absensi'));
@@ -33,18 +34,15 @@ const HubunganIndustrial = lazy(() => import('./pages/HubunganIndustrial'));
 const OrganisasiTree     = lazy(() => import('./pages/OrganisasiTree'));
 
 // ─── Router Singleton ─────────────────────────────────────────────────────────
-// v5: AppProvider dipindahkan ke dalam router sebagai pathless layout route (Root).
-// Layout TIDAK menggunakan useNavigate() — navigasi auth ditangani via window.location.
 // Singleton mencegah RouterProvider menerima instance router baru saat HMR
 // (router baru → React Router unmount/remount context → useNavigate error).
-const ROUTER_KEY = '__hrAppRouter_v6';
+const ROUTER_KEY = '__hrAppRouter_v7';
 type RouterType = ReturnType<typeof createBrowserRouter>;
 
 function buildRouter(): RouterType {
   return createBrowserRouter([
     {
       // Pathless layout route — menyediakan AppProvider + Toaster untuk semua rute.
-      // Tidak ada `path` sehingga cocok dengan semua URL.
       Component: Root,
       children: [
         { path: '/login', Component: Login },
@@ -75,19 +73,17 @@ function buildRouter(): RouterType {
             { path: 'komite-rs',                Component: KomiteRS },
             { path: 'hubungan-industrial',      Component: HubunganIndustrial },
             { path: 'organisasi',               Component: OrganisasiTree },
-            // Catch-all: redirect unknown sub-paths back to dashboard
             { path: '*',                        Component: NotFound },
           ],
         },
-        // Catch-all at root level: handles completely unknown top-level paths
         { path: '*', Component: NotFound },
       ],
     },
   ]);
 }
 
-// Hapus semua cache router versi lama dari globalThis
-(['__hrAppRouter_v3', '__hrAppRouter_v4', '__hrAppRouter_v5'] as string[]).forEach(key => {
+// Bersihkan cache router versi lama dari globalThis
+(['__hrAppRouter_v3', '__hrAppRouter_v4', '__hrAppRouter_v5', '__hrAppRouter_v6'] as string[]).forEach(key => {
   delete (globalThis as Record<string, unknown>)[key];
 });
 

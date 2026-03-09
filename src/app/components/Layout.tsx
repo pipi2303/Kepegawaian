@@ -1,4 +1,4 @@
-import React, { useState, Suspense, memo } from 'react';
+import React, { memo, useState, Suspense, useEffect } from 'react';
 import { NavLink, Outlet, Navigate, useNavigate } from 'react-router';
 import {
   LayoutDashboard, Users, Clock, CalendarDays, Briefcase,
@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { toast } from 'sonner';
+import GlobalSearch from './GlobalSearch';
 
 const menuItems = [
   {
@@ -189,8 +190,21 @@ function Layout() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const { isLoggedIn, currentUser, logout } = useAppContext();
   const navigate = useNavigate();
+
+  // Ctrl+K / Cmd+K opens global search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -245,14 +259,24 @@ function Layout() {
             >
               {sidebarOpen ? <ChevronLeft className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
-            <div className="relative hidden md:flex items-center">
-              <Search className="w-4 h-4 absolute left-3 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Cari pegawai, NIP, jabatan..."
-                className="pl-9 pr-4 py-1.5 text-sm bg-gray-100 border-0 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            {/* Search trigger */}
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="hidden md:flex items-center gap-2 pl-3 pr-4 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 border-0 rounded-lg w-64 text-gray-400 transition-colors group"
+            >
+              <Search className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left">Cari pegawai, jabatan, modul...</span>
+              <kbd className="hidden lg:flex items-center gap-0.5 px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] text-gray-400 font-mono shadow-sm group-hover:border-gray-300 transition-colors">
+                ⌘K
+              </kbd>
+            </button>
+            {/* Mobile search icon */}
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="md:hidden p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+            >
+              <Search className="w-5 h-5" />
+            </button>
           </div>
 
           <div className="flex items-center gap-2">
@@ -345,6 +369,9 @@ function Layout() {
       {(notifOpen || profileOpen) && (
         <div className="fixed inset-0 z-40" onClick={() => { setNotifOpen(false); setProfileOpen(false); }} />
       )}
+
+      {/* Global Search Modal */}
+      <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 }

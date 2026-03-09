@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import {
-  User, Briefcase, Calendar, TrendingUp, Target,
+  User, Briefcase, Calendar, TrendingUp, Target, FolderOpen,
   ArrowLeft, Printer, Edit2, Award, Phone, Mail, Clock, GraduationCap,
+  Users, BadgeCheck,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { PANGKAT_GOLONGAN } from '../data/constants';
+import { EmployeeAvatar } from '../components/EmployeeAvatar';
+import EditPegawaiModal from '../components/EditPegawaiModal';
+import { DokumenPegawaiTab } from '../components/DokumenPegawaiTab';
+import { DataKeluargaTab } from '../components/DataKeluargaTab';
+import { toast } from 'sonner';
+import type { Pegawai } from '../types';
 
 const InfoRow = ({ label, value }: { label: string; value?: string | number }) => (
   <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-3">
@@ -15,18 +22,21 @@ const InfoRow = ({ label, value }: { label: string; value?: string | number }) =
 );
 
 const tabs = [
-  { id: 'profil', label: 'Profil', icon: User },
-  { id: 'jabatan', label: 'Riwayat Jabatan', icon: Briefcase },
-  { id: 'cuti', label: 'Riwayat Cuti', icon: Calendar },
-  { id: 'pangkat', label: 'Kenaikan Pangkat', icon: TrendingUp },
-  { id: 'skp', label: 'SKP', icon: Target },
+  { id: 'profil',   label: 'Profil',          icon: User },
+  { id: 'keluarga', label: 'Data Keluarga',    icon: Users },
+  { id: 'jabatan',  label: 'Riwayat Jabatan',  icon: Briefcase },
+  { id: 'cuti',     label: 'Riwayat Cuti',     icon: Calendar },
+  { id: 'pangkat',  label: 'Kenaikan Pangkat', icon: TrendingUp },
+  { id: 'skp',      label: 'SKP',              icon: Target },
+  { id: 'dokumen',  label: 'Dokumen',          icon: FolderOpen },
 ];
 
 export default function DetailPegawai() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profil');
-  const { pegawai, riwayatJabatan: allRJ, cuti: allCuti, kenaikanPangkat: allKP, skp: allSKP } = useAppContext();
+  const [showEditModal, setShowEditModal] = useState(false);
+  const { pegawai, riwayatJabatan: allRJ, cuti: allCuti, kenaikanPangkat: allKP, skp: allSKP, updatePegawai } = useAppContext();
 
   const pegawaiData = pegawai.find(p => p.id === id);
   if (!pegawaiData) {
@@ -64,6 +74,12 @@ export default function DetailPegawai() {
     'Sangat Kurang': 'bg-red-100 text-red-700',
   };
 
+  const handleSave = (data: Omit<Pegawai, 'id'> & { id?: string }) => {
+    updatePegawai(data as Pegawai);
+    toast.success(`Data ${data.nama} berhasil diperbarui`);
+    setShowEditModal(false);
+  };
+
   return (
     <div className="p-4 lg:p-6">
       {/* Back */}
@@ -78,12 +94,51 @@ export default function DetailPegawai() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 overflow-hidden">
         <div className="bg-gradient-to-r from-[#1e3a5f] to-[#2563eb] px-6 pt-8 pb-5 relative">
           <div className="flex flex-col md:flex-row md:items-end gap-5">
-            <div className="w-20 h-20 rounded-2xl bg-white/20 flex items-center justify-center text-white text-2xl font-bold border-2 border-white/40 shadow">
-              {pegawai_.nama.charAt(0)}
+            {/* ID Badge Card — foto di tengah badge */}
+            <div className="flex-shrink-0">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg w-[132px]">
+                {/* Foto di tengah badge */}
+                <div className="flex flex-col items-center px-3 pt-3 pb-3 gap-2">
+                  <EmployeeAvatar
+                    id={pegawai_.id}
+                    nama={pegawai_.nama}
+                    foto={pegawai_.foto}
+                    size="xl"
+                    shape="rounded"
+                    className="border-2 border-white/50 shadow-md"
+                  />
+                  {/* Nomor badge */}
+                  {pegawai_.badge ? (
+                    <div className="w-full bg-white/20 border border-white/30 rounded-md px-2 py-1 flex items-center justify-center">
+                      <span className="text-white text-[10px] font-mono font-semibold tracking-wide">{pegawai_.badge}</span>
+                    </div>
+                  ) : (
+                    <div className="w-full bg-white/10 border border-dashed border-white/20 rounded-md px-2 py-1 text-center">
+                      <span className="text-white/30 text-[9px] italic">Belum ada badge</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
             <div className="flex-1">
               <h2 className="text-white text-xl font-semibold">{getFullName()}</h2>
               <p className="text-blue-200 text-sm mt-0.5">{pegawai_.jabatan}</p>
+
+              {/* Sertifikat Keahlian */}
+              {(pegawai_.sertifikat ?? []).length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                  <BadgeCheck className="w-3.5 h-3.5 text-emerald-300 flex-shrink-0" />
+                  {(pegawai_.sertifikat ?? []).map((s, i) => (
+                    <span
+                      key={i}
+                      className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 font-medium"
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              )}
+
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 <span className="bg-white/20 text-white text-xs px-2.5 py-1 rounded-full">{pegawai_.unitKerja}</span>
                 <span className="bg-white/20 text-white text-xs px-2.5 py-1 rounded-full">Gol. {pegawai_.golongan}</span>
@@ -97,7 +152,10 @@ export default function DetailPegawai() {
               <button className="flex items-center gap-2 px-3 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg text-sm transition-colors">
                 <Printer className="w-4 h-4" /> Cetak
               </button>
-              <button className="flex items-center gap-2 px-3 py-2 bg-white text-blue-700 rounded-lg text-sm hover:bg-blue-50 transition-colors">
+              <button
+                onClick={() => setShowEditModal(true)}
+                className="flex items-center gap-2 px-3 py-2 bg-white text-blue-700 rounded-lg text-sm hover:bg-blue-50 transition-colors"
+              >
                 <Edit2 className="w-4 h-4" /> Edit
               </button>
             </div>
@@ -199,6 +257,11 @@ export default function DetailPegawai() {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Data Keluarga Tab */}
+          {activeTab === 'keluarga' && (
+            <DataKeluargaTab pegawaiId={id ?? ''} />
           )}
 
           {/* Riwayat Jabatan Tab */}
@@ -406,8 +469,19 @@ export default function DetailPegawai() {
               )}
             </div>
           )}
+
+          {/* Dokumen Tab */}
+          {activeTab === 'dokumen' && (
+            <DokumenPegawaiTab pegawaiId={id ?? ''} />
+          )}
         </div>
       </div>
+      <EditPegawaiModal
+        open={showEditModal}
+        editData={pegawaiData ?? null}
+        onClose={() => setShowEditModal(false)}
+        onSave={handleSave}
+      />
     </div>
   );
 }

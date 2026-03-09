@@ -5,6 +5,8 @@ import { useAppContext } from '../context/AppContext';
 import type { Pegawai } from '../types';
 import { UNIT_KERJA } from '../data/constants';
 import { toast } from 'sonner';
+import { EmployeeAvatar } from '../components/EmployeeAvatar';
+import EditPegawaiModal from '../components/EditPegawaiModal';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -18,6 +20,7 @@ const EMPTY_FORM: Omit<Pegawai, 'id'> = {
   tmtJabatan: '', statusPegawai: 'PNS', statusAktif: 'Aktif',
   pendidikanTerakhir: 'S1', jurusan: '', institusi: '', tahunLulus: 2020,
   tanggalMasuk: '', batasPensiun: '', masaKerja: '',
+  foto: '',
 };
 
 export default function DataPegawai() {
@@ -33,8 +36,6 @@ export default function DataPegawai() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [editData, setEditData] = useState<Pegawai | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [form, setForm] = useState<Omit<Pegawai, 'id'>>({ ...EMPTY_FORM });
-  const [activeFormTab, setActiveFormTab] = useState<'dasar' | 'jabatan' | 'pendidikan'>('dasar');
 
   const filtered = useMemo(() => {
     return dataPegawai.filter(p => {
@@ -90,26 +91,21 @@ export default function DataPegawai() {
 
   const openAdd = () => {
     setEditData(null);
-    setForm({ ...EMPTY_FORM });
-    setActiveFormTab('dasar');
     setShowModal(true);
   };
 
   const openEdit = (p: Pegawai) => {
     setEditData(p);
-    setForm({ ...p });
-    setActiveFormTab('dasar');
     setShowModal(true);
   };
 
-  const handleSave = () => {
-    if (!form.nama || !form.nip) { toast.error('Nama dan NIP wajib diisi'); return; }
-    if (editData) {
-      updatePegawai({ ...editData, ...form });
-      toast.success('Data pegawai berhasil diperbarui');
+  const handleSave = (data: Omit<Pegawai, 'id'> & { id?: string }) => {
+    if (data.id) {
+      updatePegawai(data as Pegawai);
+      toast.success(`Data ${data.nama} berhasil diperbarui`);
     } else {
-      addPegawai(form);
-      toast.success('Pegawai baru berhasil ditambahkan');
+      addPegawai(data);
+      toast.success(`Pegawai ${data.nama} berhasil ditambahkan`);
     }
     setShowModal(false);
   };
@@ -404,7 +400,7 @@ export default function DataPegawai() {
                 <tr key={p.id} className="hover:bg-blue-50/30 transition-colors cursor-pointer" onClick={() => navigate(`/pegawai/${p.id}`)}>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">{getInitial(p.nama)}</div>
+                      <EmployeeAvatar id={p.id} nama={p.nama} foto={p.foto} size="md" />
                       <div>
                         <p className="font-medium text-gray-800 text-sm leading-tight">{getFullName(p)}</p>
                         <p className="text-xs text-gray-400 mt-0.5 md:hidden">{p.nip}</p>
@@ -467,132 +463,12 @@ export default function DataPegawai() {
       </div>
 
       {/* ─── Add/Edit Pegawai Modal ─── */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowModal(false)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
-              <h2 className="font-semibold text-gray-800">{editData ? 'Edit Data Pegawai' : 'Tambah Pegawai Baru'}</h2>
-              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors"><X className="w-5 h-5" /></button>
-            </div>
-
-            {/* Tab Navigation */}
-            <div className="flex border-b border-gray-100 px-6">
-              {(['dasar', 'jabatan', 'pendidikan'] as const).map(tab => (
-                <button key={tab} onClick={() => setActiveFormTab(tab)}
-                  className={`px-4 py-3 text-sm border-b-2 transition-colors capitalize ${activeFormTab === tab ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
-                  {tab === 'dasar' ? 'Data Pribadi' : tab === 'jabatan' ? 'Jabatan & Kepegawaian' : 'Pendidikan'}
-                </button>
-              ))}
-            </div>
-
-            <div className="p-6 space-y-4">
-              {/* ─ Tab: Data Pribadi ─ */}
-              {activeFormTab === 'dasar' && (
-                <div className="contents">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div><label className={labelCls}>Gelar Depan</label><input type="text" value={form.gelarDepan || ''} onChange={e => setForm(f => ({ ...f, gelarDepan: e.target.value }))} placeholder="dr. / Ns." className={inputCls} /></div>
-                    <div><label className={labelCls}>Nama Lengkap *</label><input type="text" value={form.nama} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} placeholder="Nama tanpa gelar" className={inputCls} /></div>
-                    <div><label className={labelCls}>Gelar Belakang</label><input type="text" value={form.gelarBelakang || ''} onChange={e => setForm(f => ({ ...f, gelarBelakang: e.target.value }))} placeholder="S.Ked / M.Kes" className={inputCls} /></div>
-                  </div>
-                  <div><label className={labelCls}>NIP *</label><input type="text" value={form.nip} onChange={e => setForm(f => ({ ...f, nip: e.target.value }))} placeholder="18 digit NIP" maxLength={18} className={`${inputCls} font-mono`} /></div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div><label className={labelCls}>Jenis Kelamin</label>
-                      <select value={form.jenisKelamin} onChange={e => setForm(f => ({ ...f, jenisKelamin: e.target.value as any }))} className={inputCls}>
-                        <option value="L">Laki-laki</option><option value="P">Perempuan</option>
-                      </select>
-                    </div>
-                    <div><label className={labelCls}>Agama</label>
-                      <select value={form.agama} onChange={e => setForm(f => ({ ...f, agama: e.target.value }))} className={inputCls}>
-                        {['Islam','Kristen','Katolik','Hindu','Budha','Konghucu'].map(a => <option key={a} value={a}>{a}</option>)}
-                      </select>
-                    </div>
-                    <div><label className={labelCls}>Tempat Lahir</label><input type="text" value={form.tempatLahir} onChange={e => setForm(f => ({ ...f, tempatLahir: e.target.value }))} className={inputCls} /></div>
-                    <div><label className={labelCls}>Tanggal Lahir</label><input type="date" value={form.tanggalLahir} onChange={e => setForm(f => ({ ...f, tanggalLahir: e.target.value }))} className={inputCls} /></div>
-                    <div><label className={labelCls}>Status Perkawinan</label>
-                      <select value={form.statusPerkawinan} onChange={e => setForm(f => ({ ...f, statusPerkawinan: e.target.value }))} className={inputCls}>
-                        {['Belum Kawin','Kawin','Cerai Hidup','Cerai Mati'].map(s => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                    </div>
-                    <div><label className={labelCls}>No. Telp</label><input type="text" value={form.noTelp} onChange={e => setForm(f => ({ ...f, noTelp: e.target.value }))} placeholder="08..." className={inputCls} /></div>
-                  </div>
-                  <div><label className={labelCls}>Email</label><input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className={inputCls} /></div>
-                  <div><label className={labelCls}>Alamat</label><textarea rows={2} value={form.alamat} onChange={e => setForm(f => ({ ...f, alamat: e.target.value }))} className={`${inputCls} resize-none`} /></div>
-                </div>
-              )}
-
-              {/* ─ Tab: Jabatan ─ */}
-              {activeFormTab === 'jabatan' && (
-                <div className="contents">
-                  <div><label className={labelCls}>Jabatan</label><input type="text" value={form.jabatan} onChange={e => setForm(f => ({ ...f, jabatan: e.target.value }))} placeholder="Nama jabatan" className={inputCls} /></div>
-                  <div><label className={labelCls}>Jabatan Fungsional</label><input type="text" value={form.jabatanFungsional} onChange={e => setForm(f => ({ ...f, jabatanFungsional: e.target.value }))} placeholder="Nama jabatan fungsional" className={inputCls} /></div>
-                  <div><label className={labelCls}>Unit Kerja</label>
-                    <select value={form.unitKerja} onChange={e => setForm(f => ({ ...f, unitKerja: e.target.value }))} className={inputCls}>
-                      <option value="">Pilih Unit Kerja</option>
-                      {UNIT_KERJA.map(u => <option key={u} value={u}>{u}</option>)}
-                    </select>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div><label className={labelCls}>Status Pegawai</label>
-                      <select value={form.statusPegawai} onChange={e => setForm(f => ({ ...f, statusPegawai: e.target.value as any }))} className={inputCls}>
-                        <option value="PNS">PNS</option><option value="PPPK">PPPK</option><option value="Honorer">Honorer</option>
-                      </select>
-                    </div>
-                    <div><label className={labelCls}>Status Aktif</label>
-                      <select value={form.statusAktif} onChange={e => setForm(f => ({ ...f, statusAktif: e.target.value as any }))} className={inputCls}>
-                        <option value="Aktif">Aktif</option><option value="Pensiun">Pensiun</option><option value="Diberhentikan">Diberhentikan</option>
-                      </select>
-                    </div>
-                    <div><label className={labelCls}>Golongan</label>
-                      <select value={form.golongan} onChange={e => setForm(f => ({ ...f, golongan: e.target.value }))} className={inputCls}>
-                        {golonganList.map(g => <option key={g} value={g}>{g}</option>)}
-                      </select>
-                    </div>
-                    <div><label className={labelCls}>TMT Golongan</label><input type="date" value={form.tmtGolongan} onChange={e => setForm(f => ({ ...f, tmtGolongan: e.target.value }))} className={inputCls} /></div>
-                    <div><label className={labelCls}>Tanggal Masuk</label><input type="date" value={form.tanggalMasuk} onChange={e => setForm(f => ({ ...f, tanggalMasuk: e.target.value }))} className={inputCls} /></div>
-                    <div><label className={labelCls}>Batas Pensiun</label><input type="date" value={form.batasPensiun} onChange={e => setForm(f => ({ ...f, batasPensiun: e.target.value }))} className={inputCls} /></div>
-                  </div>
-                </div>
-              )}
-
-              {/* ─ Tab: Pendidikan ─ */}
-              {activeFormTab === 'pendidikan' && (
-                <div className="contents">
-                  <div><label className={labelCls}>Pendidikan Terakhir</label>
-                    <select value={form.pendidikanTerakhir} onChange={e => setForm(f => ({ ...f, pendidikanTerakhir: e.target.value }))} className={inputCls}>
-                      {['SMA/SMK','D3','D4','S1','Profesi','Spesialis','S2','S3'].map(p => <option key={p} value={p}>{p}</option>)}
-                    </select>
-                  </div>
-                  <div><label className={labelCls}>Jurusan / Program Studi</label><input type="text" value={form.jurusan} onChange={e => setForm(f => ({ ...f, jurusan: e.target.value }))} placeholder="Ilmu Kedokteran / Keperawatan" className={inputCls} /></div>
-                  <div><label className={labelCls}>Institusi / Universitas</label><input type="text" value={form.institusi} onChange={e => setForm(f => ({ ...f, institusi: e.target.value }))} placeholder="Nama universitas" className={inputCls} /></div>
-                  <div><label className={labelCls}>Tahun Lulus</label><input type="number" value={form.tahunLulus} onChange={e => setForm(f => ({ ...f, tahunLulus: parseInt(e.target.value) || 0 }))} placeholder="2020" className={inputCls} /></div>
-                </div>
-              )}
-            </div>
-
-            <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center">
-              <div className="flex gap-2">
-                {(['dasar', 'jabatan', 'pendidikan'] as const).map((tab, i) => (
-                  <div key={tab} className={`w-2 h-2 rounded-full ${activeFormTab === tab ? 'bg-blue-600' : 'bg-gray-200'}`} />
-                ))}
-              </div>
-              <div className="flex gap-3">
-                <button onClick={() => setShowModal(false)} className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Batal</button>
-                {activeFormTab !== 'pendidikan' ? (
-                  <button onClick={() => setActiveFormTab(activeFormTab === 'dasar' ? 'jabatan' : 'pendidikan')}
-                    className="px-4 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
-                    Lanjut →
-                  </button>
-                ) : (
-                  <button onClick={handleSave} className="px-4 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
-                    {editData ? 'Perbarui' : 'Simpan Pegawai'}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <EditPegawaiModal
+        open={showModal}
+        editData={editData}
+        onClose={() => setShowModal(false)}
+        onSave={handleSave}
+      />
 
       {/* Delete Confirm */}
       {showDeleteConfirm && (
