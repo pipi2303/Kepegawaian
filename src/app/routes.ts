@@ -8,12 +8,12 @@ import NotFound from './components/NotFound';
 // di lingkungan Figma Make dev server.
 import Dashboard from './pages/Dashboard';
 import Penggajian from './pages/Penggajian';
+import Absensi from './pages/Absensi';
 
 // Semua halaman lain tetap lazy-loaded untuk performa optimal.
 const Login              = lazy(() => import('./pages/Login'));
 const DataPegawai        = lazy(() => import('./pages/DataPegawai'));
 const DetailPegawai      = lazy(() => import('./pages/DetailPegawai'));
-const Absensi            = lazy(() => import('./pages/Absensi'));
 const Cuti               = lazy(() => import('./pages/Cuti'));
 const RiwayatJabatan     = lazy(() => import('./pages/RiwayatJabatan'));
 const KenaikanPangkat    = lazy(() => import('./pages/KenaikanPangkat'));
