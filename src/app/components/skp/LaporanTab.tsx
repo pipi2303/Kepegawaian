@@ -138,7 +138,7 @@ export default function LaporanTab() {
       doc.text('LAPORAN SKP & PENILAIAN KINERJA', W / 2, y, { align: 'center' });
       y += 7;
       doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-      doc.text('RSUD Abdul Moeloek Provinsi Lampung', W / 2, y, { align: 'center' });
+      doc.text('Human Capital Management System', W / 2, y, { align: 'center' });
       y += 5;
       doc.setFontSize(9);
       const periodLabel = [filterTahun && `Tahun ${filterTahun}`, filterSemester && `Semester ${filterSemester}`].filter(Boolean).join(', ') || 'Semua Periode';
@@ -195,7 +195,7 @@ export default function LaporanTab() {
       // Footer
       y += 5;
       doc.setFontSize(8); doc.setFont('helvetica', 'italic');
-      doc.text('Dokumen ini digenerate otomatis oleh HR APP RSUD Abdul Moeloek.', W / 2, y, { align: 'center' });
+      doc.text('Dokumen ini digenerate otomatis oleh HCMS Application.', W / 2, y, { align: 'center' });
       y += 4;
       doc.text('Ditandatangani oleh Direktur: dr. IMAM GHOZALI, Sp.An., M.Kes. (NIP. 19680415 199703 1 001)', W / 2, y, { align: 'center' });
 
@@ -219,9 +219,9 @@ export default function LaporanTab() {
       doc.setFontSize(14); doc.setFont('helvetica', 'bold');
       doc.text('SASARAN KINERJA PEGAWAI (SKP)', W / 2, y, { align: 'center' }); y += 7;
       doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-      doc.text('RSUD Abdul Moeloek — Pemerintah Provinsi Lampung', W / 2, y, { align: 'center' }); y += 5;
+      doc.text('Human Capital Management System', W / 2, y, { align: 'center' }); y += 5;
       doc.setFontSize(9);
-      doc.text('Jl. Dr. Rivai No. 6, Bandar Lampung — Telp. (0721) 703614', W / 2, y, { align: 'center' }); y += 4;
+      doc.text('SIMRS - Pemerintah Provinsi Lampung', W / 2, y, { align: 'center' }); y += 4;
       doc.line(M, y, W - M, y); y += 8;
 
       // Identitas Pegawai

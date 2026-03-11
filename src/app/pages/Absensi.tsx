@@ -280,7 +280,7 @@ export default function Absensi() {
         <div>
           <h1 className="text-gray-800">Presensi & Absensi</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {formatDateLong('2026-03-05')} · RSUD Abdul Moeloek
+            {formatDateLong('2026-03-05')} · Human Capital Management System
           </p>
         </div>
         <div className="flex items-center gap-2">

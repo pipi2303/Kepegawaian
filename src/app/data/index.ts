@@ -1,5 +1,5 @@
 /**
- * Barrel export file untuk data HR APP
+ * Barrel export file untuk data HCMS
  * File ini memungkinkan tree-shaking yang lebih baik dengan re-export individual
  */
 

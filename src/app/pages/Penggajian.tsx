@@ -184,7 +184,7 @@ export default function Penggajian() {
             </div>
             <div className="p-6 space-y-4">
               <div className="bg-blue-50 rounded-xl p-4">
-                <p className="text-xs text-blue-600 font-medium">RSUD ABDUL MOELOEK</p>
+                <p className="text-xs text-blue-600 font-medium">RUMAH SAKIT</p>
                 <p className="font-semibold text-gray-800 mt-1">{getFullName(detailSlip.pegawaiId)}</p>
                 <p className="text-xs text-gray-500">{getPegawai(detailSlip.pegawaiId)?.jabatan} · {getPegawai(detailSlip.pegawaiId)?.golongan}</p>
                 <p className="text-xs text-gray-500">{getPegawai(detailSlip.pegawaiId)?.nip}</p>

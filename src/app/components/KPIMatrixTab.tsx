@@ -492,7 +492,7 @@ export function KPIMatrixTab() {
             </div>
             <div>
               <p className="text-xs text-gray-500">Skor Kinerja Organisasi — Kombinasi BSC+OKR</p>
-              <p className="text-xl font-bold text-gray-900">RSUD Abdul Moeloek</p>
+              <p className="text-xl font-bold text-gray-900">Human Capital Management System</p>
               <p className="text-xs text-gray-500">Q1 2026 · {bscObjectives.length} KPI · {kpiScores.filter(k=>k.hasOKR).length} tertaut OKR</p>
               <div className="flex flex-wrap gap-2 mt-2">
                 {(['Achieved','On Track','At Risk','Behind'] as KPIStatus[]).map(s => {
@@ -723,7 +723,7 @@ export function KPIMatrixTab() {
         <div className="space-y-4">
           {/* Diagram Framework */}
           <div className="bg-white rounded-2xl border border-gray-200 p-6">
-            <h3 className="font-bold text-gray-800 mb-1">Framework Kombinasi BSC + OKR — RSUD Abdul Moeloek</h3>
+            <h3 className="font-bold text-gray-800 mb-1">Framework Kombinasi BSC + OKR</h3>
             <p className="text-sm text-gray-500 mb-5">Setiap KPI diukur dari dua dimensi yang saling melengkapi: BSC (lagging/hasil) dan OKR (leading/upaya)</p>
             {/* Framework flow diagram */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">

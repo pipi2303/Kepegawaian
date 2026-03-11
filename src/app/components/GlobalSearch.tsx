@@ -33,7 +33,7 @@ interface ResultGroup {
 
 // ─── Navigation quick links ───────────────────────────────────────────────────
 const NAV_ITEMS: Omit<SearchResult, 'type' | 'id'>[] = [
-  { title: 'Dashboard',              subtitle: 'Beranda utama HR APP',         path: '/',                   icon: LayoutDashboard },
+  { title: 'Dashboard',              subtitle: 'Beranda utama HCMS',         path: '/',                   icon: LayoutDashboard },
   { title: 'Data Pegawai',           subtitle: 'Kelola data semua pegawai',    path: '/pegawai',            icon: Users },
   { title: 'Presensi / Absensi',     subtitle: 'Rekap kehadiran pegawai',      path: '/absensi',            icon: Clock },
   { title: 'Manajemen Cuti',         subtitle: 'Pengajuan & approval cuti',    path: '/cuti',               icon: CalendarDays },

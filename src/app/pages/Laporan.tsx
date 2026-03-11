@@ -561,7 +561,7 @@ export default function Laporan() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <BarChart2 className="w-5 h-5 text-blue-200" />
-              <span className="text-blue-200 text-sm font-medium">RSUD Abdul Moeloek — Provinsi Lampung</span>
+              <span className="text-blue-200 text-sm font-medium">Human Capital Management System — Provinsi Lampung</span>
             </div>
             <h1 className="text-white text-2xl font-bold">Laporan &amp; Statistik SDM</h1>
             <p className="text-blue-200 text-sm mt-1">Periode: Maret 2026 · Data terupdate hari ini</p>
@@ -948,7 +948,7 @@ export default function Laporan() {
               />
             </div>
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 lg:col-span-2">
-              <SectionHeader title="Radar Kompetensi SDM" sub="Aktual vs Target — RSUD Abdul Moeloek 2025" />
+              <SectionHeader title="Radar Kompetensi SDM" sub="Aktual vs Target — Rumah Sakit 2025" />
               <RadarChart2 data={radarKompetensi} height={280} />
             </div>
           </div>

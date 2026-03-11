@@ -61,15 +61,15 @@ export const dataSTR: STRRecord[] = [
 
 // ─── SIP / SIK RECORDS ───────────────────────────────────────────────────────
 export const dataSIP: SIPRecord[] = [
-  { id: 'SIP001', pegawaiId: 'P001', nomorSIP: 'SIP.440/1234/DPM-PTSP/2022', jenisDokumen: 'SIP', jenisPraktik: 'Praktik Spesialis Penyakit Dalam', fasyankes: 'RSUD Abdul Moeloek', instansiPenerbit: 'Dinas Penanaman Modal & PTSP Prov. Lampung', tanggalTerbit: '2022-02-01', tanggalExpired: '2025-01-31', status: 'Expired' },
-  { id: 'SIP002', pegawaiId: 'P002', nomorSIP: 'SIP.440/5678/DPM-PTSP/2023', jenisDokumen: 'SIP', jenisPraktik: 'Praktik Dokter Umum', fasyankes: 'RSUD Abdul Moeloek', instansiPenerbit: 'Dinas Penanaman Modal & PTSP Kota Bandar Lampung', tanggalTerbit: '2023-04-10', tanggalExpired: '2026-04-09', status: 'Akan Expired' },
-  { id: 'SIP003', pegawaiId: 'P005', nomorSIP: 'SIP.440/9101/DPM-PTSP/2023', jenisDokumen: 'SIP', jenisPraktik: 'Praktik Spesialis Bedah', fasyankes: 'RSUD Abdul Moeloek', instansiPenerbit: 'Dinas Penanaman Modal & PTSP Prov. Lampung', tanggalTerbit: '2023-06-15', tanggalExpired: '2026-06-14', status: 'Aktif' },
-  { id: 'SIP004', pegawaiId: 'P011', nomorSIP: 'SIP.440/1121/DPM-PTSP/2024', jenisDokumen: 'SIP', jenisPraktik: 'Praktik Spesialis Radiologi', fasyankes: 'RSUD Abdul Moeloek', instansiPenerbit: 'Dinas Penanaman Modal & PTSP Prov. Lampung', tanggalTerbit: '2024-03-20', tanggalExpired: '2027-03-19', status: 'Aktif' },
-  { id: 'SIK001', pegawaiId: 'P003', nomorSIP: 'SIK.445/3141/Dinkes/2023', jenisDokumen: 'SIK', fasyankes: 'RSUD Abdul Moeloek', instansiPenerbit: 'Dinas Kesehatan Kota Bandar Lampung', tanggalTerbit: '2023-07-20', tanggalExpired: '2026-07-19', status: 'Aktif' },
-  { id: 'SIK002', pegawaiId: 'P004', nomorSIP: 'SIK.445/5161/Dinkes/2022', jenisDokumen: 'SIK', fasyankes: 'RSUD Abdul Moeloek', instansiPenerbit: 'Dinas Kesehatan Kota Bandar Lampung', tanggalTerbit: '2022-03-05', tanggalExpired: '2025-03-04', status: 'Expired' },
-  { id: 'SIK003', pegawaiId: 'P006', nomorSIP: 'SIK.445/7181/Dinkes/2024', jenisDokumen: 'SIK', fasyankes: 'RSUD Abdul Moeloek', instansiPenerbit: 'Dinas Kesehatan Kota Bandar Lampung', tanggalTerbit: '2024-09-15', tanggalExpired: '2027-09-14', status: 'Aktif' },
-  { id: 'SIK004', pegawaiId: 'P012', nomorSIP: 'SIK.445/9202/Dinkes/2023', jenisDokumen: 'SIK', fasyankes: 'RSUD Abdul Moeloek', instansiPenerbit: 'Dinas Kesehatan Kota Bandar Lampung', tanggalTerbit: '2023-04-18', tanggalExpired: '2026-04-17', status: 'Akan Expired' },
-  { id: 'SIK005', pegawaiId: 'P015', nomorSIP: 'SIK.445/1232/Dinkes/2024', jenisDokumen: 'SIK', fasyankes: 'RSUD Abdul Moeloek', instansiPenerbit: 'Dinas Kesehatan Kota Bandar Lampung', tanggalTerbit: '2024-01-25', tanggalExpired: '2027-01-24', status: 'Aktif' },
+  { id: 'SIP001', pegawaiId: 'P001', nomorSIP: 'SIP.440/1234/DPM-PTSP/2022', jenisDokumen: 'SIP', jenisPraktik: 'Praktik Spesialis Penyakit Dalam', fasyankes: 'Rumah Sakit', instansiPenerbit: 'Dinas Penanaman Modal & PTSP Prov. Lampung', tanggalTerbit: '2022-02-01', tanggalExpired: '2025-01-31', status: 'Expired' },
+  { id: 'SIP002', pegawaiId: 'P002', nomorSIP: 'SIP.440/5678/DPM-PTSP/2023', jenisDokumen: 'SIP', jenisPraktik: 'Praktik Dokter Umum', fasyankes: 'Rumah Sakit', instansiPenerbit: 'Dinas Penanaman Modal & PTSP Kota Bandar Lampung', tanggalTerbit: '2023-04-10', tanggalExpired: '2026-04-09', status: 'Akan Expired' },
+  { id: 'SIP003', pegawaiId: 'P005', nomorSIP: 'SIP.440/9101/DPM-PTSP/2023', jenisDokumen: 'SIP', jenisPraktik: 'Praktik Spesialis Bedah', fasyankes: 'Rumah Sakit', instansiPenerbit: 'Dinas Penanaman Modal & PTSP Prov. Lampung', tanggalTerbit: '2023-06-15', tanggalExpired: '2026-06-14', status: 'Aktif' },
+  { id: 'SIP004', pegawaiId: 'P011', nomorSIP: 'SIP.440/1121/DPM-PTSP/2024', jenisDokumen: 'SIP', jenisPraktik: 'Praktik Spesialis Radiologi', fasyankes: 'Rumah Sakit', instansiPenerbit: 'Dinas Penanaman Modal & PTSP Prov. Lampung', tanggalTerbit: '2024-03-20', tanggalExpired: '2027-03-19', status: 'Aktif' },
+  { id: 'SIK001', pegawaiId: 'P003', nomorSIP: 'SIK.445/3141/Dinkes/2023', jenisDokumen: 'SIK', fasyankes: 'Rumah Sakit', instansiPenerbit: 'Dinas Kesehatan Kota Bandar Lampung', tanggalTerbit: '2023-07-20', tanggalExpired: '2026-07-19', status: 'Aktif' },
+  { id: 'SIK002', pegawaiId: 'P004', nomorSIP: 'SIK.445/5161/Dinkes/2022', jenisDokumen: 'SIK', fasyankes: 'Rumah Sakit', instansiPenerbit: 'Dinas Kesehatan Kota Bandar Lampung', tanggalTerbit: '2022-03-05', tanggalExpired: '2025-03-04', status: 'Expired' },
+  { id: 'SIK003', pegawaiId: 'P006', nomorSIP: 'SIK.445/7181/Dinkes/2024', jenisDokumen: 'SIK', fasyankes: 'Rumah Sakit', instansiPenerbit: 'Dinas Kesehatan Kota Bandar Lampung', tanggalTerbit: '2024-09-15', tanggalExpired: '2027-09-14', status: 'Aktif' },
+  { id: 'SIK004', pegawaiId: 'P012', nomorSIP: 'SIK.445/9202/Dinkes/2023', jenisDokumen: 'SIK', fasyankes: 'Rumah Sakit', instansiPenerbit: 'Dinas Kesehatan Kota Bandar Lampung', tanggalTerbit: '2023-04-18', tanggalExpired: '2026-04-17', status: 'Akan Expired' },
+  { id: 'SIK005', pegawaiId: 'P015', nomorSIP: 'SIK.445/1232/Dinkes/2024', jenisDokumen: 'SIK', fasyankes: 'Rumah Sakit', instansiPenerbit: 'Dinas Kesehatan Kota Bandar Lampung', tanggalTerbit: '2024-01-25', tanggalExpired: '2027-01-24', status: 'Aktif' },
 ];
 
 // ─── CREDENTIALING ───────────────────────────────────────────────────────────
@@ -221,33 +221,33 @@ export const dataInsidenK3RS: InsidenK3RS[] = [
 
 // ─── VAKSINASI ────────────────────────────────────────────────────────────────
 export const dataVaksinasi: VaksinasiRecord[] = [
-  { id: 'VAK001', pegawaiId: 'P001', jenisVaksin: 'Hepatitis B', dosis: 3, tanggalVaksin: '2020-03-15', fasilitasVaksin: 'RSUD Abdul Moeloek', status: 'Lengkap' },
-  { id: 'VAK002', pegawaiId: 'P001', jenisVaksin: 'COVID-19 (Booster ke-2)', dosis: 4, tanggalVaksin: '2023-02-20', fasilitasVaksin: 'RSUD Abdul Moeloek', status: 'Lengkap' },
-  { id: 'VAK003', pegawaiId: 'P002', jenisVaksin: 'Hepatitis B', dosis: 3, tanggalVaksin: '2020-05-10', fasilitasVaksin: 'RSUD Abdul Moeloek', status: 'Lengkap' },
-  { id: 'VAK004', pegawaiId: 'P002', jenisVaksin: 'COVID-19 (Booster ke-2)', dosis: 4, tanggalVaksin: '2023-03-15', fasilitasVaksin: 'RSUD Abdul Moeloek', status: 'Lengkap' },
-  { id: 'VAK005', pegawaiId: 'P003', jenisVaksin: 'Hepatitis B', dosis: 3, tanggalVaksin: '2019-08-20', fasilitasVaksin: 'RSUD Abdul Moeloek', status: 'Lengkap' },
-  { id: 'VAK006', pegawaiId: 'P003', jenisVaksin: 'COVID-19 (Booster ke-2)', dosis: 4, tanggalVaksin: '2023-04-10', fasilitasVaksin: 'RSUD Abdul Moeloek', status: 'Lengkap' },
+  { id: 'VAK001', pegawaiId: 'P001', jenisVaksin: 'Hepatitis B', dosis: 3, tanggalVaksin: '2020-03-15', fasilitasVaksin: 'Rumah Sakit', status: 'Lengkap' },
+  { id: 'VAK002', pegawaiId: 'P001', jenisVaksin: 'COVID-19 (Booster ke-2)', dosis: 4, tanggalVaksin: '2023-02-20', fasilitasVaksin: 'Rumah Sakit', status: 'Lengkap' },
+  { id: 'VAK003', pegawaiId: 'P002', jenisVaksin: 'Hepatitis B', dosis: 3, tanggalVaksin: '2020-05-10', fasilitasVaksin: 'Rumah Sakit', status: 'Lengkap' },
+  { id: 'VAK004', pegawaiId: 'P002', jenisVaksin: 'COVID-19 (Booster ke-2)', dosis: 4, tanggalVaksin: '2023-03-15', fasilitasVaksin: 'Rumah Sakit', status: 'Lengkap' },
+  { id: 'VAK005', pegawaiId: 'P003', jenisVaksin: 'Hepatitis B', dosis: 3, tanggalVaksin: '2019-08-20', fasilitasVaksin: 'Rumah Sakit', status: 'Lengkap' },
+  { id: 'VAK006', pegawaiId: 'P003', jenisVaksin: 'COVID-19 (Booster ke-2)', dosis: 4, tanggalVaksin: '2023-04-10', fasilitasVaksin: 'Rumah Sakit', status: 'Lengkap' },
   { id: 'VAK007', pegawaiId: 'P004', jenisVaksin: 'Hepatitis B', dosis: 2, tanggalVaksin: '2021-01-15', fasilitasVaksin: 'Puskesmas Teluk Betung', tanggalBooster: '2026-06-01', status: 'Sebagian' },
-  { id: 'VAK008', pegawaiId: 'P006', jenisVaksin: 'Hepatitis B', dosis: 3, tanggalVaksin: '2022-01-10', fasilitasVaksin: 'RSUD Abdul Moeloek', status: 'Lengkap' },
-  { id: 'VAK009', pegawaiId: 'P006', jenisVaksin: 'COVID-19 (Primer + Booster)', dosis: 3, tanggalVaksin: '2022-08-15', fasilitasVaksin: 'RSUD Abdul Moeloek', status: 'Lengkap' },
-  { id: 'VAK010', pegawaiId: 'P009', jenisVaksin: 'Hepatitis B', dosis: 3, tanggalVaksin: '2020-07-20', fasilitasVaksin: 'RSUD Abdul Moeloek', status: 'Lengkap' },
-  { id: 'VAK011', pegawaiId: 'P011', jenisVaksin: 'Hepatitis B', dosis: 3, tanggalVaksin: '2019-06-15', fasilitasVaksin: 'RSUD Abdul Moeloek', status: 'Lengkap' },
-  { id: 'VAK012', pegawaiId: 'P011', jenisVaksin: 'Influenza (Tahunan)', dosis: 1, tanggalVaksin: '2025-10-01', fasilitasVaksin: 'RSUD Abdul Moeloek', tanggalBooster: '2026-10-01', status: 'Lengkap' },
-  { id: 'VAK013', pegawaiId: 'P012', jenisVaksin: 'Hepatitis B', dosis: 1, tanggalVaksin: '2024-03-01', fasilitasVaksin: 'RSUD Abdul Moeloek', status: 'Sebagian' },
-  { id: 'VAK014', pegawaiId: 'P015', jenisVaksin: 'Hepatitis B', dosis: 3, tanggalVaksin: '2022-03-20', fasilitasVaksin: 'RSUD Abdul Moeloek', status: 'Lengkap' },
-  { id: 'VAK015', pegawaiId: 'P018', jenisVaksin: 'COVID-19 (Primer + Booster)', dosis: 3, tanggalVaksin: '2022-06-10', fasilitasVaksin: 'RSUD Abdul Moeloek', status: 'Lengkap' },
+  { id: 'VAK008', pegawaiId: 'P006', jenisVaksin: 'Hepatitis B', dosis: 3, tanggalVaksin: '2022-01-10', fasilitasVaksin: 'Rumah Sakit', status: 'Lengkap' },
+  { id: 'VAK009', pegawaiId: 'P006', jenisVaksin: 'COVID-19 (Primer + Booster)', dosis: 3, tanggalVaksin: '2022-08-15', fasilitasVaksin: 'Rumah Sakit', status: 'Lengkap' },
+  { id: 'VAK010', pegawaiId: 'P009', jenisVaksin: 'Hepatitis B', dosis: 3, tanggalVaksin: '2020-07-20', fasilitasVaksin: 'Rumah Sakit', status: 'Lengkap' },
+  { id: 'VAK011', pegawaiId: 'P011', jenisVaksin: 'Hepatitis B', dosis: 3, tanggalVaksin: '2019-06-15', fasilitasVaksin: 'Rumah Sakit', status: 'Lengkap' },
+  { id: 'VAK012', pegawaiId: 'P011', jenisVaksin: 'Influenza (Tahunan)', dosis: 1, tanggalVaksin: '2025-10-01', fasilitasVaksin: 'Rumah Sakit', tanggalBooster: '2026-10-01', status: 'Lengkap' },
+  { id: 'VAK013', pegawaiId: 'P012', jenisVaksin: 'Hepatitis B', dosis: 1, tanggalVaksin: '2024-03-01', fasilitasVaksin: 'Rumah Sakit', status: 'Sebagian' },
+  { id: 'VAK014', pegawaiId: 'P015', jenisVaksin: 'Hepatitis B', dosis: 3, tanggalVaksin: '2022-03-20', fasilitasVaksin: 'Rumah Sakit', status: 'Lengkap' },
+  { id: 'VAK015', pegawaiId: 'P018', jenisVaksin: 'COVID-19 (Primer + Booster)', dosis: 3, tanggalVaksin: '2022-06-10', fasilitasVaksin: 'Rumah Sakit', status: 'Lengkap' },
 ];
 
 // ─── MCU ─────────────────────────────────────────────────────────────────────
 export const dataMCU: MCURecord[] = [
-  { id: 'MCU001', pegawaiId: 'P001', tanggal: '2025-09-15', jenisMCU: 'Berkala', hasilMCU: 'Layak Kerja', catatan: 'Semua parameter dalam batas normal', rekomendasiDokter: 'Kontrol tekanan darah rutin', tanggalBerikutnya: '2026-09-15', fasilitasMCU: 'RSUD Abdul Moeloek' },
-  { id: 'MCU002', pegawaiId: 'P002', tanggal: '2025-10-10', jenisMCU: 'Berkala', hasilMCU: 'Layak Kerja', catatan: 'Normal', tanggalBerikutnya: '2026-10-10', fasilitasMCU: 'RSUD Abdul Moeloek' },
-  { id: 'MCU003', pegawaiId: 'P003', tanggal: '2025-08-20', jenisMCU: 'Berkala', hasilMCU: 'Layak dengan Syarat', catatan: 'HbsAg reaktif, perlu tindak lanjut spesialis', rekomendasiDokter: 'Konsultasi SpPD, hindari prosedur berisiko pajanan', tanggalBerikutnya: '2026-02-20', fasilitasMCU: 'RSUD Abdul Moeloek' },
-  { id: 'MCU004', pegawaiId: 'P005', tanggal: '2025-07-15', jenisMCU: 'Berkala', hasilMCU: 'Layak Kerja', catatan: 'Semua parameter normal', tanggalBerikutnya: '2026-07-15', fasilitasMCU: 'RSUD Abdul Moeloek' },
-  { id: 'MCU005', pegawaiId: 'P006', tanggal: '2026-01-16', jenisMCU: 'Khusus Pajanan', hasilMCU: 'Layak Kerja', catatan: 'Pasca pajanan jarum suntik - anti-HIV negatif', rekomendasiDokter: 'Monitoring ulang 3 bulan (April 2026)', tanggalBerikutnya: '2026-04-16', fasilitasMCU: 'RSUD Abdul Moeloek' },
-  { id: 'MCU006', pegawaiId: 'P011', tanggal: '2025-11-05', jenisMCU: 'Berkala', hasilMCU: 'Layak Kerja', catatan: 'Dosis radiasi kumulatif dalam batas aman', rekomendasiDokter: 'Pastikan penggunaan APD radiasi konsisten', tanggalBerikutnya: '2026-11-05', fasilitasMCU: 'RSUD Abdul Moeloek' },
+  { id: 'MCU001', pegawaiId: 'P001', tanggal: '2025-09-15', jenisMCU: 'Berkala', hasilMCU: 'Layak Kerja', catatan: 'Semua parameter dalam batas normal', rekomendasiDokter: 'Kontrol tekanan darah rutin', tanggalBerikutnya: '2026-09-15', fasilitasMCU: 'Rumah Sakit' },
+  { id: 'MCU002', pegawaiId: 'P002', tanggal: '2025-10-10', jenisMCU: 'Berkala', hasilMCU: 'Layak Kerja', catatan: 'Normal', tanggalBerikutnya: '2026-10-10', fasilitasMCU: 'Rumah Sakit' },
+  { id: 'MCU003', pegawaiId: 'P003', tanggal: '2025-08-20', jenisMCU: 'Berkala', hasilMCU: 'Layak dengan Syarat', catatan: 'HbsAg reaktif, perlu tindak lanjut spesialis', rekomendasiDokter: 'Konsultasi SpPD, hindari prosedur berisiko pajanan', tanggalBerikutnya: '2026-02-20', fasilitasMCU: 'Rumah Sakit' },
+  { id: 'MCU004', pegawaiId: 'P005', tanggal: '2025-07-15', jenisMCU: 'Berkala', hasilMCU: 'Layak Kerja', catatan: 'Semua parameter normal', tanggalBerikutnya: '2026-07-15', fasilitasMCU: 'Rumah Sakit' },
+  { id: 'MCU005', pegawaiId: 'P006', tanggal: '2026-01-16', jenisMCU: 'Khusus Pajanan', hasilMCU: 'Layak Kerja', catatan: 'Pasca pajanan jarum suntik - anti-HIV negatif', rekomendasiDokter: 'Monitoring ulang 3 bulan (April 2026)', tanggalBerikutnya: '2026-04-16', fasilitasMCU: 'Rumah Sakit' },
+  { id: 'MCU006', pegawaiId: 'P011', tanggal: '2025-11-05', jenisMCU: 'Berkala', hasilMCU: 'Layak Kerja', catatan: 'Dosis radiasi kumulatif dalam batas aman', rekomendasiDokter: 'Pastikan penggunaan APD radiasi konsisten', tanggalBerikutnya: '2026-11-05', fasilitasMCU: 'Rumah Sakit' },
   { id: 'MCU007', pegawaiId: 'P016', tanggal: '2025-06-10', jenisMCU: 'Berkala', hasilMCU: 'Layak dengan Syarat', catatan: 'Gula darah puasa 118 mg/dL (pre-diabetes), tekanan darah 145/90', rekomendasiDokter: 'Modifikasi gaya hidup, kontrol ulang 6 bulan', tanggalBerikutnya: '2025-12-10', fasilitasMCU: 'RS Siloam Bandar Lampung' },
-  { id: 'MCU008', pegawaiId: 'P018', tanggal: '2026-02-01', jenisMCU: 'Awal Kerja', hasilMCU: 'Layak Kerja', catatan: 'Sehat, tidak ada kelainan', tanggalBerikutnya: '2027-02-01', fasilitasMCU: 'RSUD Abdul Moeloek' },
+  { id: 'MCU008', pegawaiId: 'P018', tanggal: '2026-02-01', jenisMCU: 'Awal Kerja', hasilMCU: 'Layak Kerja', catatan: 'Sehat, tidak ada kelainan', tanggalBerikutnya: '2027-02-01', fasilitasMCU: 'Rumah Sakit' },
 ];
 
 // ─── SLIP GAJI ────────────────────────────────────────────────────────────────
@@ -376,7 +376,7 @@ export const dataPenghargaan: PenghargaanRecord[] = [
   { id: 'PH002', pegawaiId: 'P005', jenisPenghargaan: 'Satyalancana Karya Satya 20 Tahun', tanggalPemberian: '2022-08-17', nomorSK: 'KEP.PRES/SKS-20/VIII/2022/05', instansiPemberi: 'Presiden Republik Indonesia', tingkat: 'Nasional' },
   { id: 'PH003', pegawaiId: 'P007', jenisPenghargaan: 'Satyalancana Karya Satya 20 Tahun', tanggalPemberian: '2022-08-17', nomorSK: 'KEP.PRES/SKS-20/VIII/2022/07', instansiPemberi: 'Presiden Republik Indonesia', tingkat: 'Nasional' },
   { id: 'PH004', pegawaiId: 'P001', jenisPenghargaan: 'Satyalancana Karya Satya 10 Tahun', tanggalPemberian: '2020-08-17', nomorSK: 'KEP.PRES/SKS-10/VIII/2020/01', instansiPemberi: 'Presiden Republik Indonesia', tingkat: 'Nasional' },
-  { id: 'PH005', pegawaiId: 'P003', jenisPenghargaan: 'Nakes Teladan RS', tanggalPemberian: '2025-12-01', nomorSK: 'SK.800/TELADAN/XII/2025/03', instansiPemberi: 'RSUD Abdul Moeloek', tingkat: 'Instansi', keterangan: 'Perawat Teladan RSUD Abdul Moeloek Tahun 2025' },
+  { id: 'PH005', pegawaiId: 'P003', jenisPenghargaan: 'Nakes Teladan RS', tanggalPemberian: '2025-12-01', nomorSK: 'SK.800/TELADAN/XII/2025/03', instansiPemberi: 'Rumah Sakit', tingkat: 'Instansi', keterangan: 'Perawat Teladan Rumah Sakit Tahun 2025' },
   { id: 'PH006', pegawaiId: 'P004', jenisPenghargaan: 'Pegawai Inovatif', tanggalPemberian: '2025-07-15', nomorSK: 'SK.800/INOVATIF/VII/2025/04', instansiPemberi: 'Gubernur Lampung', tingkat: 'Provinsi', keterangan: 'Inovasi Sistem Informasi Farmasi Rumah Sakit' },
   { id: 'PH007', pegawaiId: 'P017', jenisPenghargaan: 'ASN Teladan Tingkat Provinsi', tanggalPemberian: '2024-08-17', nomorSK: 'KEP.GUB.LAMPUNG/TELADAN/VIII/2024/17', instansiPemberi: 'Gubernur Lampung', tingkat: 'Provinsi', keterangan: 'ASN Teladan Bidang Kesehatan Provinsi Lampung 2024' },
   { id: 'PH008', pegawaiId: 'P011', jenisPenghargaan: 'Satyalancana Karya Satya 20 Tahun', tanggalPemberian: '2020-08-17', nomorSK: 'KEP.PRES/SKS-20/VIII/2020/11', instansiPemberi: 'Presiden Republik Indonesia', tingkat: 'Nasional' },

@@ -165,7 +165,7 @@ const BSCTab = () => {
       <div className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 rounded-2xl p-6 text-white">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
-            <p className="text-blue-200 text-sm">Balanced Scorecard — RSUD Abdul Moeloek</p>
+            <p className="text-blue-200 text-sm">Balanced Scorecard — Rumah Sakit</p>
             <h2 className="text-2xl font-bold mt-1">Skor Kinerja Organisasi Q1 2026</h2>
             <p className="text-blue-100 text-sm mt-1">4 Perspektif · 17 KPI Utama · Periode Januari–Maret 2026</p>
           </div>
@@ -1123,7 +1123,7 @@ export default function PerformanceManagement() {
       fillR(0, 0, PW, 38, [30,64,175]);
       y = 10;
       tx('PEMERINTAH PROVINSI LAMPUNG', PW/2, y, 8.5, 'normal', [180,210,255], 'center');
-      y += 6; tx('RSUD Dr. H. ABDUL MOELOEK', PW/2, y, 14, 'bold', [255,255,255], 'center');
+      y += 6; tx('RUMAH SAKIT UMUM DAERAH', PW/2, y, 14, 'bold', [255,255,255], 'center');
       y += 6; tx('Jl. Dr. Rivai No. 6, Bandar Lampung 35213  |  Telp. (0721) 703312', PW/2, y, 7.5, 'normal', [180,210,255], 'center');
       y += 5; tx('Akreditasi KARS Paripurna  |  RS Tipe B Pendidikan Rujukan Regional', PW/2, y, 7.5, 'normal', [180,210,255], 'center');
 
@@ -1134,7 +1134,7 @@ export default function PerformanceManagement() {
 
       y = 65;
       tx(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}`, ML, y, 8, 'normal', [100,100,100]);
-      tx('Disusun: Bagian SDM & Umum — RSUD Abdul Moeloek', PW-MR, y, 8, 'normal', [100,100,100], 'right');
+      tx('Disusun: Bagian SDM & Umum — Rumah Sakit', PW-MR, y, 8, 'normal', [100,100,100], 'right');
       y += 4; hLine(y, 0.5, [59,130,246]);
 
       // A. Ringkasan Eksekutif
@@ -1212,7 +1212,7 @@ export default function PerformanceManagement() {
       // ═══════════════════════════════════════════════════════════════════════
       doc.addPage();
       fillR(0, 0, PW, 12, [30,64,175]);
-      tx('RSUD Dr. H. ABDUL MOELOEK — LAPORAN KINERJA Q1 2026 — HALAMAN 2', PW/2, 8, 9, 'bold', [255,255,255], 'center');
+      tx('RUMAH SAKIT UMUM DAERAH — LAPORAN KINERJA Q1 2026 — HALAMAN 2', PW/2, 8, 9, 'bold', [255,255,255], 'center');
       y = 20;
 
       // D. OKR Summary
@@ -1261,7 +1261,7 @@ export default function PerformanceManagement() {
       tx('Bandar Lampung, '+new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}), PW/2, y, 8.5, 'normal', [80,80,80], 'center');
       tx('Disetujui oleh,', PW-MR-50, y, 9);
       y += 5;
-      tx('Kepala Bagian SDM & Umum', ML, y, 9, 'bold'); tx('Direktur RSUD Abdul Moeloek', PW-MR-50, y, 9, 'bold');
+      tx('Kepala Bagian SDM & Umum', ML, y, 9, 'bold'); tx('Direktur Rumah Sakit', PW-MR-50, y, 9, 'bold');
       y += 25;
       tx('( ..................................... )', ML, y, 9, 'normal', [80,80,80]);
       tx('dr. IMAM GHOZALI, Sp.An., M.Kes.', PW-MR-50, y, 9, 'bold', [30,30,30]);
@@ -1273,10 +1273,10 @@ export default function PerformanceManagement() {
       const total = doc.getNumberOfPages();
       for(let pg=1; pg<=total; pg++){
         doc.setPage(pg); doc.setFontSize(7.5); doc.setTextColor(150,150,150);
-        doc.text(`Hal. ${pg} dari ${total}  |  Dicetak oleh HR APP — RSUD Dr. H. Abdul Moeloek Provinsi Lampung`, PW/2, 292, { align:'center' });
+        doc.text(`Hal. ${pg} dari ${total}  |  Dicetak oleh HCMS — Rumah Sakit Provinsi Lampung`, PW/2, 292, { align:'center' });
       }
 
-      doc.save(`Laporan_Kinerja_Q1_2026_RSUD_AM_${new Date().toISOString().split('T')[0]}.pdf`);
+      doc.save(`Laporan_Kinerja_Q1_2026_RS_${new Date().toISOString().split('T')[0]}.pdf`);
       toast.success('PDF Laporan Kinerja Q1 2026 berhasil diunduh!');
     } catch (err) {
       console.error(err);

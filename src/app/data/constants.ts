@@ -1,4 +1,4 @@
-// Constants untuk HR APP - file ringan yang sering dipakai
+// Constants untuk HCMS - file ringan yang sering dipakai
 export const PANGKAT_GOLONGAN: Record<string, string> = {
   'I/a': 'Juru Muda',
   'I/b': 'Juru Muda Tingkat I',

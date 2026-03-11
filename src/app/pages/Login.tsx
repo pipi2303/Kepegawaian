@@ -21,7 +21,7 @@ export default function Login() {
     const success = login(username, password);
     setLoading(false);
     if (success) {
-      toast.success('Login berhasil! Selamat datang di HR APP RSUD Abdul Moeloek');
+      toast.success('Login berhasil! Selamat datang di HCMS Application');
       navigate('/');
     } else {
       setError('Username atau password salah. Silakan coba kembali.');
@@ -57,7 +57,7 @@ export default function Login() {
                 <Hospital className="w-7 h-7 text-white" />
               </div>
               <div>
-                <p className="font-bold text-lg leading-tight">RSUD Abdul Moeloek</p>
+                <p className="font-bold text-lg leading-tight">HCMS Application</p>
                 <p className="text-blue-300 text-sm">Provinsi Lampung</p>
               </div>
             </div>
@@ -65,7 +65,7 @@ export default function Login() {
               Sistem Informasi<br />Manajemen Pegawai
             </h1>
             <p className="text-blue-200 text-sm leading-relaxed">
-              Platform pengelolaan data ASN terpadu sesuai PP No. 11/2017 dan PermenPAN-RB No. 6/2022 untuk RSUD Abdul Moeloek.
+              Platform pengelolaan data ASN terpadu sesuai PP No. 11/2017 dan PermenPAN-RB No. 6/2022 untuk Rumah Sakit.
             </p>
           </div>
 
@@ -84,7 +84,7 @@ export default function Login() {
               </div>
             ))}
             <p className="text-blue-400 text-xs mt-4 border-t border-white/10 pt-4">
-              HR APP v2.0 · Hak Cipta © 2026 RSUD Abdul Moeloek
+              HCMS Application v2.0 · Hak Cipta © 2026
             </p>
           </div>
         </div>
@@ -96,12 +96,12 @@ export default function Login() {
               <Hospital className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="font-bold text-gray-800">RSUD Abdul Moeloek</p>
-              <p className="text-gray-500 text-xs">HR APP v2.0</p>
+              <p className="font-bold text-gray-800">HCMS Application</p>
+              <p className="text-gray-500 text-xs">HCMS v2.0</p>
             </div>
           </div>
 
-          <h2 className="text-2xl font-bold text-gray-800 mb-1">Masuk ke HR APP</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-1">Masuk ke HCMS</h2>
           <p className="text-gray-500 text-sm mb-6">Gunakan akun yang telah diberikan oleh Admin</p>
 
           <form onSubmit={handleLogin} className="space-y-4">

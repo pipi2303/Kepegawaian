@@ -74,9 +74,9 @@ const LetterHeader = () => (
       </div>
       <div className="text-left">
         <p className="text-sm text-gray-700">PEMERINTAH PROVINSI LAMPUNG</p>
-        <p className="font-black text-lg text-gray-900 leading-tight">RUMAH SAKIT UMUM DAERAH ABDUL MOELOEK</p>
+        <p className="font-black text-lg text-gray-900 leading-tight">RUMAH SAKIT UMUM DAERAH</p>
         <p className="text-xs text-gray-600 mt-0.5">Jalan Dr. Rivai No. 6, Bandar Lampung 35112</p>
-        <p className="text-xs text-gray-600">Telp. (0721) 703312 | Email: rsam@lampungprov.go.id</p>
+        <p className="text-xs text-gray-600">Telp. (0721) 703312 | Email: info@rs.lampungprov.go.id</p>
       </div>
     </div>
   </div>
@@ -87,7 +87,7 @@ const LetterFooter = ({ tanggal }: { tanggal?: string }) => (
     <div className="w-72">
       <p className="text-sm">Ditetapkan di Bandar Lampung</p>
       <p className="text-sm">pada tanggal <span className="font-medium">{fmtDateLong(tanggal)}</span></p>
-      <p className="text-sm mt-2 font-semibold">DIREKTUR RSUD ABDUL MOELOEK</p>
+      <p className="text-sm mt-2 font-semibold">DIREKTUR RUMAH SAKIT</p>
       <p className="text-sm">PROVINSI LAMPUNG,</p>
       <div className="h-20" />
       <p className="text-sm font-bold underline">dr. IMAM GHOZALI, Sp.An., M.Kes.</p>
@@ -113,22 +113,22 @@ const SKMutasi = ({ m, pg }: { m: MutasiRecord; pg?: Pegawai }) => {
     <div className="text-sm space-y-4" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
       {/* Judul */}
       <div className="text-center space-y-0.5">
-        <p className="font-bold">KEPUTUSAN DIREKTUR RUMAH SAKIT UMUM DAERAH ABDUL MOELOEK</p>
+        <p className="font-bold">KEPUTUSAN DIREKTUR RUMAH SAKIT UMUM DAERAH</p>
         <p className="font-bold">PROVINSI LAMPUNG</p>
         <p className="font-bold mt-1">NOMOR: {nomorDefault}</p>
         <p className="mt-3 font-bold">TENTANG</p>
         <p className="font-bold">
           {isRotasi ? 'ROTASI PEGAWAI NEGERI SIPIL' : 'PEMINDAHAN/MUTASI PEGAWAI NEGERI SIPIL'}
         </p>
-        <p className="font-bold">DI LINGKUNGAN RSUD ABDUL MOELOEK PROVINSI LAMPUNG</p>
-        <p className="mt-3 font-bold uppercase">DIREKTUR RSUD ABDUL MOELOEK,</p>
+        <p className="font-bold">DI LINGKUNGAN RUMAH SAKIT PROVINSI LAMPUNG</p>
+        <p className="mt-3 font-bold uppercase">DIREKTUR RUMAH SAKIT,</p>
       </div>
 
       {/* Menimbang */}
       <div>
         <p className="font-bold">Menimbang:</p>
         <ol className="list-none ml-6 space-y-1 mt-1">
-          <li className="flex gap-2"><span>a.</span><span>bahwa dalam rangka pengembangan karir, penyegaran organisasi, dan optimalisasi pelayanan kesehatan di RSUD Abdul Moeloek Provinsi Lampung;</span></li>
+          <li className="flex gap-2"><span>a.</span><span>bahwa dalam rangka pengembangan karir, penyegaran organisasi, dan optimalisasi pelayanan kesehatan di Rumah Sakit Provinsi Lampung;</span></li>
           <li className="flex gap-2"><span>b.</span><span>bahwa {m.alasan || 'dipandang perlu dilakukan pemindahan/mutasi pegawai untuk kepentingan dinas'};</span></li>
           <li className="flex gap-2"><span>c.</span><span>bahwa berdasarkan pertimbangan dimaksud, perlu menetapkan Keputusan tentang {isRotasi ? 'Rotasi' : 'Pemindahan/Mutasi'} Pegawai.</span></li>
         </ol>
@@ -152,7 +152,7 @@ const SKMutasi = ({ m, pg }: { m: MutasiRecord; pg?: Pegawai }) => {
         <p className="font-bold border-t border-b border-gray-400 inline-block px-6 py-1">MEMUTUSKAN:</p>
       </div>
 
-      <p><span className="font-bold">Menetapkan:</span> KEPUTUSAN DIREKTUR RSUD ABDUL MOELOEK TENTANG {isRotasi ? 'ROTASI' : 'PEMINDAHAN/MUTASI'} PEGAWAI NEGERI SIPIL.</p>
+      <p><span className="font-bold">Menetapkan:</span> KEPUTUSAN DIREKTUR RUMAH SAKIT TENTANG {isRotasi ? 'ROTASI' : 'PEMINDAHAN/MUTASI'} PEGAWAI NEGERI SIPIL.</p>
 
       <div className="space-y-2">
         <p><span className="font-bold">KESATU:</span> Memindahtugaskan pegawai yang namanya tersebut di bawah ini:</p>
@@ -197,19 +197,19 @@ const SKPromosi = ({ m, pg }: { m: MutasiRecord; pg?: Pegawai }) => {
   return (
     <div className="text-sm space-y-4" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
       <div className="text-center space-y-0.5">
-        <p className="font-bold">KEPUTUSAN DIREKTUR RUMAH SAKIT UMUM DAERAH ABDUL MOELOEK</p>
+        <p className="font-bold">KEPUTUSAN DIREKTUR RUMAH SAKIT UMUM DAERAH</p>
         <p className="font-bold">PROVINSI LAMPUNG</p>
         <p className="font-bold mt-1">NOMOR: {nomorDefault}</p>
         <p className="mt-3 font-bold">TENTANG</p>
         <p className="font-bold">{isFungsional ? 'PENGANGKATAN DALAM JABATAN FUNGSIONAL' : 'PENGANGKATAN DALAM JABATAN STRUKTURAL'}</p>
-        <p className="font-bold">PADA RSUD ABDUL MOELOEK PROVINSI LAMPUNG</p>
-        <p className="mt-3 font-bold uppercase">DIREKTUR RSUD ABDUL MOELOEK,</p>
+        <p className="font-bold">PADA RUMAH SAKIT PROVINSI LAMPUNG</p>
+        <p className="mt-3 font-bold uppercase">DIREKTUR RUMAH SAKIT,</p>
       </div>
 
       <div>
         <p className="font-bold">Menimbang:</p>
         <ol className="list-none ml-6 space-y-1 mt-1">
-          <li className="flex gap-2"><span>a.</span><span>bahwa dalam rangka pengembangan karir dan peningkatan kinerja pelayanan kesehatan di RSUD Abdul Moeloek Provinsi Lampung, dipandang perlu untuk melakukan pengangkatan dalam jabatan;</span></li>
+          <li className="flex gap-2"><span>a.</span><span>bahwa dalam rangka pengembangan karir dan peningkatan kinerja pelayanan kesehatan di Rumah Sakit Provinsi Lampung, dipandang perlu untuk melakukan pengangkatan dalam jabatan;</span></li>
           <li className="flex gap-2"><span>b.</span><span>bahwa pegawai yang namanya tersebut pada diktum keputusan ini telah memenuhi persyaratan dan dianggap cakap untuk menduduki jabatan sebagaimana dimaksud{m.alasan ? `, ${m.alasan.toLowerCase()}` : ''};</span></li>
           <li className="flex gap-2"><span>c.</span><span>bahwa berdasarkan pertimbangan sebagaimana dimaksud pada huruf a dan huruf b, perlu menetapkan Keputusan Direktur tentang Pengangkatan dalam Jabatan.</span></li>
         </ol>
@@ -222,7 +222,7 @@ const SKPromosi = ({ m, pg }: { m: MutasiRecord; pg?: Pegawai }) => {
             'Undang-Undang Nomor 5 Tahun 2014 tentang Aparatur Sipil Negara (Lembaran Negara RI Tahun 2014 Nomor 6);',
             'Peraturan Pemerintah Nomor 11 Tahun 2017 tentang Manajemen Pegawai Negeri Sipil sebagaimana telah diubah dengan PP Nomor 17 Tahun 2020;',
             'Peraturan Menteri PANRB Nomor 13 Tahun 2019 tentang Pengusulan, Penetapan, dan Pembinaan Jabatan Fungsional PNS;',
-            'Peraturan Daerah Provinsi Lampung tentang Pembentukan dan Susunan Organisasi RSUD Abdul Moeloek yang berlaku.',
+            'Peraturan Daerah Provinsi Lampung tentang Pembentukan dan Susunan Organisasi Rumah Sakit yang berlaku.',
           ].map((item, i) => (
             <li key={i} className="flex gap-2"><span>{i + 1}.</span><span>{item}</span></li>
           ))}
@@ -233,7 +233,7 @@ const SKPromosi = ({ m, pg }: { m: MutasiRecord; pg?: Pegawai }) => {
         <p className="font-bold border-t border-b border-gray-400 inline-block px-6 py-1">MEMUTUSKAN:</p>
       </div>
 
-      <p><span className="font-bold">Menetapkan:</span> KEPUTUSAN DIREKTUR RSUD ABDUL MOELOEK TENTANG PENGANGKATAN DALAM JABATAN PADA RSUD ABDUL MOELOEK PROVINSI LAMPUNG.</p>
+      <p><span className="font-bold">Menetapkan:</span> KEPUTUSAN DIREKTUR RUMAH SAKIT TENTANG PENGANGKATAN DALAM JABATAN PADA RUMAH SAKIT PROVINSI LAMPUNG.</p>
 
       <div className="space-y-2">
         <p><span className="font-bold">KESATU:</span> Mengangkat pegawai berikut dalam jabatan yang tertera:</p>
@@ -277,12 +277,12 @@ const SKDemosi = ({ m, pg }: { m: MutasiRecord; pg?: Pegawai }) => {
   return (
     <div className="text-sm space-y-4" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
       <div className="text-center space-y-0.5">
-        <p className="font-bold">KEPUTUSAN DIREKTUR RUMAH SAKIT UMUM DAERAH ABDUL MOELOEK</p>
+        <p className="font-bold">KEPUTUSAN DIREKTUR RUMAH SAKIT UMUM DAERAH</p>
         <p className="font-bold">PROVINSI LAMPUNG</p>
         <p className="font-bold mt-1">NOMOR: {nomorDefault}</p>
         <p className="mt-3 font-bold">TENTANG</p>
         <p className="font-bold">PENJATUHAN HUKUMAN DISIPLIN BERUPA PENURUNAN JABATAN</p>
-        <p className="mt-3 font-bold uppercase">DIREKTUR RSUD ABDUL MOELOEK,</p>
+        <p className="mt-3 font-bold uppercase">DIREKTUR RUMAH SAKIT,</p>
       </div>
 
       <div>
@@ -312,7 +312,7 @@ const SKDemosi = ({ m, pg }: { m: MutasiRecord; pg?: Pegawai }) => {
         <p className="font-bold border-t border-b border-gray-400 inline-block px-6 py-1">MEMUTUSKAN:</p>
       </div>
 
-      <p><span className="font-bold">Menetapkan:</span> KEPUTUSAN DIREKTUR RSUD ABDUL MOELOEK TENTANG PENJATUHAN HUKUMAN DISIPLIN BERUPA PENURUNAN JABATAN.</p>
+      <p><span className="font-bold">Menetapkan:</span> KEPUTUSAN DIREKTUR RUMAH SAKIT TENTANG PENJATUHAN HUKUMAN DISIPLIN BERUPA PENURUNAN JABATAN.</p>
 
       <div className="space-y-2">
         <p><span className="font-bold">KESATU:</span> Menjatuhkan hukuman disiplin berupa <span className="font-bold">Penurunan Jabatan setingkat lebih rendah selama 12 (dua belas) bulan</span> kepada:</p>
@@ -478,10 +478,10 @@ export default function Mutasi() {
       sf(true, 10);
       doc.text('PEMERINTAH PROVINSI LAMPUNG', PW / 2, cy, { align: 'center' }); cy += 5;
       sf(true, 14);
-      doc.text('RUMAH SAKIT UMUM DAERAH ABDUL MOELOEK', PW / 2, cy, { align: 'center' }); cy += 6.5;
+      doc.text('RUMAH SAKIT UMUM DAERAH', PW / 2, cy, { align: 'center' }); cy += 6.5;
       sf(false, 9);
       doc.text('Jalan Dr. Rivai No. 6, Bandar Lampung 35112', PW / 2, cy, { align: 'center' }); cy += 4.5;
-      doc.text('Telp. (0721) 703312 | Email: rsam@lampungprov.go.id', PW / 2, cy, { align: 'center' }); cy += 5;
+      doc.text('Telp. (0721) 703312 | Email: info@rs.lampungprov.go.id', PW / 2, cy, { align: 'center' }); cy += 5;
 
       // Garis ganda pemisah
       doc.setDrawColor(0); doc.setLineWidth(1);
@@ -495,7 +495,7 @@ export default function Mutasi() {
       const nomorSK = suratData.nomorSK ||
         `___/___/SK-${isDemosi ? 'HK' : isFungsional ? 'PF' : isPromosi ? 'KJ' : isRotasi ? 'ROT' : 'MUT'}/${getMonthYear(suratData.tanggalBerlaku || suratData.tanggalUsulan)}/____`;
 
-      ctxt('KEPUTUSAN DIREKTUR RUMAH SAKIT UMUM DAERAH ABDUL MOELOEK', true, 12, 5.5);
+      ctxt('KEPUTUSAN DIREKTUR RUMAH SAKIT UMUM DAERAH', true, 12, 5.5);
       ctxt('PROVINSI LAMPUNG', true, 12, 5.5);
       ctxt(`NOMOR: ${nomorSK}`, true, 12, 7);
       cy += 2;
@@ -507,9 +507,9 @@ export default function Mutasi() {
         : isRotasi                  ? 'ROTASI PEGAWAI NEGERI SIPIL'
         :                             'PEMINDAHAN/MUTASI PEGAWAI NEGERI SIPIL';
       ctxt(judulSK, true, 12, 5.5);
-      if (!isDemosi) ctxt(isPromosi ? 'PADA RSUD ABDUL MOELOEK PROVINSI LAMPUNG' : 'DI LINGKUNGAN RSUD ABDUL MOELOEK PROVINSI LAMPUNG', true, 12, 6);
+      if (!isDemosi) ctxt(isPromosi ? 'PADA RUMAH SAKIT PROVINSI LAMPUNG' : 'DI LINGKUNGAN RUMAH SAKIT PROVINSI LAMPUNG', true, 12, 6);
       cy += 2;
-      ctxt('DIREKTUR RSUD ABDUL MOELOEK,', true, 12, 9);
+      ctxt('DIREKTUR RUMAH SAKIT,', true, 12, 9);
 
       // ══════════════════════════════════════════════════════════════════════
       // MENIMBANG
@@ -522,11 +522,11 @@ export default function Mutasi() {
         'c.   bahwa pelanggaran dimaksud termasuk kategori hukuman disiplin tingkat berat sebagaimana diatur dalam Peraturan Pemerintah Nomor 94 Tahun 2021;',
         'd.   bahwa berdasarkan pertimbangan tersebut, perlu menetapkan Keputusan tentang Penjatuhan Hukuman Disiplin.',
       ] : isPromosi ? [
-        'a.   bahwa dalam rangka pengembangan karir dan peningkatan kinerja pelayanan kesehatan di RSUD Abdul Moeloek Provinsi Lampung, dipandang perlu melakukan pengangkatan dalam jabatan;',
+        'a.   bahwa dalam rangka pengembangan karir dan peningkatan kinerja pelayanan kesehatan di Rumah Sakit Provinsi Lampung, dipandang perlu melakukan pengangkatan dalam jabatan;',
         `b.   bahwa pegawai yang namanya tersebut pada diktum keputusan ini telah memenuhi persyaratan dan dianggap cakap menduduki jabatan sebagaimana dimaksud${suratData.alasan ? ', ' + suratData.alasan.toLowerCase() : ''};`,
         'c.   bahwa berdasarkan pertimbangan sebagaimana dimaksud pada huruf a dan b, perlu menetapkan Keputusan Direktur tentang Pengangkatan dalam Jabatan.',
       ] : [
-        'a.   bahwa dalam rangka pengembangan karir, penyegaran organisasi, dan optimalisasi pelayanan kesehatan di RSUD Abdul Moeloek Provinsi Lampung;',
+        'a.   bahwa dalam rangka pengembangan karir, penyegaran organisasi, dan optimalisasi pelayanan kesehatan di Rumah Sakit Provinsi Lampung;',
         `b.   bahwa ${suratData.alasan || 'dipandang perlu dilakukan pemindahan/mutasi pegawai untuk kepentingan dinas'};`,
         `c.   bahwa berdasarkan pertimbangan dimaksud, perlu menetapkan Keputusan tentang ${isRotasi ? 'Rotasi' : 'Pemindahan/Mutasi'} Pegawai.`,
       ];
@@ -553,7 +553,7 @@ export default function Mutasi() {
         '1.   Undang-Undang Nomor 5 Tahun 2014 tentang Aparatur Sipil Negara (Lembaran Negara RI Tahun 2014 Nomor 6);',
         '2.   Peraturan Pemerintah Nomor 11 Tahun 2017 tentang Manajemen Pegawai Negeri Sipil sebagaimana telah diubah dengan PP Nomor 17 Tahun 2020;',
         '3.   Peraturan Menteri PANRB Nomor 13 Tahun 2019 tentang Pengusulan, Penetapan, dan Pembinaan Jabatan Fungsional PNS;',
-        '4.   Peraturan Daerah Provinsi Lampung tentang Pembentukan dan Susunan Organisasi RSUD Abdul Moeloek yang berlaku.',
+        '4.   Peraturan Daerah Provinsi Lampung tentang Pembentukan dan Susunan Organisasi Rumah Sakit yang berlaku.',
       ] : [
         '1.   Undang-Undang Nomor 5 Tahun 2014 tentang Aparatur Sipil Negara;',
         '2.   Peraturan Pemerintah Nomor 11 Tahun 2017 tentang Manajemen Pegawai Negeri Sipil;',
@@ -584,10 +584,10 @@ export default function Mutasi() {
 
       // Menetapkan:
       const mttxt = isDemosi
-        ? 'KEPUTUSAN DIREKTUR RSUD ABDUL MOELOEK TENTANG PENJATUHAN HUKUMAN DISIPLIN BERUPA PENURUNAN JABATAN.'
+        ? 'KEPUTUSAN DIREKTUR RUMAH SAKIT TENTANG PENJATUHAN HUKUMAN DISIPLIN BERUPA PENURUNAN JABATAN.'
         : isPromosi
-          ? 'KEPUTUSAN DIREKTUR RSUD ABDUL MOELOEK TENTANG PENGANGKATAN DALAM JABATAN PADA RSUD ABDUL MOELOEK PROVINSI LAMPUNG.'
-          : `KEPUTUSAN DIREKTUR RSUD ABDUL MOELOEK TENTANG ${isRotasi ? 'ROTASI' : 'PEMINDAHAN/MUTASI'} PEGAWAI NEGERI SIPIL.`;
+          ? 'KEPUTUSAN DIREKTUR RUMAH SAKIT TENTANG PENGANGKATAN DALAM JABATAN PADA RUMAH SAKIT PROVINSI LAMPUNG.'
+          : `KEPUTUSAN DIREKTUR RUMAH SAKIT TENTANG ${isRotasi ? 'ROTASI' : 'PEMINDAHAN/MUTASI'} PEGAWAI NEGERI SIPIL.`;
       diktum('Menetapkan:', mttxt, 3);
 
       // ══════════════════════════════════════════════════════════════════════
@@ -684,7 +684,7 @@ export default function Mutasi() {
       doc.text('Ditetapkan di Bandar Lampung', sigX, cy); cy += LH;
       doc.text(`pada tanggal ${tgl}`, sigX, cy); cy += LH + 1;
       sf(true, 12);
-      doc.text('DIREKTUR RSUD ABDUL MOELOEK', sigX, cy); cy += LH;
+      doc.text('DIREKTUR RUMAH SAKIT', sigX, cy); cy += LH;
       doc.text('PROVINSI LAMPUNG,', sigX, cy); cy += LH * 4.5;
 
       const namaDr = 'dr. IMAM GHOZALI, Sp.An., M.Kes.';
@@ -942,7 +942,7 @@ export default function Mutasi() {
                   <div className="mt-6 pt-4 border-t border-gray-200 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-gray-400" />
-                      <span className="text-xs text-gray-400">RSUD Abdul Moeloek · HR APP</span>
+                      <span className="text-xs text-gray-400">HCMS Application</span>
                     </div>
                     <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${statusConfig[suratData.status].bg} ${statusConfig[suratData.status].color}`}>
                       Status: {suratData.status}

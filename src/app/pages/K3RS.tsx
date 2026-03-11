@@ -35,11 +35,11 @@ export default function K3RS() {
   const [formInsiden, setFormInsiden] = useState<Omit<InsidenK3RS, 'id'>>(emptyInsiden);
 
   // Vaksinasi form
-  const emptyVak: Omit<VaksinasiRecord, 'id'> = { pegawaiId: '', jenisVaksin: '', dosis: 1, tanggalVaksin: '', fasilitasVaksin: 'RSUD Abdul Moeloek', status: 'Sebagian' };
+  const emptyVak: Omit<VaksinasiRecord, 'id'> = { pegawaiId: '', jenisVaksin: '', dosis: 1, tanggalVaksin: '', fasilitasVaksin: 'Rumah Sakit', status: 'Sebagian' };
   const [formVak, setFormVak] = useState<Omit<VaksinasiRecord, 'id'>>(emptyVak);
 
   // MCU form
-  const emptyMCU: Omit<MCURecord, 'id'> = { pegawaiId: '', tanggal: '', jenisMCU: 'Berkala', hasilMCU: 'Layak Kerja', catatan: '', rekomendasiDokter: '', tanggalBerikutnya: '', fasilitasMCU: 'RSUD Abdul Moeloek' };
+  const emptyMCU: Omit<MCURecord, 'id'> = { pegawaiId: '', tanggal: '', jenisMCU: 'Berkala', hasilMCU: 'Layak Kerja', catatan: '', rekomendasiDokter: '', tanggalBerikutnya: '', fasilitasMCU: 'Rumah Sakit' };
   const [formMCU, setFormMCU] = useState<Omit<MCURecord, 'id'>>(emptyMCU);
 
   const insidenFiltered = useMemo(() => insidenK3RS.filter(i => !search || getFullName(i.pegawaiId).toLowerCase().includes(search.toLowerCase()) || i.jenisInsiden.toLowerCase().includes(search.toLowerCase())), [insidenK3RS, search, pegawai]);

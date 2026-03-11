@@ -244,7 +244,7 @@ const initialDisiplin: DisiplinRecord[] = [
     nomorSK: 'SK/DISIPLIN/IX/2025/002',
     kronologi: 'Pegawai terbukti tidak melaksanakan tugas yang menjadi tanggung jawabnya selama periode tertentu.',
     status: 'Proses',
-    pejabatPenetap: 'Direktur RSUD Abdul Moeloek',
+    pejabatPenetap: 'Direktur Rumah Sakit',
   },
   {
     id: 'D003', pegawaiId: 'P015',
@@ -367,8 +367,8 @@ const initialDiklat: DiklatRecord[] = [
 
 // ─── Mock Users ───────────────────────────────────────────────────────────────
 export const appUsers: AppUser[] = [
-  { id: 'U001', username: 'admin', password: 'admin123', nama: 'dr. Imam Ghozali, Sp.An., M.Kes', role: 'admin', jabatan: 'Direktur RSUD Abdul Moeloek', golongan: 'IV/b' },
-  { id: 'U002', username: 'direktur', password: 'dir123', nama: 'dr. Imam Ghozali, Sp.An., M.Kes', role: 'direktur', jabatan: 'Direktur RSUD Abdul Moeloek', pegawaiId: 'P001', golongan: 'IV/b' },
+  { id: 'U001', username: 'admin', password: 'admin123', nama: 'dr. Imam Ghozali, Sp.An., M.Kes', role: 'admin', jabatan: 'Direktur Rumah Sakit', golongan: 'IV/b' },
+  { id: 'U002', username: 'direktur', password: 'dir123', nama: 'dr. Imam Ghozali, Sp.An., M.Kes', role: 'direktur', jabatan: 'Direktur Rumah Sakit', pegawaiId: 'P001', golongan: 'IV/b' },
   { id: 'U003', username: 'kepala', password: 'kepala123', nama: 'dr. Asih Hendrastuti, M.Kes', role: 'kepala_unit', jabatan: 'Kepala Bidang Keperawatan', unitKerja: 'Bidang Keperawatan', pegawaiId: 'P012', golongan: 'IV/a' },
   { id: 'U004', username: 'pegawai', password: 'peg123', nama: 'Ns. Septi Kurniasari, M.Kep, Sp.KMB', role: 'pegawai', jabatan: 'Subkoordinator Substansi Bidang Keperawatan', unitKerja: 'Bidang Keperawatan', pegawaiId: 'P013', golongan: 'IV/a' },
 ];

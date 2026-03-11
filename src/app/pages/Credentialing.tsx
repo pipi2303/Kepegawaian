@@ -143,7 +143,7 @@ export default function Credentialing() {
 
   // ── Empty forms ──────────────────────────────────────────────────────────
   const emptySTR: Omit<STRRecord,'id'> = { pegawaiId:'', nomorSTR:'', jenisTenaga:'', konsil:'', tanggalTerbit:'', tanggalExpired:'', status:'Aktif' };
-  const emptySIP: Omit<SIPRecord,'id'> = { pegawaiId:'', nomorSIP:'', jenisDokumen:'SIP', jenisPraktik:'', fasyankes:'RSUD Abdul Moeloek', instansiPenerbit:'', tanggalTerbit:'', tanggalExpired:'', status:'Aktif' };
+  const emptySIP: Omit<SIPRecord,'id'> = { pegawaiId:'', nomorSIP:'', jenisDokumen:'SIP', jenisPraktik:'', fasyankes:'Rumah Sakit', instansiPenerbit:'', tanggalTerbit:'', tanggalExpired:'', status:'Aktif' };
   const emptyCred: Omit<CredentialingRecord,'id'> = { pegawaiId:'', jenis:'Kredensial Awal', tanggalPengajuan:'', statusKredensial:'Pengajuan', kewenangan:[] };
   const emptyCPD: Omit<CPDRecord,'id'> = { pegawaiId:'', tahun: new Date().getFullYear(), namaKegiatan:'', jenisKegiatan:'Seminar', penyelenggara:'', tanggal:'', skp:0, diakuiOleh:'', status:'Pending' };
 
@@ -295,7 +295,7 @@ export default function Credentialing() {
           <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
             <Shield className="w-5 h-5 text-blue-600" /> Credentialing & Lisensi Tenaga Kesehatan
           </h1>
-          <p className="text-xs text-gray-500 mt-0.5">UU No. 29/2004 · UU No. 36/2014 · UU No. 17/2023 · Medical Staff Bylaws RSUD Abdul Moeloek</p>
+          <p className="text-xs text-gray-500 mt-0.5">UU No. 29/2004 · UU No. 36/2014 · UU No. 17/2023 · Medical Staff Bylaws</p>
         </div>
         <button onClick={openAdd} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition-colors flex-shrink-0">
           <Plus className="w-4 h-4" /> Tambah

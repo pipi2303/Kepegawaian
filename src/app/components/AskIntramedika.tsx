@@ -68,7 +68,7 @@ const STATIC_KB: Record<string, { answer: string; suggestions?: string[] }> = {
     suggestions: ['Cara input realisasi SKP', 'SKP tenaga medis fungsional', 'Nilai SKP untuk kenaikan pangkat'],
   },
   absensi: {
-    answer: `**Sistem Presensi RSUD Abdul Moeloek**\n\n🏥 **Shift Pagi** – 07.00–14.00 WIB\n🌙 **Shift Sore** – 14.00–21.00 WIB\n🌟 **Shift Malam** – 21.00–07.00 WIB\n💼 **Non-Shift (Adm)** – 07.30–15.30 WIB\n\n**Toleransi Keterlambatan:** 7,5 menit\n**Presensi:** Finger print + aplikasi SIAP\n\nKetidakhadiran tanpa keterangan mempengaruhi:\n- Tunjangan kinerja (potongan per hari)\n- Nilai perilaku SKP\n- Remunerasi bulan berjalan\n\nRekap ada di modul **Presensi / Absensi**.`,
+    answer: `**Sistem Presensi Rumah Sakit**\n\n🏥 **Shift Pagi** – 07.00–14.00 WIB\n🌙 **Shift Sore** – 14.00–21.00 WIB\n🌟 **Shift Malam** – 21.00–07.00 WIB\n💼 **Non-Shift (Adm)** – 07.30–15.30 WIB\n\n**Toleransi Keterlambatan:** 7,5 menit\n**Presensi:** Finger print + aplikasi SIAP\n\nKetidakhadiran tanpa keterangan mempengaruhi:\n- Tunjangan kinerja (potongan per hari)\n- Nilai perilaku SKP\n- Remunerasi bulan berjalan\n\nRekap ada di modul **Presensi / Absensi**.`,
     suggestions: ['Rekap absensi saya bulan ini', 'Prosedur ijin tidak hadir', 'Dampak absen terhadap tunjangan'],
   },
   gaji: {
@@ -108,15 +108,15 @@ const STATIC_KB: Record<string, { answer: string; suggestions?: string[] }> = {
     suggestions: ['Proses pengajuan kewenangan klinis baru', 'Dokumen untuk re-credentialing', 'Status credentialing saya'],
   },
   k3rs: {
-    answer: `**K3RS – Keselamatan dan Kesehatan Kerja Rumah Sakit** (PMK No. 66/2016)\n\n🛡️ **Program K3RS RSUD Abdul Moeloek mencakup:**\n\n**1. Kesehatan Pegawai:**\n- MCU (Medical Check Up) berkala setiap tahun\n- Vaksinasi wajib: Hepatitis B, COVID-19, Influenza\n- Pemantauan penyakit akibat kerja (PAK)\n\n**2. Keselamatan Kerja:**\n- Pelatihan APD sesuai area risiko\n- Penanganan bahan berbahaya (B3)\n- Pencegahan needlestick injury\n\n**3. Pelaporan Insiden:**\n- Insiden dilaporkan **maks. 2×24 jam** ke Tim K3RS\n- Formulir laporan tersedia di Instalasi K3RS (Lt. 1)\n- Grading risiko: Biru → Hijau → Kuning → Merah\n\n**4. Hak Pegawai K3:**\n- Jaminan Kecelakaan Kerja (JKK) dari BPJS\n- JKM (Jaminan Kematian)\n- Pemeriksaan kesehatan berkala\n\nLihat di modul **K3RS & Kesehatan Kerja**.`,
+    answer: `**K3RS – Keselamatan dan Kesehatan Kerja Rumah Sakit** (PMK No. 66/2016)\n\n🛡️ **Program K3RS mencakup:**\n\n**1. Kesehatan Pegawai:**\n- MCU (Medical Check Up) berkala setiap tahun\n- Vaksinasi wajib: Hepatitis B, COVID-19, Influenza\n- Pemantauan penyakit akibat kerja (PAK)\n\n**2. Keselamatan Kerja:**\n- Pelatihan APD sesuai area risiko\n- Penanganan bahan berbahaya (B3)\n- Pencegahan needlestick injury\n\n**3. Pelaporan Insiden:**\n- Insiden dilaporkan **maks. 2×24 jam** ke Tim K3RS\n- Formulir laporan tersedia di Instalasi K3RS (Lt. 1)\n- Grading risiko: Biru → Hijau → Kuning → Merah\n\n**4. Hak Pegawai K3:**\n- Jaminan Kecelakaan Kerja (JKK) dari BPJS\n- JKM (Jaminan Kematian)\n- Pemeriksaan kesehatan berkala\n\nLihat di modul **K3RS & Kesehatan Kerja**.`,
     suggestions: ['Cara lapor insiden K3RS', 'Vaksinasi wajib pegawai', 'MCU berkala kapan?'],
   },
   vaksinasi: {
-    answer: `**Program Vaksinasi Tenaga Kesehatan RSUD Abdul Moeloek**\n\n💉 **Vaksinasi wajib berdasarkan PMK No. 66/2016:**\n\n| Vaksin | Dosis | Area Risiko |\n|--------|-------|-------------|\n| **Hepatitis B** | 3 dosis (0-1-6 bulan) | Semua tenaga kesehatan |\n| **COVID-19 (booster)** | Dosis ke-4 (bila tersedia) | Semua |\n| **Influenza** | 1 dosis/tahun | Klinis |\n| **Varisela** | 2 dosis | Non-imun |\n| **MMR** | 1-2 dosis | Kebidanan, Anak |\n| **Tifoid** | 1 dosis/3 tahun | Gizi, Sanitasi |\n\n**Cara mengakses vaksinasi:**\n→ Daftarkan ke **Tim K3RS** (Lt. 1 Gedung Utama)\n→ Jadwal vaksinasi diumumkan via WAG unit kerja\n\nRiwayat vaksinasi ada di modul **K3RS & Kesehatan Kerja**.`,
+    answer: `**Program Vaksinasi Tenaga Kesehatan**\n\n💉 **Vaksinasi wajib berdasarkan PMK No. 66/2016:**\n\n| Vaksin | Dosis | Area Risiko |\n|--------|-------|-------------|\n| **Hepatitis B** | 3 dosis (0-1-6 bulan) | Semua tenaga kesehatan |\n| **COVID-19 (booster)** | Dosis ke-4 (bila tersedia) | Semua |\n| **Influenza** | 1 dosis/tahun | Klinis |\n| **Varisela** | 2 dosis | Non-imun |\n| **MMR** | 1-2 dosis | Kebidanan, Anak |\n| **Tifoid** | 1 dosis/3 tahun | Gizi, Sanitasi |\n\n**Cara mengakses vaksinasi:**\n→ Daftarkan ke **Tim K3RS** (Lt. 1 Gedung Utama)\n→ Jadwal vaksinasi diumumkan via WAG unit kerja\n\nRiwayat vaksinasi ada di modul **K3RS & Kesehatan Kerja**.`,
     suggestions: ['Status vaksinasi saya', 'Kapan MCU saya berikutnya', 'Lapor needlestick injury'],
   },
   mcu: {
-    answer: `**MCU – Medical Check Up Berkala Tenaga Kesehatan**\n\n🩺 **MCU wajib** dilakukan 1 kali/tahun berdasarkan PMK No. 66/2016.\n\n**Paket MCU Standar RSUD Abdul Moeloek:**\n- Pemeriksaan fisik lengkap (BB, TB, TD, IMT)\n- Laboratorium: DL, UL, GDS, Kolesterol, Asam Urat, Fungsi Hati, Fungsi Ginjal\n- Rontgen thorax\n- EKG (usia > 40 tahun)\n- Pemeriksaan mata & THT\n- Pap smear (untuk pegawai wanita)\n\n**Area risiko khusus (tambahan):**\n- Radiologi: Dosimetri + Hitung Limfosit\n- Lab/Patologi: Hepatitis B, C, HbsAg\n- Farmasi: Tes fungsi paru\n\n**Jadwal MCU:**\nHubungi Tim K3RS atau lihat pengumuman di sistem HR APP.\n\nHasil MCU tersimpan di modul **K3RS & Kesehatan Kerja**.`,
+    answer: `**MCU – Medical Check Up Berkala Tenaga Kesehatan**\n\n🩺 **MCU wajib** dilakukan 1 kali/tahun berdasarkan PMK No. 66/2016.\n\n**Paket MCU Standar:**\n- Pemeriksaan fisik lengkap (BB, TB, TD, IMT)\n- Laboratorium: DL, UL, GDS, Kolesterol, Asam Urat, Fungsi Hati, Fungsi Ginjal\n- Rontgen thorax\n- EKG (usia > 40 tahun)\n- Pemeriksaan mata & THT\n- Pap smear (untuk pegawai wanita)\n\n**Area risiko khusus (tambahan):**\n- Radiologi: Dosimetri + Hitung Limfosit\n- Lab/Patologi: Hepatitis B, C, HbsAg\n- Farmasi: Tes fungsi paru\n\n**Jadwal MCU:**\nHubungi Tim K3RS atau lihat pengumuman di sistem HCMS.\n\nHasil MCU tersimpan di modul **K3RS & Kesehatan Kerja**.`,
     suggestions: ['Hasil MCU saya tahun ini', 'Paket MCU area risiko tinggi', 'Tindak lanjut hasil MCU abnormal'],
   },
   insiden: {
@@ -253,7 +253,7 @@ function buildPersonalizedAnswer(query: string, ctx: UserContext): string | null
 // ─── Default fallback ─────────────────────────────────────────────────────────
 function buildFallback(query: string): { answer: string; suggestions: string[] } {
   return {
-    answer: `Terima kasih atas pertanyaan Anda: **"${query}"**\n\nSaya sedang mencari informasi yang paling relevan. Untuk pertanyaan spesifik yang belum terjawab, silakan hubungi:\n\n📞 **Subbag Kepegawaian & SDM**\nRSUD Abdul Moeloek, Lt. 2 Gedung Administrasi\nTelp: (0721) 703312 ext. 101\n⏰ Jam layanan: 07.30–15.30 WIB`,
+    answer: `Terima kasih atas pertanyaan Anda: **"${query}"**\n\nSaya sedang mencari informasi yang paling relevan. Untuk pertanyaan spesifik yang belum terjawab, silakan hubungi:\n\n📞 **Subbag Kepegawaian & SDM**\nLt. 2 Gedung Administrasi\nTelp: (0721) 703312 ext. 101\n⏰ Jam layanan: 07.30–15.30 WIB`,
     suggestions: ['Sisa cuti saya', 'Status SKP terbaru', 'Jadwal shift minggu ini'],
   };
 }
@@ -455,7 +455,7 @@ export default function AskIntramedika() {
     return [{
       id: 'welcome',
       role: 'assistant',
-      content: `**Halo, ${currentUser?.nama?.split(' ')[0] ?? 'Pegawai'}!** 👋\n\nSaya **Ask INTRAMEDIKA**, asisten digital HR RSUD Abdul Moeloek.\n\nSaya terhubung langsung dengan data kepegawaian Anda dan dapat membantu:\n- Informasi **cuti, absensi, & jadwal shift** Anda\n- Status **SKP & kinerja** terkini\n- Status **STR, SIP & Credentialing**\n- Regulasi kepegawaian ASN & program **K3RS**\n\nAda yang ingin Anda tanyakan?`,
+      content: `**Halo, ${currentUser?.nama?.split(' ')[0] ?? 'Pegawai'}!** 👋\n\nSaya **Ask INTRAMEDIKA**, asisten digital HCMS.\n\nSaya terhubung langsung dengan data kepegawaian Anda dan dapat membantu:\n- Informasi **cuti, absensi, & jadwal shift** Anda\n- Status **SKP & kinerja** terkini\n- Status **STR, SIP & Credentialing**\n- Regulasi kepegawaian ASN & program **K3RS**\n\nAda yang ingin Anda tanyakan?`,
       timestamp: new Date().toISOString(),
     }];
   });
@@ -811,7 +811,7 @@ export default function AskIntramedika() {
               {/* ── Footer ───────────────────────────────────────────────── */}
               <div className="px-4 pb-2 pt-0.5 flex items-center justify-between bg-white">
                 <p className="text-[9px] text-gray-400">
-                  Ask INTRAMEDIKA • HR APP RSUD Abdul Moeloek
+                  Ask INTRAMEDIKA • HCMS Application
                 </p>
                 <button
                   onClick={handleReset}

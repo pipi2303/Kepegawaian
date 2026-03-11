@@ -118,8 +118,7 @@ const SidebarContent = memo(({ sidebarOpen, currentUser, onLogout, setMobileSide
         </div>
         {sidebarOpen && (
           <div className="overflow-hidden">
-            <p className="text-white font-semibold text-sm leading-tight">RSUD Abdul Moeloek</p>
-            <p className="text-blue-300 text-xs">HR APP v2.0</p>
+            <p className="text-white font-semibold text-sm leading-tight">HCMS Application</p>
           </div>
         )}
       </div>
@@ -210,7 +209,7 @@ function Layout() {
 
   const handleLogout = () => {
     logout();
-    toast.success('Anda berhasil keluar dari HR APP');
+    toast.success('Anda berhasil keluar dari HCMS');
     navigate('/login', { replace: true });
   };
 

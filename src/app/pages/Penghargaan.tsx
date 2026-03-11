@@ -54,7 +54,7 @@ function SertifikatPenghargaan({ data, pg, isPrint = false }: {
           {/* Hospital header */}
           <p className="text-yellow-100 text-[11px] tracking-widest uppercase">Pemerintah Provinsi Lampung</p>
           <p className="text-white font-bold text-[15px] tracking-wider mt-0.5 uppercase">
-            Rumah Sakit Umum Daerah Abdul Moeloek
+            Rumah Sakit Umum Daerah
           </p>
           <p className="text-yellow-200 text-[10px] tracking-widest mt-0.5">
             Jl. Dr. Rivai No. 6, Bandar Lampung · Telp. (0721) 703312
@@ -145,7 +145,7 @@ function SertifikatPenghargaan({ data, pg, isPrint = false }: {
               <p className="text-[11px] text-gray-600">Ditetapkan di Bandar Lampung</p>
               <p className="text-[11px] text-gray-600">pada tanggal {fmtDateLong(data.tanggalPemberian)}</p>
               <p className="text-[11px] font-bold text-gray-800 mt-2 uppercase tracking-wide">
-                Direktur RSUD Abdul Moeloek
+                Direktur Rumah Sakit
               </p>
               <p className="text-[10px] text-gray-500">Provinsi Lampung,</p>
               <div className="h-14" />
@@ -160,14 +160,14 @@ function SertifikatPenghargaan({ data, pg, isPrint = false }: {
           <div className="mt-4 border-t border-yellow-300 pt-3 flex items-center justify-center gap-3">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
             <p className="text-[10px] text-gray-400 tracking-widest uppercase">
-              Sertifikat ini diterbitkan secara resmi oleh RSUD Abdul Moeloek Provinsi Lampung
+              Sertifikat ini diterbitkan secara resmi oleh Rumah Sakit Provinsi Lampung
             </p>
           </div>
         </div>
 
         {/* Bottom gold band */}
         <div className={`bg-gradient-to-r ${tingkat.ribbon} px-6 py-2 flex items-center justify-between`}>
-          <p className="text-yellow-100 text-[9px] tracking-wider">© RSUD Abdul Moeloek · HR APP</p>
+          <p className="text-yellow-100 text-[9px] tracking-wider">© HCMS Application</p>
           <div className="flex items-center gap-1">
             {[...Array(5)].map((_, i) => <Star key={i} className="w-2.5 h-2.5 text-yellow-300" />)}
           </div>
@@ -526,7 +526,7 @@ export default function Penghargaan() {
               <div className="flex-shrink-0 px-5 py-3 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
                 <p className="text-xs text-gray-400 flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                  Sertifikat resmi diterbitkan oleh RSUD Abdul Moeloek
+                  Sertifikat resmi diterbitkan oleh Rumah Sakit
                 </p>
                 <button onClick={() => setShowDetailModal(false)} className="px-4 py-2 text-sm bg-gray-800 text-white rounded-lg hover:bg-gray-900">
                   Tutup

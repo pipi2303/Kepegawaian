@@ -421,7 +421,7 @@ export default function Cuti() {
                 </div>
                 <div>
                   <h2 className="font-semibold text-gray-800">{editData ? 'Edit Pengajuan Cuti' : 'Pengajuan Cuti Baru'}</h2>
-                  <p className="text-xs text-gray-400 mt-0.5">RSUD Abdul Moeloek · {new Date().getFullYear()}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Human Capital Management System · {new Date().getFullYear()}</p>
                 </div>
               </div>
               <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5 text-gray-500" /></button>

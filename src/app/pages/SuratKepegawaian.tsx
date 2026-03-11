@@ -197,9 +197,9 @@ const LetterHeader = () => (
       </div>
       <div className="text-left">
         <p className="text-sm text-gray-700">PEMERINTAH PROVINSI LAMPUNG</p>
-        <p className="font-black text-lg text-gray-900 leading-tight">RUMAH SAKIT UMUM DAERAH ABDUL MOELOEK</p>
+        <p className="font-black text-lg text-gray-900 leading-tight">RUMAH SAKIT UMUM DAERAH</p>
         <p className="text-xs text-gray-600 mt-0.5">Jalan Dr. Rivai No. 6, Bandar Lampung 35112</p>
-        <p className="text-xs text-gray-600">Telp. (0721) 703312 | Email: rsam@lampungprov.go.id</p>
+        <p className="text-xs text-gray-600">Telp. (0721) 703312 | Email: info@rs.lampungprov.go.id</p>
       </div>
     </div>
   </div>
@@ -211,20 +211,20 @@ const PreviewPromosi = ({ form, pegawai }: { form: SuratForm; pegawai: Pegawai |
   return (
     <div>
       <div className="text-center mb-6">
-        <p className="font-bold text-sm">KEPUTUSAN DIREKTUR RUMAH SAKIT UMUM DAERAH ABDUL MOELOEK</p>
+        <p className="font-bold text-sm">KEPUTUSAN DIREKTUR RUMAH SAKIT UMUM DAERAH</p>
         <p className="font-bold text-sm">PROVINSI LAMPUNG</p>
         <p className="font-bold text-sm mt-1">NOMOR: {form.nomorSurat || '___/___/SK-KJ/___/____'}</p>
         <p className="mt-3 font-bold">TENTANG</p>
         <p className="font-bold">PENGANGKATAN DALAM JABATAN</p>
-        <p className="font-bold">PADA RSUD ABDUL MOELOEK PROVINSI LAMPUNG</p>
-        <p className="mt-3 font-bold uppercase">DIREKTUR RSUD ABDUL MOELOEK,</p>
+        <p className="font-bold">PADA RUMAH SAKIT PROVINSI LAMPUNG</p>
+        <p className="mt-3 font-bold uppercase">DIREKTUR RUMAH SAKIT,</p>
       </div>
 
       <div className="space-y-3 text-sm">
         <div>
           <p className="font-bold">Menimbang:</p>
           <ol type="a" className="list-none ml-6 space-y-1 mt-1">
-            <li className="flex gap-2"><span className="flex-shrink-0">a.</span><span>bahwa dalam rangka pengembangan karir dan peningkatan kinerja pelayanan kesehatan di RSUD Abdul Moeloek Provinsi Lampung, dipandang perlu untuk melakukan pengangkatan dalam jabatan;</span></li>
+            <li className="flex gap-2"><span className="flex-shrink-0">a.</span><span>bahwa dalam rangka pengembangan karir dan peningkatan kinerja pelayanan kesehatan di Rumah Sakit Provinsi Lampung, dipandang perlu untuk melakukan pengangkatan dalam jabatan;</span></li>
             <li className="flex gap-2"><span className="flex-shrink-0">b.</span><span>bahwa pegawai yang namanya tersebut pada diktum keputusan ini telah memenuhi persyaratan dan dianggap cakap untuk menduduki jabatan sebagaimana dimaksud{form.alasanPromosi ? `, ${form.alasanPromosi.toLowerCase()}` : ''};</span></li>
             <li className="flex gap-2"><span className="flex-shrink-0">c.</span><span>bahwa berdasarkan pertimbangan sebagaimana dimaksud pada huruf a dan huruf b, perlu menetapkan Keputusan Direktur tentang Pengangkatan dalam Jabatan.</span></li>
           </ol>
@@ -236,7 +236,7 @@ const PreviewPromosi = ({ form, pegawai }: { form: SuratForm; pegawai: Pegawai |
             {['Undang-Undang Nomor 5 Tahun 2014 tentang Aparatur Sipil Negara (Lembaran Negara Republik Indonesia Tahun 2014 Nomor 6, Tambahan Lembaran Negara Nomor 5494);',
               'Peraturan Pemerintah Nomor 11 Tahun 2017 tentang Manajemen Pegawai Negeri Sipil sebagaimana telah diubah dengan Peraturan Pemerintah Nomor 17 Tahun 2020;',
               'Peraturan Menteri Pendayagunaan Aparatur Negara dan Reformasi Birokrasi Nomor 13 Tahun 2019 tentang Pengusulan, Penetapan, dan Pembinaan Jabatan Fungsional PNS;',
-              'Peraturan Daerah Provinsi Lampung tentang Pembentukan dan Susunan Organisasi Rumah Sakit Umum Daerah Abdul Moeloek Provinsi Lampung yang berlaku.'
+              'Peraturan Daerah Provinsi Lampung tentang Pembentukan dan Susunan Organisasi Rumah Sakit Umum Daerah Provinsi Lampung yang berlaku.'
             ].map((item, i) => (
               <li key={i} className="flex gap-2"><span className="flex-shrink-0">{i + 1}.</span><span>{item}</span></li>
             ))}
@@ -246,7 +246,7 @@ const PreviewPromosi = ({ form, pegawai }: { form: SuratForm; pegawai: Pegawai |
         <div className="text-center my-4">
           <p className="font-bold border-t border-b border-gray-400 inline-block px-6 py-1">MEMUTUSKAN:</p>
         </div>
-        <p><span className="font-bold">Menetapkan:</span> KEPUTUSAN DIREKTUR RSUD ABDUL MOELOEK TENTANG PENGANGKATAN DALAM JABATAN PADA RSUD ABDUL MOELOEK PROVINSI LAMPUNG.</p>
+        <p><span className="font-bold">Menetapkan:</span> KEPUTUSAN DIREKTUR RUMAH SAKIT TENTANG PENGANGKATAN DALAM JABATAN PADA RUMAH SAKIT PROVINSI LAMPUNG.</p>
 
         <div className="space-y-2">
           <p><span className="font-bold">KESATU:</span> Mengangkat pegawai berikut dalam jabatan yang tertera:</p>
@@ -283,12 +283,12 @@ const PreviewDemosi = ({ form, pegawai }: { form: SuratForm; pegawai: Pegawai | 
   return (
     <div>
       <div className="text-center mb-6">
-        <p className="font-bold text-sm">KEPUTUSAN DIREKTUR RUMAH SAKIT UMUM DAERAH ABDUL MOELOEK</p>
+        <p className="font-bold text-sm">KEPUTUSAN DIREKTUR RUMAH SAKIT UMUM DAERAH</p>
         <p className="font-bold text-sm">PROVINSI LAMPUNG</p>
         <p className="font-bold text-sm mt-1">NOMOR: {form.nomorSurat || '___/___/SK-HK/___/____'}</p>
         <p className="mt-3 font-bold">TENTANG</p>
         <p className="font-bold">PENJATUHAN HUKUMAN DISIPLIN BERUPA PENURUNAN JABATAN</p>
-        <p className="mt-3 font-bold uppercase">DIREKTUR RSUD ABDUL MOELOEK,</p>
+        <p className="mt-3 font-bold uppercase">DIREKTUR RUMAH SAKIT,</p>
       </div>
 
       <div className="space-y-3 text-sm">
@@ -315,7 +315,7 @@ const PreviewDemosi = ({ form, pegawai }: { form: SuratForm; pegawai: Pegawai | 
         <div className="text-center my-4">
           <p className="font-bold border-t border-b border-gray-400 inline-block px-6 py-1">MEMUTUSKAN:</p>
         </div>
-        <p><span className="font-bold">Menetapkan:</span> KEPUTUSAN DIREKTUR RSUD ABDUL MOELOEK TENTANG PENJATUHAN HUKUMAN DISIPLIN BERUPA PENURUNAN JABATAN.</p>
+        <p><span className="font-bold">Menetapkan:</span> KEPUTUSAN DIREKTUR RUMAH SAKIT TENTANG PENJATUHAN HUKUMAN DISIPLIN BERUPA PENURUNAN JABATAN.</p>
         <div className="space-y-2">
           <p><span className="font-bold">KESATU:</span> Menjatuhkan hukuman disiplin berupa <span className="font-bold">Penurunan Jabatan setingkat lebih rendah selama 12 (dua belas) bulan</span> kepada:</p>
           <table className="w-full border border-gray-400 text-sm ml-6">
@@ -341,19 +341,19 @@ const PreviewRotasi = ({ form, pegawai }: { form: SuratForm; pegawai: Pegawai | 
   return (
     <div>
       <div className="text-center mb-6">
-        <p className="font-bold text-sm">KEPUTUSAN DIREKTUR RUMAH SAKIT UMUM DAERAH ABDUL MOELOEK</p>
+        <p className="font-bold text-sm">KEPUTUSAN DIREKTUR RUMAH SAKIT UMUM DAERAH</p>
         <p className="font-bold text-sm">PROVINSI LAMPUNG</p>
         <p className="font-bold text-sm mt-1">NOMOR: {form.nomorSurat || '___/___/SK-MUT/___/____'}</p>
         <p className="mt-3 font-bold">TENTANG</p>
         <p className="font-bold">PEMINDAHAN/MUTASI PEGAWAI NEGERI SIPIL</p>
-        <p className="font-bold">DI LINGKUNGAN RSUD ABDUL MOELOEK PROVINSI LAMPUNG</p>
-        <p className="mt-3 font-bold uppercase">DIREKTUR RSUD ABDUL MOELOEK,</p>
+        <p className="font-bold">DI LINGKUNGAN RUMAH SAKIT PROVINSI LAMPUNG</p>
+        <p className="mt-3 font-bold uppercase">DIREKTUR RUMAH SAKIT,</p>
       </div>
       <div className="space-y-3 text-sm">
         <div>
           <p className="font-bold">Menimbang:</p>
           <ol className="list-none ml-6 space-y-1 mt-1">
-            <li className="flex gap-2"><span>a.</span><span>bahwa dalam rangka pengembangan karir, penyegaran organisasi, dan optimalisasi pelayanan kesehatan di RSUD Abdul Moeloek Provinsi Lampung;</span></li>
+            <li className="flex gap-2"><span>a.</span><span>bahwa dalam rangka pengembangan karir, penyegaran organisasi, dan optimalisasi pelayanan kesehatan di Rumah Sakit Provinsi Lampung;</span></li>
             <li className="flex gap-2"><span>b.</span><span>bahwa {form.alasanRotasi || 'dipandang perlu dilakukan pemindahan/mutasi pegawai untuk kepentingan dinas'};</span></li>
             <li className="flex gap-2"><span>c.</span><span>bahwa berdasarkan pertimbangan dimaksud, perlu menetapkan Keputusan tentang Pemindahan/Mutasi Pegawai.</span></li>
           </ol>
@@ -367,7 +367,7 @@ const PreviewRotasi = ({ form, pegawai }: { form: SuratForm; pegawai: Pegawai | 
           </ol>
         </div>
         <div className="text-center my-4"><p className="font-bold border-t border-b border-gray-400 inline-block px-6 py-1">MEMUTUSKAN:</p></div>
-        <p><span className="font-bold">Menetapkan:</span> KEPUTUSAN DIREKTUR RSUD ABDUL MOELOEK TENTANG PEMINDAHAN/MUTASI PEGAWAI NEGERI SIPIL.</p>
+        <p><span className="font-bold">Menetapkan:</span> KEPUTUSAN DIREKTUR RUMAH SAKIT TENTANG PEMINDAHAN/MUTASI PEGAWAI NEGERI SIPIL.</p>
         <div className="space-y-2">
           <p><span className="font-bold">KESATU:</span> Memindahtugaskan pegawai yang namanya tersebut di bawah ini:</p>
           <table className="w-full border border-gray-400 text-sm ml-6">
@@ -410,7 +410,7 @@ const PreviewTeguran = ({ form, pegawai, isLisan }: { form: SuratForm; pegawai: 
           <p>NIP. {pegawai?.nip || '_______________'}</p>
           <p>{pegawai?.jabatan || '_______________'}</p>
           <p>di</p>
-          <p className="font-semibold">RSUD Abdul Moeloek Provinsi Lampung</p>
+          <p className="font-semibold">Rumah Sakit Provinsi Lampung</p>
         </div>
 
         <p>Dengan hormat,</p>
@@ -444,13 +444,13 @@ const PreviewPemberhentian = ({ form, pegawai, isHormat }: { form: SuratForm; pe
   return (
     <div>
       <div className="text-center mb-6">
-        <p className="font-bold text-sm">KEPUTUSAN DIREKTUR RUMAH SAKIT UMUM DAERAH ABDUL MOELOEK</p>
+        <p className="font-bold text-sm">KEPUTUSAN DIREKTUR RUMAH SAKIT UMUM DAERAH</p>
         <p className="font-bold text-sm">PROVINSI LAMPUNG</p>
         <p className="font-bold text-sm mt-1">NOMOR: {form.nomorSurat || `___/___/${isHormat ? 'SK-PDH' : 'SK-PTDH'}/___/____`}</p>
         <p className="mt-3 font-bold">TENTANG</p>
         <p className="font-bold">{isHormat ? 'PEMBERHENTIAN DENGAN HORMAT' : 'PEMBERHENTIAN TIDAK DENGAN HORMAT'}</p>
         <p className="font-bold">SEBAGAI PEGAWAI NEGERI SIPIL</p>
-        <p className="mt-3 font-bold uppercase">DIREKTUR RSUD ABDUL MOELOEK,</p>
+        <p className="mt-3 font-bold uppercase">DIREKTUR RUMAH SAKIT,</p>
       </div>
       <div className="space-y-3 text-sm">
         <div>
@@ -476,14 +476,14 @@ const PreviewPemberhentian = ({ form, pegawai, isHormat }: { form: SuratForm; pe
               isHormat
                 ? 'Peraturan Pemerintah Nomor 11 Tahun 2017 tentang Manajemen Pegawai Negeri Sipil;'
                 : 'Peraturan Pemerintah Nomor 94 Tahun 2021 tentang Disiplin Pegawai Negeri Sipil, khususnya Pasal 8;',
-              'Peraturan Daerah Provinsi Lampung tentang Organisasi dan Tata Kerja RSUD Abdul Moeloek.',
+              'Peraturan Daerah Provinsi Lampung tentang Organisasi dan Tata Kerja Rumah Sakit.',
             ].map((item, i) => (
               <li key={i} className="flex gap-2"><span>{i + 1}.</span><span>{item}</span></li>
             ))}
           </ol>
         </div>
         <div className="text-center my-4"><p className="font-bold border-t border-b border-gray-400 inline-block px-6 py-1">MEMUTUSKAN:</p></div>
-        <p><span className="font-bold">Menetapkan:</span> KEPUTUSAN DIREKTUR RSUD ABDUL MOELOEK TENTANG PEMBERHENTIAN {isHormat ? 'DENGAN HORMAT' : 'TIDAK DENGAN HORMAT'} SEBAGAI PEGAWAI NEGERI SIPIL.</p>
+        <p><span className="font-bold">Menetapkan:</span> KEPUTUSAN DIREKTUR RUMAH SAKIT TENTANG PEMBERHENTIAN {isHormat ? 'DENGAN HORMAT' : 'TIDAK DENGAN HORMAT'} SEBAGAI PEGAWAI NEGERI SIPIL.</p>
         <div className="space-y-2">
           <p><span className="font-bold">KESATU:</span> {isHormat ? 'Memberhentikan dengan hormat' : 'Memberhentikan tidak dengan hormat'} sebagai Pegawai Negeri Sipil kepada:</p>
           <table className="w-full border border-gray-400 text-sm ml-6">
@@ -513,7 +513,7 @@ const LetterFooter = ({ form, isLetter }: { form: SuratForm; isLetter: boolean }
     <div className="w-72">
       <p className="text-sm">Ditetapkan di Bandar Lampung</p>
       <p className="text-sm">pada tanggal <span>{fmtDateLong(form.tanggalSurat)}</span></p>
-      <p className="text-sm mt-2 font-semibold">DIREKTUR RSUD ABDUL MOELOEK</p>
+      <p className="text-sm mt-2 font-semibold">DIREKTUR RUMAH SAKIT</p>
       <p className="text-sm">PROVINSI LAMPUNG,</p>
       <div className="h-20" />
       <p className="text-sm font-bold underline">dr. IMAM GHOZALI, Sp.An., M.Kes.</p>
@@ -545,7 +545,7 @@ export default function SuratKepegawaian() {
     const win = window.open('', '_blank', 'width=900,height=700');
     if (!win) return;
     win.document.write(`
-      <!DOCTYPE html><html><head><title>Surat Kepegawaian - RSUD Abdul Moeloek</title>
+      <!DOCTYPE html><html><head><title>Surat Kepegawaian - HCMS Application</title>
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; color: #000; background: #fff; }
@@ -921,7 +921,7 @@ export default function SuratKepegawaian() {
                       <p className="text-sm"><span className="font-bold">Tembusan:</span></p>
                       <ol className="text-sm ml-6 mt-1 space-y-0.5">
                         <li>1. Kepala BKD/BKN Provinsi Lampung;</li>
-                        <li>2. Kepala Bagian Umum dan Kepegawaian RSUD Abdul Moeloek;</li>
+                        <li>2. Kepala Bagian Umum dan Kepegawaian Rumah Sakit;</li>
                         <li>3. Kepala Unit Kerja yang bersangkutan;</li>
                         <li>4. Pegawai yang bersangkutan (untuk diketahui dan dilaksanakan).</li>
                       </ol>

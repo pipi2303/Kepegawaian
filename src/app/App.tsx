@@ -22,7 +22,7 @@ class AppErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error('[HR APP] Error boundary caught:', error, info);
+    console.error('[HCMS] Error boundary caught:', error, info);
   }
 
   handleReload = () => {

@@ -93,9 +93,9 @@ export default function HubunganIndustrial() {
         <div className="flex items-start gap-3">
           <FileText className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-blue-800">Peraturan Perusahaan (PP) & PKB RSUD Abdul Moeloek</p>
-            <p className="text-xs text-blue-600 mt-1">PP RSUD AM Rev. III/2024 · Berlaku: 1 Jan 2024 – 31 Des 2025 · Status: <span className="font-semibold">Dalam Proses Pembaruan</span></p>
-            <p className="text-xs text-blue-500 mt-0.5">Catatan: RSUD Abdul Moeloek belum memiliki Serikat Pekerja yang terdaftar. Hubungan industrial diatur melalui Peraturan Perusahaan sesuai UU No. 13/2003.</p>
+            <p className="text-sm font-semibold text-blue-800">Peraturan Perusahaan (PP) & PKB Rumah Sakit</p>
+            <p className="text-xs text-blue-600 mt-1">PP RS Rev. III/2024 · Berlaku: 1 Jan 2024 – 31 Des 2025 · Status: <span className="font-semibold">Dalam Proses Pembaruan</span></p>
+            <p className="text-xs text-blue-500 mt-0.5">Catatan: Rumah Sakit belum memiliki Serikat Pekerja yang terdaftar. Hubungan industrial diatur melalui Peraturan Perusahaan sesuai UU No. 13/2003.</p>
           </div>
         </div>
       </div>

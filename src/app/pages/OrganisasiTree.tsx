@@ -38,7 +38,7 @@ function getAllNodes(tree: OrgNode): OrgNode[] {
 // ─── Org Structure (4 Level: RSUD → Direktur → Wakil Direktur → Kepala Bidang/Bagian)
 const ORG_DATA: OrgNode = {
   id: 'rsud',
-  title: 'RSUD Abdul Moeloek',
+  title: 'Rumah Sakit',
   subtitle: 'Rumah Sakit Umum Daerah Provinsi Lampung',
   type: 'hospital',
   children: [
@@ -970,7 +970,7 @@ export default function OrganisasiTree() {
       <div className="flex-shrink-0 px-5 py-4 bg-white border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
           <h1 className="text-gray-800">Struktur Organisasi</h1>
-          <p className="text-sm text-gray-500 mt-0.5">RSUD Abdul Moeloek — Berdasarkan Perda Struktur Organisasi RS</p>
+          <p className="text-sm text-gray-500 mt-0.5">Berdasarkan Perda Struktur Organisasi Rumah Sakit</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {/* Stats pills */}

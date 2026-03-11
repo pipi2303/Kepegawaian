@@ -89,13 +89,13 @@ const KAMUS_KPI: KPIEntry[] = [
   { id: 'kpi-k03', nama: 'Realisasi Anggaran Belanja', kategori: 'Keuangan', satuan: '%', formula: '(Realisasi / Anggaran) × 100', benchmark: '90%–100%', isOtomatis: false, sumberData: 'Laporan Keuangan APBD', linkedBSC: 'Financial' },
   { id: 'kpi-k04', nama: 'Kelengkapan Dokumen Pertanggungjawaban (SPJ)', kategori: 'Keuangan', satuan: '%', formula: '(SPJ lengkap / Total SPJ) × 100', benchmark: '100%', isOtomatis: false, sumberData: 'Modul Akuntansi', linkedBSC: 'Financial' },
   // SDM
-  { id: 'kpi-s01', nama: 'Tingkat Kehadiran (Absensi)', kategori: 'SDM', satuan: '%', formula: '(Hari hadir / Total hari kerja) × 100', benchmark: '≥ 95%', isOtomatis: true, sumberData: 'Modul Presensi / Absensi HR APP', linkedBSC: 'Learning & Growth' },
-  { id: 'kpi-s02', nama: 'Ketepatan Waktu Penggajian', kategori: 'SDM', satuan: '%', formula: '(Gajian tepat waktu / Total periode gaji) × 100', benchmark: '100%', isOtomatis: false, sumberData: 'Modul Penggajian HR APP', linkedBSC: 'Internal Process' },
-  { id: 'kpi-s03', nama: 'Pemenuhan Kebutuhan Tenaga Kerja', kategori: 'SDM', satuan: '%', formula: '(Formasi terisi / Formasi dibutuhkan) × 100', benchmark: '≥ 85%', isOtomatis: false, sumberData: 'Modul Data Pegawai HR APP', linkedBSC: 'Learning & Growth' },
-  { id: 'kpi-s04', nama: 'Penyelesaian SKP Tepat Waktu', kategori: 'SDM', satuan: '%', formula: '(SKP selesai / Total SKP periode) × 100', benchmark: '100%', isOtomatis: true, sumberData: 'Modul SKP HR APP', linkedBSC: 'Learning & Growth' },
-  { id: 'kpi-s05', nama: 'Jam Pelatihan per Karyawan (per Tahun)', kategori: 'SDM', satuan: 'JP/Tahun', formula: 'Total JP diklat / Jumlah pegawai aktif', benchmark: '≥ 20 JP', isOtomatis: true, sumberData: 'Modul Diklat HR APP', linkedBSC: 'Learning & Growth' },
-  { id: 'kpi-s06', nama: 'Angka Perputaran Karyawan (Turnover)', kategori: 'SDM', satuan: '%', formula: '(Karyawan keluar / Total karyawan) × 100', benchmark: '≤ 5%', isOtomatis: false, sumberData: 'Modul Data Pegawai HR APP', linkedBSC: 'Learning & Growth' },
-  { id: 'kpi-s07', nama: 'Jumlah Pelanggaran Disiplin', kategori: 'SDM', satuan: 'Kasus', formula: 'Total kasus disiplin aktif dalam periode', benchmark: '0 kasus berat', isOtomatis: true, sumberData: 'Modul Disiplin HR APP', linkedBSC: 'Internal Process' },
+  { id: 'kpi-s01', nama: 'Tingkat Kehadiran (Absensi)', kategori: 'SDM', satuan: '%', formula: '(Hari hadir / Total hari kerja) × 100', benchmark: '≥ 95%', isOtomatis: true, sumberData: 'Modul Presensi / Absensi HCMS', linkedBSC: 'Learning & Growth' },
+  { id: 'kpi-s02', nama: 'Ketepatan Waktu Penggajian', kategori: 'SDM', satuan: '%', formula: '(Gajian tepat waktu / Total periode gaji) × 100', benchmark: '100%', isOtomatis: false, sumberData: 'Modul Penggajian HCMS', linkedBSC: 'Internal Process' },
+  { id: 'kpi-s03', nama: 'Pemenuhan Kebutuhan Tenaga Kerja', kategori: 'SDM', satuan: '%', formula: '(Formasi terisi / Formasi dibutuhkan) × 100', benchmark: '≥ 85%', isOtomatis: false, sumberData: 'Modul Data Pegawai HCMS', linkedBSC: 'Learning & Growth' },
+  { id: 'kpi-s04', nama: 'Penyelesaian SKP Tepat Waktu', kategori: 'SDM', satuan: '%', formula: '(SKP selesai / Total SKP periode) × 100', benchmark: '100%', isOtomatis: true, sumberData: 'Modul SKP HCMS', linkedBSC: 'Learning & Growth' },
+  { id: 'kpi-s05', nama: 'Jam Pelatihan per Karyawan (per Tahun)', kategori: 'SDM', satuan: 'JP/Tahun', formula: 'Total JP diklat / Jumlah pegawai aktif', benchmark: '≥ 20 JP', isOtomatis: true, sumberData: 'Modul Diklat HCMS', linkedBSC: 'Learning & Growth' },
+  { id: 'kpi-s06', nama: 'Angka Perputaran Karyawan (Turnover)', kategori: 'SDM', satuan: '%', formula: '(Karyawan keluar / Total karyawan) × 100', benchmark: '≤ 5%', isOtomatis: false, sumberData: 'Modul Data Pegawai HCMS', linkedBSC: 'Learning & Growth' },
+  { id: 'kpi-s07', nama: 'Jumlah Pelanggaran Disiplin', kategori: 'SDM', satuan: 'Kasus', formula: 'Total kasus disiplin aktif dalam periode', benchmark: '0 kasus berat', isOtomatis: true, sumberData: 'Modul Disiplin HCMS', linkedBSC: 'Internal Process' },
   // IT
   { id: 'kpi-i01', nama: 'System Uptime SIMRS', kategori: 'IT', satuan: '%', formula: '((Total jam – downtime) / Total jam) × 100', benchmark: '≥ 99.5%', isOtomatis: false, sumberData: 'Monitoring Server / Log SIMRS', linkedBSC: 'Internal Process' },
   { id: 'kpi-i02', nama: 'Kecepatan Resolusi Helpdesk (Mean Time to Resolve)', kategori: 'IT', satuan: 'Jam', formula: 'Rata-rata jam dari tiket dibuka → selesai', benchmark: '≤ 4 jam', isOtomatis: false, sumberData: 'Sistem Ticketing IT', linkedBSC: 'Internal Process' },
@@ -104,7 +104,7 @@ const KAMUS_KPI: KPIEntry[] = [
   // Umum
   { id: 'kpi-u01', nama: 'Indeks Kepuasan Pelanggan (CSI)', kategori: 'Umum', satuan: 'Skor (1–5)', formula: 'Rata-rata skor kuesioner kepuasan layanan', benchmark: '≥ 4.0', isOtomatis: false, sumberData: 'Survei Kepuasan Pelanggan', linkedBSC: 'Customer' },
   { id: 'kpi-u02', nama: 'Kepatuhan Standar Prosedur Operasional (SPO)', kategori: 'Umum', satuan: '%', formula: '(SPO dipatuhi / Total observasi) × 100', benchmark: '≥ 90%', isOtomatis: false, sumberData: 'Observasi / Audit Internal', linkedBSC: 'Internal Process' },
-  { id: 'kpi-u03', nama: 'Penyelesaian Surat Dinas Tepat Waktu', kategori: 'Umum', satuan: '%', formula: '(Surat tepat waktu / Total surat keluar) × 100', benchmark: '≥ 95%', isOtomatis: false, sumberData: 'Modul Surat Kepegawaian HR APP', linkedBSC: 'Internal Process' },
+  { id: 'kpi-u03', nama: 'Penyelesaian Surat Dinas Tepat Waktu', kategori: 'Umum', satuan: '%', formula: '(Surat tepat waktu / Total surat keluar) × 100', benchmark: '≥ 95%', isOtomatis: false, sumberData: 'Modul Surat Kepegawaian HCMS', linkedBSC: 'Internal Process' },
   { id: 'kpi-u04', nama: 'Kelengkapan Laporan Bulanan Tepat Waktu', kategori: 'Umum', satuan: '%', formula: '(Laporan tepat / Total laporan wajib) × 100', benchmark: '100%', isOtomatis: false, sumberData: 'Sistem Pelaporan Internal', linkedBSC: 'Internal Process' },
 ];
 
@@ -418,7 +418,7 @@ function KamusKPITab({ onImportKPI }: { onImportKPI: (kpi: KPIEntry) => void }) 
       <div className="bg-gradient-to-r from-violet-50 to-blue-50 border border-violet-100 rounded-xl p-4 flex items-start gap-3">
         <BookOpen className="w-4 h-4 text-violet-600 mt-0.5 flex-shrink-0" />
         <div>
-          <p className="text-sm font-semibold text-violet-800">Bank Indikator KPI RSUD Abdul Moeloek</p>
+          <p className="text-sm font-semibold text-violet-800">Bank Indikator KPI Rumah Sakit</p>
           <p className="text-xs text-violet-600 mt-0.5">Template KPI standar yang dapat digunakan sebagai acuan penyusunan butir kegiatan SKP. Klik <strong>Gunakan di SKP</strong> untuk menyalin ke form SKP baru.</p>
         </div>
       </div>

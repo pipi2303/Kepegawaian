@@ -508,8 +508,8 @@ export const dataPegawai: Pegawai[] = [
     statusPerkawinan: 'Kawin',
     alamat: 'Jl. Sultan Agung No. 12, Pahoman, Bandar Lampung',
     noTelp: '08127410001',
-    email: 'imam.ghozali@rsudabdulmoeloek.go.id',
-    jabatan: 'Direktur RSUD Abdul Moeloek',
+    email: 'imam.ghozali@simrs.go.id',
+    jabatan: 'Direktur Rumah Sakit',
     jabatanFungsional: 'Dokter Spesialis Anestesiologi',
     unitKerja: 'Direktur',
     golongan: 'IV/b',
@@ -1204,7 +1204,7 @@ export const dataCuti: CutiRecord[] = [
   {
     id: 'C002', pegawaiId: 'P008', jenisCuti: 'Cuti Sakit',
     tanggalMulai: '2026-03-02', tanggalSelesai: '2026-03-04', jumlahHari: 3,
-    alasan: 'Demam tifoid, berdasarkan surat dokter RSUD Abdul Moeloek', status: 'Disetujui',
+    alasan: 'Demam tifoid, berdasarkan surat dokter rumah sakit', status: 'Disetujui',
     disetujuiOleh: 'dr. Imam Ghozali, Sp.An., M.Kes', tanggalPengajuan: '2026-03-02',
   },
   {
@@ -1270,7 +1270,7 @@ export const dataRiwayatJabatan: RiwayatJabatan[] = [
     nomorSK: 'SK.800/312/2011', tanggalSK: '2010-12-20', jenisJabatan: 'Fungsional',
   },
   {
-    id: 'RJ004', pegawaiId: 'P001', jabatan: 'Direktur RSUD Abdul Moeloek', unitKerja: 'Direktur',
+    id: 'RJ004', pegawaiId: 'P001', jabatan: 'Direktur Rumah Sakit', unitKerja: 'Direktur',
     golongan: 'IV/b', tmtMulai: '2019-01-01',
     nomorSK: 'SK.800/001/2019', tanggalSK: '2018-12-20', jenisJabatan: 'Struktural',
   },
@@ -1311,7 +1311,7 @@ export const dataKenaikanPangkat: KenaikanPangkat[] = [
   { id: 'KP009', pegawaiId: 'P001', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2001', tanggalBerlaku: '2001-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-012/2001', jabatan: 'Dokter Umum', eselon: 'Non-Eselon' },
   { id: 'KP010', pegawaiId: 'P001', golonganLama: 'III/c', golonganBaru: 'III/d', pangkatLama: 'Penata', pangkatBaru: 'Penata Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2005', tanggalBerlaku: '2005-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-009/2005', jabatan: 'Dokter Spesialis Anestesiologi Pertama', eselon: 'Non-Eselon' },
   { id: 'KP011', pegawaiId: 'P001', golonganLama: 'III/d', golonganBaru: 'IV/a', pangkatLama: 'Penata Tingkat I', pangkatBaru: 'Pembina', jenisKenaikan: 'Kenaikan Pangkat Fungsional', periodeUsulan: 'April 2011', tanggalBerlaku: '2011-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-005/2011', jabatan: 'Dokter Spesialis Anestesiologi Madya', eselon: 'Non-Eselon' },
-  { id: 'KP012', pegawaiId: 'P001', golonganLama: 'IV/a', golonganBaru: 'IV/b', pangkatLama: 'Pembina', pangkatBaru: 'Pembina Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Pilihan', periodeUsulan: 'April 2020', tanggalBerlaku: '2020-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-003/2020', jabatan: 'Direktur RSUD Abdul Moeloek', eselon: 'Eselon II/b' },
+  { id: 'KP012', pegawaiId: 'P001', golonganLama: 'IV/a', golonganBaru: 'IV/b', pangkatLama: 'Pembina', pangkatBaru: 'Pembina Tingkat I', jenisKenaikan: 'Kenaikan Pangkat Pilihan', periodeUsulan: 'April 2020', tanggalBerlaku: '2020-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-003/2020', jabatan: 'Direktur Rumah Sakit', eselon: 'Eselon II/b' },
 
   // ── P002 · Elitha Martarina · dr. MARS · masuk 2000 · IV/c ───────────────
   { id: 'KP013', pegawaiId: 'P002', golonganLama: 'III/b', golonganBaru: 'III/c', pangkatLama: 'Penata Muda Tingkat I', pangkatBaru: 'Penata', jenisKenaikan: 'Kenaikan Pangkat Reguler', periodeUsulan: 'April 2004', tanggalBerlaku: '2004-04-01', status: 'Selesai', nomorSK: 'SK.823/KP-018/2004', jabatan: 'Dokter Umum', eselon: 'Non-Eselon' },

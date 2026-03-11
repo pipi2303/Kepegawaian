@@ -49,7 +49,7 @@ export const departmentScorecards: DepartmentScorecard[] = [
 export const okrObjectives: OKRObjective[] = [
   // ── LEVEL ORGANISASI ─────────────────────────────────────────────────────────
   {
-    id: 'okr-org-01', level: 'Organisasi', ownerId: 'org', ownerName: 'RSUD Abdul Moeloek',
+    id: 'okr-org-01', level: 'Organisasi', ownerId: 'org', ownerName: 'Rumah Sakit',
     title: 'Menjadi RS Rujukan Unggulan Provinsi Lampung Tahun 2026',
     description: 'Mencapai standar pelayanan RS tipe A dengan kepuasan pasien & keuangan sehat.',
     period: 'Q1–Q4 2026', status: 'Aktif', bscLink: 'Customer',
@@ -60,7 +60,7 @@ export const okrObjectives: OKRObjective[] = [
     ],
   },
   {
-    id: 'okr-org-02', level: 'Organisasi', ownerId: 'org', ownerName: 'RSUD Abdul Moeloek',
+    id: 'okr-org-02', level: 'Organisasi', ownerId: 'org', ownerName: 'Rumah Sakit',
     title: 'Membangun Budaya Kinerja Berbasis Data di Seluruh Unit',
     description: 'Seluruh unit memiliki dashboard kinerja dan melakukan check-in OKR mingguan.',
     period: 'Q1–Q4 2026', status: 'Aktif', bscLink: 'Learning & Growth',
@@ -71,7 +71,7 @@ export const okrObjectives: OKRObjective[] = [
     ],
   },
   {
-    id: 'okr-org-03', level: 'Organisasi', ownerId: 'org', ownerName: 'RSUD Abdul Moeloek',
+    id: 'okr-org-03', level: 'Organisasi', ownerId: 'org', ownerName: 'Rumah Sakit',
     title: 'Zero Accident & Keselamatan Pasien Terdepan',
     description: 'Tidak ada KTD kategori berat dan insiden K3RS dengan injury.',
     period: 'Q1–Q4 2026', status: 'Aktif', bscLink: 'Internal Process',
@@ -306,7 +306,7 @@ export const kpiDefinitions: KPIDefinition[] = [
     definisi: 'Rata-rata waktu yang dibutuhkan dari pengumuman formasi (lowongan) hingga SK pengangkatan diterbitkan. Efisiensi proses rekrutmen mencerminkan kualitas tata kelola SDM.',
     formula: 'Rata-rata hari (tanggal SK – tanggal buka loker) seluruh rekrutmen dalam periode',
     frekuensi: 'Kuartalan',
-    dataSource: 'Sistem Informasi SDM / HR APP',
+    dataSource: 'Sistem Informasi SDM / HCMS',
     pic: 'Kabag SDM & Umum',
     linkedKRIds: ['kr-09', 'kr-10', 'kr-11', 'kr-16', 'kr-17'],
     bscContrib: 45,
@@ -363,7 +363,7 @@ export const kpiDefinitions: KPIDefinition[] = [
     definisi: 'Persentase pegawai yang telah mengikuti minimal 1 kegiatan pendidikan dan pelatihan (diklat) dalam satu tahun anggaran. Sesuai amanat PP No. 11/2017 dan kebijakan BKN.',
     formula: '(Pegawai yang Ikut ≥1 Diklat / Total Pegawai Aktif) × 100%',
     frekuensi: 'Kuartalan',
-    dataSource: 'SIMPEG / Modul Diklat HR APP',
+    dataSource: 'SIMPEG / Modul Diklat HCMS',
     pic: 'Kabag Diklat & Pengembangan SDM',
     linkedKRIds: ['kr-04'],
     bscContrib: 55,
@@ -374,7 +374,7 @@ export const kpiDefinitions: KPIDefinition[] = [
     definisi: 'Nilai rata-rata SKP (Sasaran Kinerja Pegawai) seluruh pegawai aktif dalam periode penilaian. Mencerminkan kompetensi kolektif organisasi. Acuan: PermenPAN-RB No. 6/2022.',
     formula: 'Rata-rata Nilai SKP Akhir seluruh pegawai aktif',
     frekuensi: 'Semesteran',
-    dataSource: 'Modul SKP HR APP / e-Kinerja BKN',
+    dataSource: 'Modul SKP HCMS / e-Kinerja BKN',
     pic: 'Kabag SDM & Umum',
     linkedKRIds: ['kr-21'],
     bscContrib: 60,
@@ -385,7 +385,7 @@ export const kpiDefinitions: KPIDefinition[] = [
     definisi: 'Persentase pegawai yang tetap bertahan (tidak mengundurkan diri, pindah, atau diberhentikan atas kemauan sendiri) dari total pegawai awal periode. Indikator loyalitas dan iklim kerja.',
     formula: '(1 – (Pegawai Keluar Sukarela / Total Pegawai Awal Periode)) × 100%',
     frekuensi: 'Tahunan',
-    dataSource: 'Data Kepegawaian / HR APP',
+    dataSource: 'Data Kepegawaian / HCMS',
     pic: 'Kabag SDM & Umum',
     linkedKRIds: [],
     bscContrib: 85,

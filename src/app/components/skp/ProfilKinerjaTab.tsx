@@ -149,7 +149,7 @@ export default function ProfilKinerjaTab() {
         <User className="w-4 h-4 text-indigo-600 mt-0.5 flex-shrink-0" />
         <div>
           <p className="text-sm font-semibold text-indigo-800">Profil Kinerja Individual</p>
-          <p className="text-xs text-indigo-600 mt-0.5">Rekam jejak performa setiap pegawai secara menyeluruh: tren nilai SKP, skor perilaku, kehadiran, dan diklat. Data terhubung real-time dari semua modul HR APP.</p>
+          <p className="text-xs text-indigo-600 mt-0.5">Rekam jejak performa setiap pegawai secara menyeluruh: tren nilai SKP, skor perilaku, kehadiran, dan diklat. Data terhubung real-time dari semua modul HCMS.</p>
         </div>
       </div>
 
