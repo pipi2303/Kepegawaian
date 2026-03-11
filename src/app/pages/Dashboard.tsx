@@ -562,7 +562,7 @@ export default function Dashboard() {
               <span className="text-white/70 text-xs">Minggu, 8 Maret 2026 · Sistem Aktif</span>
             </div>
             <h1 className="text-white mb-1">Dashboard HR APP</h1>
-            <p className="text-blue-200 text-sm">RSUD Abdul Moeloek – Bandar Lampung, Provinsi Lampung</p>
+            <p className="text-blue-200 text-sm">SIMRS - Human Capital Management System (HCMS)</p>
             <div className="flex flex-wrap gap-2 mt-3">
               {[
                 { label: '246 Total Pegawai', icon: Users },
