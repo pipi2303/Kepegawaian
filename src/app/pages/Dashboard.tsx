@@ -10,7 +10,7 @@ import {
   Award, UserCheck, UserX, BookOpen,
   ClipboardList, ArrowUpRight, UserPlus, Hash,
   TrendingDown, LayoutDashboard, RefreshCw,
-  Filter, Minus, CheckCircle2,
+  Filter, Minus, CheckCircle2, AlertTriangle,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { chartKehadiran, chartUnitKerja } from '../data/mockData';

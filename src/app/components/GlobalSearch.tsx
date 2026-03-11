@@ -46,7 +46,7 @@ const NAV_ITEMS: Omit<SearchResult, 'type' | 'id'>[] = [
   { title: 'K3RS & Kesehatan Kerja', subtitle: 'Keselamatan kerja RS',         path: '/k3rs',               icon: HeartPulse },
   { title: 'Komite Rumah Sakit',     subtitle: 'Komite medik dan keperawatan', path: '/komite-rs',          icon: Users2 },
   { title: 'Penggajian & Tunjangan', subtitle: 'Slip gaji, tunjangan, potongan', path: '/penggajian',       icon: DollarSign },
-  { title: 'BPJS Ketenagakerjaan',   subtitle: 'Data kepesertaan BPJS',        path: '/bpjs',               icon: Heart },
+  { title: 'BPJS Kesehatan & BPJS Ketenagakerjaan',   subtitle: 'Data kepesertaan BPJS',        path: '/bpjs',               icon: Heart },
   { title: 'Kontrak Kerja',          subtitle: 'Kontrak pegawai honorer/PKWT', path: '/kontrak',            icon: FileSignature },
   { title: 'Disiplin Pegawai',       subtitle: 'Kasus pelanggaran disiplin',   path: '/disiplin',           icon: ShieldAlert },
   { title: 'Hubungan Industrial',    subtitle: 'Grievance & hubungan kerja',   path: '/hubungan-industrial',icon: Scale },

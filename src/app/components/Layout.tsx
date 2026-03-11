@@ -64,7 +64,7 @@ const menuItems = [
     section: 'KEPEGAWAIAN',
     items: [
       { path: '/penggajian', label: 'Penggajian & Tunjangan', icon: DollarSign },
-      { path: '/bpjs', label: 'BPJS Ketenagakerjaan', icon: Heart },
+      { path: '/bpjs', label: 'BPJS Kesehatan & BPJS Ketenagakerjaan', icon: Heart },
       { path: '/kontrak', label: 'Kontrak Kerja', icon: FileSignature },
     ],
   },

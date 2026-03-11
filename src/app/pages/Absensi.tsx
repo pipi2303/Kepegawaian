@@ -1,12 +1,10 @@
-import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   Clock, Download, ChevronLeft, ChevronRight, AlertCircle, Plus,
-  Edit2, Trash2, Save, X, Calendar, CheckCircle, UserCheck,
-  FileText, Search, RotateCcw, Filter, Users, TrendingUp,
+  Edit2, Trash2, Save, X, Calendar, Search, TrendingUp,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import type { AbsensiRecord } from '../types';
-import { UNIT_KERJA } from '../data/constants';
 import { toast } from 'sonner';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -37,7 +35,7 @@ const AVATAR_COLORS = [
   'bg-cyan-600', 'bg-emerald-600', 'bg-violet-500', 'bg-amber-600',
 ];
 
-// ─── Helper Functions ────────────────────────────────────────────────────────
+// ─── Helper Functions ─────────────────────────────────────────────────────────
 function formatDateLong(ds: string): string {
   const d = new Date(ds + 'T00:00:00');
   return `${DAY_NAMES[d.getDay()]}, ${d.getDate()} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
@@ -65,14 +63,7 @@ function shortUnit(unit: string): string {
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type TabType = 'harian' | 'input' | 'rekap';
-
-interface BulkEntry {
-  status: AbsensiRecord['status'];
-  jamMasuk: string;
-  jamKeluar: string;
-  keterangan: string;
-}
+type TabType = 'harian' | 'rekap';
 
 interface ModalForm {
   pegawaiId: string;
@@ -83,7 +74,7 @@ interface ModalForm {
   keterangan: string;
 }
 
-// ─── StatusBadge ─────────────────────────────────────────────────────────────
+// ─── StatusBadge ──────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG['Alpha'];
   return (
@@ -96,7 +87,7 @@ function StatusBadge({ status }: { status: string }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function Absensi() {
-  const { pegawai, absensi, addAbsensi, updateAbsensi, deleteAbsensi, bulkInputAbsensi } = useAppContext();
+  const { pegawai, absensi, addAbsensi, updateAbsensi, deleteAbsensi } = useAppContext();
 
   // ── Tab ──
   const [activeTab, setActiveTab] = useState<TabType>('harian');
@@ -116,61 +107,11 @@ export default function Absensi() {
     jamMasuk: '07:30', jamKeluar: '16:00', keterangan: '',
   });
 
-  // ── Bulk Input ──
-  const [bulkDate, setBulkDate] = useState('2026-03-05');
-  const [bulkEntries, setBulkEntries] = useState<Record<string, BulkEntry>>({});
-  const [bulkSearch, setBulkSearch] = useState('');
-  const [bulkFilterUnit, setBulkFilterUnit] = useState('');
-  const absensiRef = useRef(absensi);
-  useEffect(() => { absensiRef.current = absensi; }, [absensi]);
-
   // ── Rekap ──
-  const [rekapMonth, setRekapMonth] = useState(2); // March
+  const [rekapMonth, setRekapMonth] = useState(2);
   const [rekapYear, setRekapYear] = useState(2026);
   const [rekapUnit, setRekapUnit] = useState('');
   const [rekapSearch, setRekapSearch] = useState('');
-
-  // ── Init bulk entries on date change ──
-  useEffect(() => {
-    const weekend = isWeekend(bulkDate);
-    const entries: Record<string, BulkEntry> = {};
-    pegawai.forEach(p => {
-      const existing = absensiRef.current.find(a => a.pegawaiId === p.id && a.tanggal === bulkDate);
-      entries[p.id] = existing ? {
-        status: existing.status,
-        jamMasuk: existing.jamMasuk || '',
-        jamKeluar: existing.jamKeluar || '',
-        keterangan: existing.keterangan || '',
-      } : {
-        status: weekend ? 'Libur' : 'Hadir',
-        jamMasuk: weekend ? '' : '07:30',
-        jamKeluar: weekend ? '' : '16:00',
-        keterangan: '',
-      };
-    });
-    setBulkEntries(entries);
-  }, [bulkDate, pegawai]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const resetBulkToSaved = useCallback(() => {
-    const weekend = isWeekend(bulkDate);
-    const entries: Record<string, BulkEntry> = {};
-    pegawai.forEach(p => {
-      const existing = absensi.find(a => a.pegawaiId === p.id && a.tanggal === bulkDate);
-      entries[p.id] = existing ? {
-        status: existing.status,
-        jamMasuk: existing.jamMasuk || '',
-        jamKeluar: existing.jamKeluar || '',
-        keterangan: existing.keterangan || '',
-      } : {
-        status: weekend ? 'Libur' : 'Hadir',
-        jamMasuk: weekend ? '' : '07:30',
-        jamKeluar: weekend ? '' : '16:00',
-        keterangan: '',
-      };
-    });
-    setBulkEntries(entries);
-    toast('Form direset ke data tersimpan');
-  }, [bulkDate, pegawai, absensi]);
 
   // ── Computed: Data Harian ──
   const dateRecords = useMemo(() =>
@@ -243,27 +184,6 @@ export default function Absensi() {
     [pegawai]
   );
 
-  // ── Bulk stats preview ──
-  const bulkStats = useMemo(() => {
-    const c: Record<string, number> = {};
-    STATUS_LIST.forEach(s => (c[s] = 0));
-    Object.values(bulkEntries).forEach(e => { if (e.status) c[e.status] = (c[e.status] || 0) + 1; });
-    return c;
-  }, [bulkEntries]);
-
-  const bulkFilteredPegawai = useMemo(() => {
-    let list = bulkFilterUnit ? pegawai.filter(p => p.unitKerja === bulkFilterUnit) : [...pegawai];
-    if (bulkSearch) {
-      const q = bulkSearch.toLowerCase();
-      list = list.filter(p =>
-        p.nama.toLowerCase().includes(q) ||
-        p.nip.includes(q) ||
-        p.unitKerja.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [pegawai, bulkSearch, bulkFilterUnit]);
-
   // ── Handlers ──
   const prevDay = () => setSelectedDate(d => adjustDate(d, -1));
   const nextDay = () => setSelectedDate(d => adjustDate(d, 1));
@@ -286,7 +206,7 @@ export default function Absensi() {
     setShowModal(true);
   };
 
-  const openEditModal = (rec: AbsensiRecord) => {
+  const openEditModal = useCallback((rec: AbsensiRecord) => {
     setEditingRecord(rec);
     setModalForm({
       pegawaiId: rec.pegawaiId,
@@ -297,7 +217,7 @@ export default function Absensi() {
       keterangan: rec.keterangan || '',
     });
     setShowModal(true);
-  };
+  }, []);
 
   const handleSaveModal = () => {
     if (!modalForm.pegawaiId) { toast.error('Pilih pegawai terlebih dahulu'); return; }
@@ -332,62 +252,6 @@ export default function Absensi() {
     toast.success('Data kehadiran berhasil dihapus');
   };
 
-  const updateBulkEntry = (pid: string, field: keyof BulkEntry, value: string) => {
-    setBulkEntries(prev => {
-      const cur = prev[pid] || { status: 'Hadir' as AbsensiRecord['status'], jamMasuk: '07:30', jamKeluar: '16:00', keterangan: '' };
-      const updated: BulkEntry = { ...cur, [field]: value };
-      if (field === 'status') {
-        if (value === 'Hadir') {
-          updated.jamMasuk = cur.jamMasuk || '07:30';
-          updated.jamKeluar = cur.jamKeluar || '16:00';
-        } else if (value === 'Dinas Luar') {
-          updated.jamMasuk = cur.jamMasuk || '07:30';
-          updated.jamKeluar = cur.jamKeluar || '16:00';
-        } else {
-          updated.jamMasuk = '';
-          updated.jamKeluar = '';
-        }
-      }
-      return { ...prev, [pid]: updated };
-    });
-  };
-
-  const setAllStatus = (status: AbsensiRecord['status']) => {
-    setBulkEntries(prev => {
-      const updated = { ...prev };
-      pegawai.forEach(p => {
-        const needsTime = status === 'Hadir' || status === 'Dinas Luar';
-        updated[p.id] = {
-          status,
-          jamMasuk: needsTime ? (prev[p.id]?.jamMasuk || '07:30') : '',
-          jamKeluar: needsTime ? (prev[p.id]?.jamKeluar || '16:00') : '',
-          keterangan: prev[p.id]?.keterangan || '',
-        };
-      });
-      return updated;
-    });
-    toast(`Semua pegawai ditandai: ${status}`);
-  };
-
-  const handleBulkSave = () => {
-    const records: Omit<AbsensiRecord, 'id'>[] = pegawai.map(p => {
-      const e = bulkEntries[p.id] || { status: 'Hadir' as AbsensiRecord['status'], jamMasuk: '07:30', jamKeluar: '16:00', keterangan: '' };
-      const needsTime = e.status === 'Hadir' || e.status === 'Dinas Luar';
-      return {
-        pegawaiId: p.id,
-        tanggal: bulkDate,
-        status: e.status,
-        jamMasuk: needsTime && e.jamMasuk ? e.jamMasuk : undefined,
-        jamKeluar: needsTime && e.jamKeluar ? e.jamKeluar : undefined,
-        keterangan: e.keterangan || undefined,
-      };
-    });
-    bulkInputAbsensi(records);
-    const hadirCount = records.filter(r => r.status === 'Hadir').length;
-    const alphaCount = records.filter(r => r.status === 'Alpha').length;
-    toast.success(`Kehadiran ${formatDateLong(bulkDate)} tersimpan · ${hadirCount} Hadir${alphaCount > 0 ? ` · ${alphaCount} Alpha` : ''}`);
-  };
-
   const setModalStatus = (s: AbsensiRecord['status']) => {
     setModalForm(f => ({
       ...f,
@@ -397,15 +261,15 @@ export default function Absensi() {
     }));
   };
 
-  // ── Summary cards for active tab ──
+  // ── Summary cards ──
   const statsCards = [
-    { label: 'Hadir', value: dateStats.hadir, color: 'text-green-600', bg: 'bg-green-50 border-green-100' },
-    { label: 'Sakit', value: dateStats.sakit, color: 'text-yellow-600', bg: 'bg-yellow-50 border-yellow-100' },
-    { label: 'Izin', value: dateStats.izin, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-100' },
-    { label: 'Cuti', value: dateStats.cuti, color: 'text-purple-600', bg: 'bg-purple-50 border-purple-100' },
-    { label: 'Alpha', value: dateStats.alpha, color: 'text-red-600', bg: 'bg-red-50 border-red-100' },
+    { label: 'Hadir',      value: dateStats.hadir,     color: 'text-green-600',  bg: 'bg-green-50 border-green-100' },
+    { label: 'Sakit',      value: dateStats.sakit,     color: 'text-yellow-600', bg: 'bg-yellow-50 border-yellow-100' },
+    { label: 'Izin',       value: dateStats.izin,      color: 'text-blue-600',   bg: 'bg-blue-50 border-blue-100' },
+    { label: 'Cuti',       value: dateStats.cuti,      color: 'text-purple-600', bg: 'bg-purple-50 border-purple-100' },
+    { label: 'Alpha',      value: dateStats.alpha,     color: 'text-red-600',    bg: 'bg-red-50 border-red-100' },
     { label: 'Dinas Luar', value: dateStats.dinasLuar, color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-100' },
-    { label: 'Terlambat', value: dateStats.terlambat, color: 'text-orange-600', bg: 'bg-orange-50 border-orange-100' },
+    { label: 'Terlambat',  value: dateStats.terlambat, color: 'text-orange-600', bg: 'bg-orange-50 border-orange-100' },
   ];
 
   return (
@@ -423,16 +287,10 @@ export default function Absensi() {
           <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
             <Download className="w-4 h-4" /> Export Rekap
           </button>
-          <button
-            onClick={() => { setBulkDate(selectedDate); setActiveTab('input'); }}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
-          >
-            <UserCheck className="w-4 h-4" /> Input Kehadiran
-          </button>
         </div>
       </div>
 
-      {/* ── Stats Cards (based on selectedDate) ── */}
+      {/* ── Stats Cards ── */}
       <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
         {statsCards.map(s => (
           <div key={s.label} className={`rounded-xl p-3 border ${s.bg}`}>
@@ -447,16 +305,16 @@ export default function Absensi() {
       <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 w-fit">
         {[
           { key: 'harian', label: 'Data Harian', icon: Calendar },
-          { key: 'input', label: 'Input Kehadiran', icon: UserCheck },
-          { key: 'rekap', label: 'Rekap Bulanan', icon: TrendingUp },
+          { key: 'rekap',  label: 'Rekap Bulanan', icon: TrendingUp },
         ].map(tab => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key as TabType)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all whitespace-nowrap ${activeTab === tab.key
-              ? 'bg-white text-blue-600 shadow-sm font-medium'
-              : 'text-gray-500 hover:text-gray-700'
-              }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all whitespace-nowrap ${
+              activeTab === tab.key
+                ? 'bg-white text-blue-600 shadow-sm font-medium'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
           >
             <tab.icon className="w-4 h-4" />
             {tab.label}
@@ -464,9 +322,7 @@ export default function Absensi() {
         ))}
       </div>
 
-      {/* ═══════════════════════════════════════════════
-          TAB: DATA HARIAN
-      ═══════════════════════════════════════════════ */}
+      {/* ═══════════════════════════ TAB: DATA HARIAN ═══════════════════════════ */}
       {activeTab === 'harian' && (
         <div className="space-y-4">
           {/* Controls bar */}
@@ -532,16 +388,8 @@ export default function Absensi() {
                 <p className="text-gray-400 text-sm mt-1 max-w-xs">
                   {isWeekend(selectedDate)
                     ? 'Tanggal ini adalah hari Sabtu/Minggu (hari libur)'
-                    : 'Belum ada data untuk tanggal ini. Gunakan "Input Kehadiran" untuk mengisi.'}
+                    : 'Belum ada data kehadiran untuk tanggal ini. Gunakan tombol Tambah untuk menambahkan data.'}
                 </p>
-                {!isWeekend(selectedDate) && (
-                  <button
-                    onClick={() => { setBulkDate(selectedDate); setActiveTab('input'); }}
-                    className="mt-4 flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
-                  >
-                    <UserCheck className="w-4 h-4" /> Input Kehadiran Sekarang
-                  </button>
-                )}
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -562,7 +410,11 @@ export default function Absensi() {
                     {filteredRecords.map((rec, i) => {
                       const p = pegawai.find(px => px.id === rec.pegawaiId);
                       return (
-                        <tr key={rec.id} className="hover:bg-gray-50/60 transition-colors group cursor-pointer" onClick={() => setDetailRecord(rec)}>
+                        <tr
+                          key={rec.id}
+                          className="hover:bg-gray-50/60 transition-colors group cursor-pointer"
+                          onClick={() => setDetailRecord(rec)}
+                        >
                           <td className="px-4 py-3 text-gray-400 text-xs">{i + 1}</td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2.5">
@@ -610,15 +462,33 @@ export default function Absensi() {
                             <div className="flex items-center justify-center gap-1">
                               {deleteConfirmId === rec.id ? (
                                 <div className="flex items-center gap-1">
-                                  <button onClick={() => handleDelete(rec.id)} className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium">Hapus</button>
-                                  <button onClick={() => setDeleteConfirmId(null)} className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors">Batal</button>
+                                  <button
+                                    onClick={e => { e.stopPropagation(); handleDelete(rec.id); }}
+                                    className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium"
+                                  >
+                                    Hapus
+                                  </button>
+                                  <button
+                                    onClick={e => { e.stopPropagation(); setDeleteConfirmId(null); }}
+                                    className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+                                  >
+                                    Batal
+                                  </button>
                                 </div>
                               ) : (
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button onClick={() => openEditModal(rec)} className="p-1.5 hover:bg-blue-50 text-blue-500 rounded-lg transition-colors" title="Edit">
+                                  <button
+                                    onClick={e => { e.stopPropagation(); openEditModal(rec); }}
+                                    className="p-1.5 hover:bg-blue-50 text-blue-500 rounded-lg transition-colors"
+                                    title="Edit"
+                                  >
                                     <Edit2 className="w-3.5 h-3.5" />
                                   </button>
-                                  <button onClick={() => setDeleteConfirmId(rec.id)} className="p-1.5 hover:bg-red-50 text-red-400 rounded-lg transition-colors" title="Hapus">
+                                  <button
+                                    onClick={e => { e.stopPropagation(); setDeleteConfirmId(rec.id); }}
+                                    className="p-1.5 hover:bg-red-50 text-red-400 rounded-lg transition-colors"
+                                    title="Hapus"
+                                  >
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>
                                 </div>
@@ -648,8 +518,8 @@ export default function Absensi() {
                 <div>
                   <p className="text-sm font-medium text-orange-800">Perhatian: Ada {dateStats.alpha} Pegawai Alpha</p>
                   <p className="text-xs text-orange-600 mt-1">
-                    Berdasarkan PP No. 94/2021 tentang Disiplin PNS: tidak hadir tanpa keterangan selama 5 hari kerja berturut-turut dikenakan hukuman disiplin tingkat ringan.
-                    Segera tindak lanjuti dan dokumentasikan di menu Disiplin.
+                    Berdasarkan PP No. 94/2021 tentang Disiplin PNS: tidak hadir tanpa keterangan selama 5 hari kerja
+                    berturut-turut dikenakan hukuman disiplin tingkat ringan. Segera tindak lanjuti dan dokumentasikan di menu Disiplin.
                   </p>
                 </div>
               </div>
@@ -658,234 +528,7 @@ export default function Absensi() {
         </div>
       )}
 
-      {/* ═══════════════════════════════════════════════
-          TAB: INPUT KEHADIRAN
-      ═══════════════════════════════════════════════ */}
-      {activeTab === 'input' && (
-        <div className="space-y-4">
-          {/* Top controls */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div className="flex items-end gap-4 flex-wrap">
-                {/* Date selector */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Tanggal Input</label>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => setBulkDate(d => adjustDate(d, -1))} className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                      <ChevronLeft className="w-4 h-4 text-gray-500" />
-                    </button>
-                    <input
-                      type="date"
-                      value={bulkDate}
-                      onChange={e => setBulkDate(e.target.value)}
-                      className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <button onClick={() => setBulkDate(d => adjustDate(d, 1))} className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                      <ChevronRight className="w-4 h-4 text-gray-500" />
-                    </button>
-                  </div>
-                </div>
-                {/* Quick actions */}
-                <div className="flex gap-2 flex-wrap">
-                  <button
-                    onClick={() => setAllStatus('Hadir')}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-green-200 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
-                  >
-                    <CheckCircle className="w-3.5 h-3.5" /> Semua Hadir
-                  </button>
-                  <button
-                    onClick={() => setAllStatus('Libur')}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-200 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5" /> Semua Libur
-                  </button>
-                  <button
-                    onClick={resetBulkToSaved}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-200 text-gray-500 rounded-lg hover:bg-gray-50 transition-colors"
-                    title="Reset ke data tersimpan"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Reset</span>
-                  </button>
-                </div>
-              </div>
-              {/* Save button */}
-              <button
-                onClick={handleBulkSave}
-                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors font-medium"
-              >
-                <Save className="w-4 h-4" /> Simpan Semua
-              </button>
-            </div>
-          </div>
-
-          {/* Info + preview stats */}
-          <div className={`rounded-xl border p-3 flex flex-wrap gap-3 items-center justify-between ${isWeekend(bulkDate) ? 'bg-gray-50 border-gray-200' : 'bg-blue-50 border-blue-100'}`}>
-            <div className="flex items-center gap-2">
-              <Calendar className={`w-4 h-4 flex-shrink-0 ${isWeekend(bulkDate) ? 'text-gray-400' : 'text-blue-500'}`} />
-              <span className="text-sm text-gray-700">
-                Input kehadiran: <span className="font-medium">{formatDateLong(bulkDate)}</span>
-                {isWeekend(bulkDate) && <span className="ml-2 text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">Hari Libur</span>}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              {STATUS_LIST.filter(s => (bulkStats[s] || 0) > 0).map(s => {
-                const cfg = STATUS_CONFIG[s];
-                return (
-                  <span key={s} className={`text-xs px-2 py-0.5 rounded-full font-medium ${cfg.bg} ${cfg.color}`}>
-                    {s}: {bulkStats[s]}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Search + filter */}
-          <div className="flex gap-2 flex-wrap">
-            <div className="relative flex-1 min-w-48">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Cari nama, NIP, atau unit..."
-                value={bulkSearch}
-                onChange={e => setBulkSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-              />
-            </div>
-            <select
-              value={bulkFilterUnit}
-              onChange={e => setBulkFilterUnit(e.target.value)}
-              className="text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white max-w-44"
-            >
-              <option value="">Semua Unit</option>
-              {uniqueUnits.map(u => <option key={u} value={u}>{shortUnit(u)}</option>)}
-            </select>
-          </div>
-
-          {/* Bulk input table */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 w-10">No</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 min-w-52">Nama Pegawai</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 hidden md:table-cell min-w-36">Unit Kerja</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 min-w-40">Status Kehadiran</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 min-w-32">Jam Masuk</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 min-w-32">Jam Keluar</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 min-w-44">Keterangan</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {bulkFilteredPegawai.map((p, i) => {
-                    const entry = bulkEntries[p.id] || { status: 'Hadir' as AbsensiRecord['status'], jamMasuk: '07:30', jamKeluar: '16:00', keterangan: '' };
-                    const cfg = STATUS_CONFIG[entry.status] || STATUS_CONFIG['Hadir'];
-                    const needsTime = entry.status === 'Hadir' || entry.status === 'Dinas Luar';
-                    const late = needsTime && isLate(entry.jamMasuk);
-                    return (
-                      <tr key={p.id} className={`transition-colors ${cfg.rowBg}`}>
-                        <td className="px-4 py-2.5 text-gray-400 text-xs">{i + 1}</td>
-                        <td className="px-4 py-2.5">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-7 h-7 rounded-full ${getAvatarColor(p.id)} flex items-center justify-center flex-shrink-0`}>
-                              <span className="text-white text-xs font-semibold">{getInitials(p.nama)}</span>
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium text-gray-800 leading-tight truncate max-w-40">{p.nama}</p>
-                              <p className="text-xs text-gray-400 truncate">{p.nip}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-2.5 hidden md:table-cell">
-                          <p className="text-xs text-gray-500 truncate max-w-36">{p.unitKerja}</p>
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <select
-                            value={entry.status}
-                            onChange={e => updateBulkEntry(p.id, 'status', e.target.value)}
-                            className={`w-full text-xs border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400 font-medium cursor-pointer ${cfg.border} ${cfg.selectBg} ${cfg.color}`}
-                          >
-                            {STATUS_LIST.map(s => <option key={s} value={s}>{s}</option>)}
-                          </select>
-                        </td>
-                        <td className="px-4 py-2.5">
-                          {needsTime ? (
-                            <div>
-                              <input
-                                type="time"
-                                value={entry.jamMasuk}
-                                onChange={e => updateBulkEntry(p.id, 'jamMasuk', e.target.value)}
-                                className={`w-full text-xs border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400 ${late ? 'border-orange-300 bg-orange-50 text-orange-700' : 'border-gray-200'}`}
-                              />
-                              {late && <p className="text-xs text-orange-500 mt-0.5 font-medium">⚠ Terlambat</p>}
-                            </div>
-                          ) : <span className="text-xs text-gray-300 px-2">—</span>}
-                        </td>
-                        <td className="px-4 py-2.5">
-                          {needsTime ? (
-                            <input
-                              type="time"
-                              value={entry.jamKeluar}
-                              onChange={e => updateBulkEntry(p.id, 'jamKeluar', e.target.value)}
-                              className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                            />
-                          ) : <span className="text-xs text-gray-300 px-2">—</span>}
-                        </td>
-                        <td className="px-4 py-2.5">
-                          {entry.status !== 'Hadir' && entry.status !== 'Libur' ? (
-                            <input
-                              type="text"
-                              value={entry.keterangan}
-                              onChange={e => updateBulkEntry(p.id, 'keterangan', e.target.value)}
-                              placeholder={
-                                entry.status === 'Sakit' ? 'No. Surat Dokter...' :
-                                  entry.status === 'Izin' ? 'Alasan izin...' :
-                                    entry.status === 'Dinas Luar' ? 'Tujuan/keperluan...' :
-                                      'Keterangan...'
-                              }
-                              className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                            />
-                          ) : <span className="text-xs text-gray-300 px-2">—</span>}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between gap-3">
-              <p className="text-xs text-gray-400">
-                Menampilkan {bulkFilteredPegawai.length} dari {pegawai.length} pegawai
-              </p>
-              <button
-                onClick={handleBulkSave}
-                className="flex items-center gap-2 px-5 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors font-medium"
-              >
-                <Save className="w-4 h-4" /> Simpan Semua ({pegawai.length} pegawai)
-              </button>
-            </div>
-          </div>
-
-          {/* Info tip */}
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-blue-800">Panduan Input Kehadiran</p>
-                <p className="text-xs text-blue-600 mt-1">
-                  Jam masuk standar ASN: <b>07:30 WIB</b>. Batas toleransi: <b>08:00 WIB</b>. Keterlambatan &gt;08:00 otomatis tercatat sebagai "Terlambat".
-                  Data yang disimpan akan menggantikan seluruh data kehadiran untuk tanggal tersebut. Gunakan tombol Reset untuk memuat ulang data tersimpan.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ═══════════════════════════════════════════════
-          TAB: REKAP BULANAN
-      ═══════════════════════════════════════════════ */}
+      {/* ═══════════════════════════ TAB: REKAP BULANAN ═════════════════════════ */}
       {activeTab === 'rekap' && (
         <div className="space-y-4">
           {/* Controls */}
@@ -936,13 +579,13 @@ export default function Absensi() {
           {/* Summary stat cards for month */}
           <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
             {[
-              { label: 'Total Hadir', value: rekapData.reduce((a, r) => a + r.hadir, 0), color: 'text-green-600', bg: 'bg-green-50 border-green-100' },
+              { label: 'Total Hadir',      value: rekapData.reduce((a, r) => a + r.hadir, 0),     color: 'text-green-600',  bg: 'bg-green-50 border-green-100' },
               { label: 'Total Dinas Luar', value: rekapData.reduce((a, r) => a + r.dinasLuar, 0), color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-100' },
-              { label: 'Total Sakit', value: rekapData.reduce((a, r) => a + r.sakit, 0), color: 'text-yellow-600', bg: 'bg-yellow-50 border-yellow-100' },
-              { label: 'Total Izin', value: rekapData.reduce((a, r) => a + r.izin, 0), color: 'text-blue-600', bg: 'bg-blue-50 border-blue-100' },
-              { label: 'Total Cuti', value: rekapData.reduce((a, r) => a + r.cuti, 0), color: 'text-purple-600', bg: 'bg-purple-50 border-purple-100' },
-              { label: 'Total Alpha', value: rekapData.reduce((a, r) => a + r.alpha, 0), color: 'text-red-600', bg: 'bg-red-50 border-red-100' },
-              { label: 'Total Terlambat', value: rekapData.reduce((a, r) => a + r.terlambat, 0), color: 'text-orange-600', bg: 'bg-orange-50 border-orange-100' },
+              { label: 'Total Sakit',      value: rekapData.reduce((a, r) => a + r.sakit, 0),     color: 'text-yellow-600', bg: 'bg-yellow-50 border-yellow-100' },
+              { label: 'Total Izin',       value: rekapData.reduce((a, r) => a + r.izin, 0),      color: 'text-blue-600',   bg: 'bg-blue-50 border-blue-100' },
+              { label: 'Total Cuti',       value: rekapData.reduce((a, r) => a + r.cuti, 0),      color: 'text-purple-600', bg: 'bg-purple-50 border-purple-100' },
+              { label: 'Total Alpha',      value: rekapData.reduce((a, r) => a + r.alpha, 0),     color: 'text-red-600',    bg: 'bg-red-50 border-red-100' },
+              { label: 'Total Terlambat',  value: rekapData.reduce((a, r) => a + r.terlambat, 0), color: 'text-orange-600', bg: 'bg-orange-50 border-orange-100' },
             ].map(s => (
               <div key={s.label} className={`rounded-xl p-3 border ${s.bg}`}>
                 <p className="text-xs text-gray-500 truncate leading-tight">{s.label}</p>
@@ -1002,11 +645,15 @@ export default function Absensi() {
                         <div className="flex items-center gap-2">
                           <div className="flex-1 bg-gray-100 rounded-full h-2">
                             <div
-                              className={`h-2 rounded-full transition-all ${r.persen >= 95 ? 'bg-green-500' : r.persen >= 85 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                              className={`h-2 rounded-full transition-all ${
+                                r.persen >= 95 ? 'bg-green-500' : r.persen >= 85 ? 'bg-yellow-500' : 'bg-red-500'
+                              }`}
                               style={{ width: `${Math.min(r.persen, 100)}%` }}
                             />
                           </div>
-                          <span className={`text-xs font-semibold w-10 text-right ${r.persen >= 95 ? 'text-green-600' : r.persen >= 85 ? 'text-yellow-600' : 'text-red-600'}`}>
+                          <span className={`text-xs font-semibold w-10 text-right ${
+                            r.persen >= 95 ? 'text-green-600' : r.persen >= 85 ? 'text-yellow-600' : 'text-red-600'
+                          }`}>
                             {r.persen}%
                           </span>
                         </div>
@@ -1019,18 +666,25 @@ export default function Absensi() {
             <div className="px-4 py-3 border-t border-gray-50 bg-gray-50/40 text-xs text-gray-400 flex items-center justify-between">
               <span>{rekapData.length} pegawai ditampilkan · {workDaysCount} hari kerja</span>
               <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>≥95% Baik Sekali</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-500 inline-block"></span>85–94% Baik</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block"></span>&lt;85% Perlu Perhatian</span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+                  ≥95% Baik Sekali
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-yellow-500 inline-block" />
+                  85–94% Baik
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />
+                  &lt;85% Perlu Perhatian
+                </span>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* ═══════════════════════════════════════════════
-          MODAL: ADD / EDIT SINGLE RECORD
-      ═══════════════════════════════════════════════ */}
+      {/* ══════════════════════ MODAL: ADD / EDIT RECORD ════════════════════════ */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -1093,10 +747,11 @@ export default function Absensi() {
                       <button
                         key={s}
                         onClick={() => setModalStatus(s)}
-                        className={`flex flex-col items-center gap-1 px-2 py-2.5 rounded-xl text-xs font-medium border transition-all ${active
-                          ? `${cfg.bg} ${cfg.color} ${cfg.border} ring-2 ring-blue-400 ring-offset-1`
-                          : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-                          }`}
+                        className={`flex flex-col items-center gap-1 px-2 py-2.5 rounded-xl text-xs font-medium border transition-all ${
+                          active
+                            ? `${cfg.bg} ${cfg.color} ${cfg.border} ring-2 ring-blue-400 ring-offset-1`
+                            : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                        }`}
                       >
                         <span className={`w-3 h-3 rounded-full ${cfg.dot}`} />
                         {s}
@@ -1115,7 +770,9 @@ export default function Absensi() {
                       type="time"
                       value={modalForm.jamMasuk}
                       onChange={e => setModalForm(f => ({ ...f, jamMasuk: e.target.value }))}
-                      className={`w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isLate(modalForm.jamMasuk) ? 'border-orange-300 bg-orange-50' : 'border-gray-200'}`}
+                      className={`w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        isLate(modalForm.jamMasuk) ? 'border-orange-300 bg-orange-50' : 'border-gray-200'
+                      }`}
                     />
                     {isLate(modalForm.jamMasuk) && <p className="text-xs text-orange-500 mt-1">⚠ Terlambat (setelah 08:00)</p>}
                   </div>
@@ -1125,7 +782,9 @@ export default function Absensi() {
                       type="time"
                       value={modalForm.jamKeluar}
                       onChange={e => setModalForm(f => ({ ...f, jamKeluar: e.target.value }))}
-                      className={`w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isEarlyLeave(modalForm.jamKeluar) ? 'border-red-200 bg-red-50' : 'border-gray-200'}`}
+                      className={`w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        isEarlyLeave(modalForm.jamKeluar) ? 'border-red-200 bg-red-50' : 'border-gray-200'
+                      }`}
                     />
                     {isEarlyLeave(modalForm.jamKeluar) && <p className="text-xs text-red-400 mt-1">Pulang sebelum 15:30</p>}
                   </div>
@@ -1140,11 +799,11 @@ export default function Absensi() {
                   value={modalForm.keterangan}
                   onChange={e => setModalForm(f => ({ ...f, keterangan: e.target.value }))}
                   placeholder={
-                    modalForm.status === 'Sakit' ? 'Nomor surat dokter (mis. SK-001/2026)...' :
-                      modalForm.status === 'Izin' ? 'Alasan izin...' :
-                        modalForm.status === 'Dinas Luar' ? 'Tujuan / keperluan dinas...' :
-                          modalForm.status === 'Cuti' ? 'Jenis cuti...' :
-                            'Keterangan tambahan...'
+                    modalForm.status === 'Sakit'      ? 'Nomor surat dokter (mis. SK-001/2026)...' :
+                    modalForm.status === 'Izin'       ? 'Alasan izin...' :
+                    modalForm.status === 'Dinas Luar' ? 'Tujuan / keperluan dinas...' :
+                    modalForm.status === 'Cuti'       ? 'Jenis cuti...' :
+                                                        'Keterangan tambahan...'
                   }
                   className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -1188,25 +847,28 @@ export default function Absensi() {
                   </div>
                   <h2 className="font-semibold text-gray-800">Detail Kehadiran</h2>
                 </div>
-                <button onClick={() => setDetailRecord(null)} className="p-1.5 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5 text-gray-500" /></button>
+                <button onClick={() => setDetailRecord(null)} className="p-1.5 hover:bg-gray-100 rounded-lg">
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
               </div>
               <div className="p-6 space-y-4">
-                {/* Pegawai */}
                 <div className="bg-gray-50 rounded-xl p-4 flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-full ${getAvatarColor(detailRecord.pegawaiId)} flex items-center justify-center text-white font-semibold flex-shrink-0`}>
                     {getInitials(p?.nama || '?')}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-800 text-sm">{p?.gelarDepan || ''} {p?.nama}{p?.gelarBelakang ? `, ${p.gelarBelakang}` : ''}</p>
+                    <p className="font-semibold text-gray-800 text-sm">
+                      {p?.gelarDepan || ''} {p?.nama}{p?.gelarBelakang ? `, ${p.gelarBelakang}` : ''}
+                    </p>
                     <p className="text-xs text-gray-500">{p?.jabatan}</p>
                     <p className="text-xs text-gray-400">{p?.unitKerja}</p>
                   </div>
                 </div>
                 <div className="space-y-2.5">
                   {[
-                    { label: 'Tanggal', value: formatDateLong(detailRecord.tanggal) },
-                    { label: 'Status', value: <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.bg} ${cfg.color}`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}/>{cfg.label}</span> },
-                    { label: 'Jam Masuk', value: detailRecord.jamMasuk ? <span>{detailRecord.jamMasuk} {late && <span className="text-xs text-orange-500 ml-1 font-medium">Terlambat</span>}</span> : '—' },
+                    { label: 'Tanggal',    value: formatDateLong(detailRecord.tanggal) },
+                    { label: 'Status',     value: <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.bg} ${cfg.color}`}><span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />{cfg.label}</span> },
+                    { label: 'Jam Masuk',  value: detailRecord.jamMasuk  ? <span>{detailRecord.jamMasuk}  {late       && <span className="text-xs text-orange-500 ml-1 font-medium">Terlambat</span>}</span>   : '—' },
                     { label: 'Jam Keluar', value: detailRecord.jamKeluar ? <span>{detailRecord.jamKeluar} {earlyLeave && <span className="text-xs text-red-400 ml-1 font-medium">Pulang Cepat</span>}</span> : '—' },
                     { label: 'Keterangan', value: detailRecord.keterangan || '—' },
                   ].map(row => (
@@ -1218,11 +880,18 @@ export default function Absensi() {
                 </div>
               </div>
               <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
-                <button onClick={() => { setDetailRecord(null); openEditModal(detailRecord); }}
-                  className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">
+                <button
+                  onClick={() => { setDetailRecord(null); openEditModal(detailRecord); }}
+                  className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50"
+                >
                   <Edit2 className="w-4 h-4" /> Edit
                 </button>
-                <button onClick={() => setDetailRecord(null)} className="px-4 py-2 text-sm bg-gray-800 text-white rounded-lg hover:bg-gray-900">Tutup</button>
+                <button
+                  onClick={() => setDetailRecord(null)}
+                  className="px-4 py-2 text-sm bg-gray-800 text-white rounded-lg hover:bg-gray-900"
+                >
+                  Tutup
+                </button>
               </div>
             </div>
           </div>
