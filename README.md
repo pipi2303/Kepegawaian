@@ -1,7 +1,7 @@
 
-  # Modul Kepegawaian
+  # HCMS
 
-  This is a code bundle for Modul Kepegawaian. The original project is available at https://www.figma.com/design/5StM3bEgI9qEyhUd0no88K/Modul-Kepegawaian.
+  This is a code bundle for HCMS. The original project is available at https://www.figma.com/design/5StM3bEgI9qEyhUd0no88K/HCMS.
 
   ## Running the code
 
