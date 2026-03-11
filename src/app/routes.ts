@@ -7,6 +7,7 @@ import NotFound from './components/NotFound';
 // "Failed to fetch dynamically imported module" pada file berukuran besar
 // di lingkungan Figma Make dev server.
 import Dashboard from './pages/Dashboard';
+import Penggajian from './pages/Penggajian';
 
 // Semua halaman lain tetap lazy-loaded untuk performa optimal.
 const Login              = lazy(() => import('./pages/Login'));
@@ -23,7 +24,6 @@ const Diklat             = lazy(() => import('./pages/Diklat'));
 const SuratKepegawaian   = lazy(() => import('./pages/SuratKepegawaian'));
 const Credentialing      = lazy(() => import('./pages/Credentialing'));
 const K3RS               = lazy(() => import('./pages/K3RS'));
-const Penggajian         = lazy(() => import('./pages/Penggajian'));
 const Penjadwalan        = lazy(() => import('./pages/Penjadwalan'));
 const BPJS               = lazy(() => import('./pages/BPJS'));
 const Kontrak            = lazy(() => import('./pages/Kontrak'));
