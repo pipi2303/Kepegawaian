@@ -5,22 +5,21 @@
  */
 import React, { useState } from 'react';
 import {
-  Activity, BarChart2, AlertTriangle, Gauge,
-  Clock, Users, Bed,
+  Activity, AlertTriangle, Gauge, Bed,
 } from 'lucide-react';
 import RechartsWrapper from '../RechartsWrapper';
 import { TabButton, MiniBar } from '../DashboardWidgets';
 import {
   patientJourneyFunnel, waitingTimeByUnit, borByWard,
   orUtilization, equipmentUsage, labTurnaroundTime,
-  dischargeDelayCauses, patientVolumeTrend, clinicalKPI,
+  dischargeDelayCauses, clinicalKPI,
 } from '../../data/hospitalDashboardData';
+import OperationsSimulation from './OperationsSimulation';
 
 type Tab = 'overview' | 'capacity' | 'bottleneck' | 'simulation';
 
 export default function OperationsDashboard() {
   const [tab, setTab] = useState<Tab>('overview');
-  const [simVolume, setSimVolume] = useState(0);
 
   return (
     <div className="space-y-5">
@@ -263,96 +262,7 @@ export default function OperationsDashboard() {
       )}
 
       {/* TAB 4 */}
-      {tab === 'simulation' && (
-        <div className="space-y-5">
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-            <div className="mb-4">
-              <h3 className="text-gray-800">Capacity vs Demand Simulation</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Simulasi dampak kenaikan volume pasien terhadap BOR & SDM</p>
-            </div>
-            <div className="mb-4">
-              <label className="text-xs text-gray-600 font-medium">Kenaikan Volume Pasien (%)</label>
-              <div className="flex items-center gap-4 mt-2">
-                <input
-                  type="range"
-                  min={0}
-                  max={50}
-                  step={5}
-                  value={simVolume}
-                  onChange={e => setSimVolume(Number(e.target.value))}
-                  className="flex-1 accent-blue-600"
-                />
-                <span className="text-lg font-bold text-blue-600 w-16 text-right">+{simVolume}%</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {(() => {
-                const newBOR = Math.min(100, clinicalKPI.bor * (1 + simVolume / 100));
-                const newERWait = clinicalKPI.erWaitingTime * (1 + simVolume / 200);
-                const additionalStaff = Math.ceil(246 * simVolume / 100 * 0.3);
-                return [
-                  { label: 'BOR Proyeksi', value: `${newBOR.toFixed(1)}%`, sub: `Saat ini: ${clinicalKPI.bor}%`, color: newBOR > 90 ? 'text-red-600' : newBOR > 85 ? 'text-amber-600' : 'text-green-600', bg: newBOR > 90 ? 'bg-red-50 border-red-200' : newBOR > 85 ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200' },
-                  { label: 'ER Wait Time', value: `${newERWait.toFixed(0)} mnt`, sub: `Saat ini: ${clinicalKPI.erWaitingTime} mnt`, color: newERWait > 25 ? 'text-red-600' : 'text-amber-600', bg: newERWait > 25 ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200' },
-                  { label: 'Tambahan SDM', value: `+${additionalStaff}`, sub: 'Kebutuhan staf tambahan', color: additionalStaff > 20 ? 'text-red-600' : 'text-blue-600', bg: additionalStaff > 20 ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-200' },
-                ];
-              })().map(s => (
-                <div key={s.label} className={`p-4 rounded-xl border ${s.bg}`}>
-                  <p className={`text-3xl font-bold ${s.color}`}>{s.value}</p>
-                  <p className="text-xs font-medium text-gray-700 mt-1">{s.label}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">{s.sub}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-              <div className="mb-4">
-                <h3 className="text-gray-800">BOR Impact if Patient Volume ↑</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Proyeksi BOR per bangsal jika volume naik +{simVolume}%</p>
-              </div>
-              <div className="space-y-2.5">
-                {borByWard.map(w => {
-                  const newBOR = Math.min(100, w.bor * (1 + simVolume / 100));
-                  return (
-                    <div key={w.ward}>
-                      <div className="flex justify-between text-xs text-gray-600 mb-0.5">
-                        <span>{w.ward}</span>
-                        <span className={`font-semibold ${newBOR > 95 ? 'text-red-600' : newBOR > 85 ? 'text-amber-600' : 'text-green-600'}`}>{newBOR.toFixed(1)}%</span>
-                      </div>
-                      <MiniBar value={newBOR} total={100} color={newBOR > 95 ? 'bg-red-500' : newBOR > 85 ? 'bg-amber-500' : 'bg-green-500'} />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-              <div className="mb-4">
-                <h3 className="text-gray-800">Staffing Impact Scenario</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Kebutuhan tambahan SDM per kategori</p>
-              </div>
-              <div className="space-y-3">
-                {[
-                  { role: 'Perawat', current: 98, additional: Math.ceil(98 * simVolume / 100 * 0.5) },
-                  { role: 'Dokter Spesialis', current: 42, additional: Math.ceil(42 * simVolume / 100 * 0.3) },
-                  { role: 'Penunjang Medis', current: 36, additional: Math.ceil(36 * simVolume / 100 * 0.4) },
-                  { role: 'Admin & Support', current: 70, additional: Math.ceil(70 * simVolume / 100 * 0.2) },
-                ].map(r => (
-                  <div key={r.role} className="p-3 bg-gray-50 rounded-lg flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-medium text-gray-700">{r.role}</p>
-                      <p className="text-[10px] text-gray-400">Current: {r.current}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className={`text-lg font-bold ${r.additional > 10 ? 'text-red-600' : r.additional > 0 ? 'text-amber-600' : 'text-green-600'}`}>+{r.additional}</p>
-                      <p className="text-[10px] text-gray-400">Tambahan</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {tab === 'simulation' && <OperationsSimulation />}
     </div>
   );
 }
