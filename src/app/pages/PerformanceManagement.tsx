@@ -29,7 +29,7 @@ import { StrategicReviewTab } from '../components/StrategicReviewTab';
 const TABS = [
   { id: 'bsc',       label: 'BSC Dashboard',      icon: BarChart2     },
   { id: 'kpi',       label: 'KPI Matrix',          icon: Layers        },
-  { id: 'strategic', label: 'Kajian Strategis',    icon: Building2     },
+  { id: 'strategic', label: 'Kajian Eksekutif',    icon: Building2     },
   { id: 'okr',       label: 'OKR',                icon: Target        },
   { id: 'map',       label: 'Strategic Map',       icon: Map           },
   { id: 'analytics', label: 'Analytics',           icon: TrendingUp    },

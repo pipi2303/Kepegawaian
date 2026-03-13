@@ -11,10 +11,17 @@ import {
   ClipboardList, ArrowUpRight, UserPlus, Hash,
   TrendingDown, LayoutDashboard, RefreshCw,
   Filter, Minus, CheckCircle2, AlertTriangle,
+  Crown, Stethoscope, Settings2, FileText, ShieldCheck,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { chartKehadiran, chartUnitKerja } from '../data/mockData';
 import RechartsWrapper from '../components/RechartsWrapper';
+import ExecutiveDashboard from '../components/dashboard/ExecutiveDashboard';
+import FinanceDashboard from '../components/dashboard/FinanceDashboard';
+import ClinicalDashboard from '../components/dashboard/ClinicalDashboard';
+import OperationsDashboard from '../components/dashboard/OperationsDashboard';
+import BPJSCasemixDashboard from '../components/dashboard/BPJSCasemixDashboard';
+import GRCDashboard from '../components/dashboard/GRCDashboard';
 import {
   StatCard, AlertItem, TabButton, MiniBar, HealthGauge,
 } from '../components/DashboardWidgets';
@@ -58,6 +65,8 @@ export default function Dashboard() {
     mutasi, penghargaan, cpd, grievance,
   } = useAppContext();
 
+  type DashboardRole = 'hr' | 'executive' | 'finance' | 'clinical' | 'operations' | 'bpjs' | 'grc';
+  const [dashboardRole, setDashboardRole] = useState<DashboardRole>('hr');
   const [activeTab, setActiveTab] = useState<'ringkasan' | 'kehadiran' | 'sdm' | 'kinerja'>('ringkasan');
   const [activityFeed, setActivityFeed] = useState<'aktivitas' | 'pengingat'>('aktivitas');
 
@@ -545,8 +554,60 @@ export default function Dashboard() {
     { label: 'Diklat', score: stats.trainingScore, weight: '15%', color: 'bg-pink-500' },
   ];
 
+  const DASHBOARD_ROLES: { id: DashboardRole; label: string; desc: string; icon: React.ElementType; gradient: string }[] = [
+    { id: 'executive', label: 'Executive Command Center', desc: 'Direktur / Board', icon: Crown, gradient: 'from-amber-500 to-amber-700' },
+    { id: 'finance', label: 'Financial Control', desc: 'Direktur Keuangan', icon: DollarSign, gradient: 'from-emerald-500 to-emerald-700' },
+    { id: 'clinical', label: 'Clinical Performance', desc: 'Direktur Medis', icon: Stethoscope, gradient: 'from-blue-500 to-blue-700' },
+    { id: 'operations', label: 'Operations Control Tower', desc: 'Manajer Operasional', icon: Settings2, gradient: 'from-purple-500 to-purple-700' },
+    { id: 'hr', label: 'Workforce Analytics', desc: 'Direktur SDM / HRGA', icon: Users, gradient: 'from-[#1e3a5f] to-[#2563a8]' },
+    { id: 'bpjs', label: 'BPJS & Casemix Control', desc: 'Tim BPJS / Casemix', icon: FileText, gradient: 'from-cyan-500 to-cyan-700' },
+    { id: 'grc', label: 'Governance, Risk & Compliance', desc: 'Mutu / Akreditasi', icon: ShieldCheck, gradient: 'from-red-500 to-red-700' },
+  ];
+
   return (
     <div className="p-4 lg:p-6 space-y-5">
+
+      {/* ── Role Selector ──────────────────────────────────────────────────────── */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3">
+        <div className="flex items-center gap-2 mb-2 px-1">
+          <LayoutDashboard className="w-4 h-4 text-gray-400" />
+          <span className="text-xs font-semibold text-gray-500">Dashboard View</span>
+        </div>
+        <div className="flex gap-1.5 overflow-x-auto pb-1">
+          {DASHBOARD_ROLES.map(role => {
+            const isActive = dashboardRole === role.id;
+            return (
+              <button
+                key={role.id}
+                onClick={() => setDashboardRole(role.id)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left transition-all flex-shrink-0 ${
+                  isActive
+                    ? `bg-gradient-to-r ${role.gradient} text-white border-transparent shadow-md`
+                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-100'
+                }`}
+              >
+                <role.icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                <div>
+                  <p className={`text-[11px] font-semibold leading-tight ${isActive ? 'text-white' : 'text-gray-700'}`}>{role.label}</p>
+                  <p className={`text-[9px] ${isActive ? 'text-white/70' : 'text-gray-400'}`}>{role.desc}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Non-HR Dashboard Views ── */}
+      {dashboardRole === 'executive' && <ExecutiveDashboard />}
+      {dashboardRole === 'finance' && <FinanceDashboard />}
+      {dashboardRole === 'clinical' && <ClinicalDashboard />}
+      {dashboardRole === 'operations' && <OperationsDashboard />}
+      {dashboardRole === 'bpjs' && <BPJSCasemixDashboard />}
+      {dashboardRole === 'grc' && <GRCDashboard />}
+
+      {/* ── HR Director Dashboard (existing) ── */}
+      {dashboardRole === 'hr' && (
+      <div className="contents">
 
       {/* ── Hero Header ──────────────────────────────────────────────────────── */}
       <div className="relative bg-gradient-to-br from-[#1e3a5f] via-[#1e4d7b] to-[#2563a8] rounded-2xl overflow-hidden p-5 lg:p-6 shadow-lg">
@@ -561,7 +622,7 @@ export default function Dashboard() {
               <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
               <span className="text-white/70 text-xs">Minggu, 8 Maret 2026 · Sistem Aktif</span>
             </div>
-            <h1 className="text-white mb-1">Dashboard HCMS</h1>
+            <h1 className="text-white mb-1">Healthcare Workforce Analytics</h1>
             <p className="text-blue-200 text-sm">SIMRS - Human Capital Management System (HCMS)</p>
             <div className="flex flex-wrap gap-2 mt-3">
               {[
@@ -2153,6 +2214,9 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      </div>
       )}
 
     </div>
