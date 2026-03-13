@@ -8,7 +8,7 @@ import {
   Shield, Activity,
   Briefcase, FileBarChart2, Bell, Star, Zap,
   Award, UserCheck, UserX, BookOpen,
-  ClipboardList, ArrowUpRight, UserPlus, Hash,
+  ClipboardList, ArrowUpRight, UserPlus,
   TrendingDown, LayoutDashboard, RefreshCw,
   Filter, Minus, CheckCircle2, AlertTriangle,
   Crown, Stethoscope, Settings2, FileText, ShieldCheck,
@@ -608,52 +608,6 @@ export default function Dashboard() {
       {/* ── HR Director Dashboard (existing) ── */}
       {dashboardRole === 'hr' && (
       <div className="contents">
-
-      {/* ── Hero Header ──────────────────────────────────────────────────────── */}
-      <div className="relative bg-gradient-to-br from-[#1e3a5f] via-[#1e4d7b] to-[#2563a8] rounded-2xl overflow-hidden p-5 lg:p-6 shadow-lg">
-        <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 pointer-events-none" />
-        <div className="absolute top-4 left-4 w-32 h-32 bg-white/3 rounded-full pointer-events-none" />
-
-        <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-          {/* Left info */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-white/70 text-xs">Minggu, 8 Maret 2026 · Sistem Aktif</span>
-            </div>
-            <h1 className="text-white mb-1">Healthcare Workforce Analytics</h1>
-            <p className="text-blue-200 text-sm">SIMRS - Human Capital Management System (HCMS)</p>
-            <div className="flex flex-wrap gap-2 mt-3">
-              {[
-                { label: '246 Total Pegawai', icon: Users },
-                { label: `${stats.pegawaiPNS} PNS · ${stats.pegawaiPPPK} PPPK · ${stats.pegawaiHonorer} Honorer`, icon: Hash },
-                { label: `${new Set(pegawai.map(p => p.unitKerja)).size} Unit Kerja Aktif`, icon: Building2 },
-              ].map(chip => (
-                <span key={chip.label} className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-lg px-3 py-1.5 text-white/90 text-xs">
-                  <chip.icon className="w-3.5 h-3.5 text-blue-200" /> {chip.label}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Right – Summary + Alerts chips */}
-          <div className="flex flex-wrap lg:flex-nowrap gap-3">
-            {[
-              { label: 'Hadir Jumat', value: `${stats.hadirHariIni}`, sub: `${stats.kehadiranPct}%`, bg: 'bg-white/10' },
-              { label: 'Alert Aktif', value: String(alerts.length), sub: `${alerts.filter(a => a.type === 'danger').length} bahaya`, bg: alerts.length > 0 ? 'bg-red-500/30' : 'bg-white/10' },
-              { label: 'Health Score', value: String(stats.healthScore), sub: stats.healthScore >= 85 ? 'Sangat Baik' : stats.healthScore >= 70 ? 'Baik' : 'Perlu Perhatian', bg: stats.healthScore >= 70 ? 'bg-green-500/20' : 'bg-amber-500/30' },
-              { label: 'Gaji Maret', value: fmtRp(stats.totalGajiNetto), sub: `${stats.slipBulanIniCount} slip`, bg: 'bg-white/10' },
-            ].map(chip => (
-              <div key={chip.label} className={`${chip.bg} backdrop-blur-sm rounded-xl px-4 py-2.5 text-center min-w-[80px]`}>
-                <p className="text-white font-semibold text-lg leading-tight">{chip.value}</p>
-                <p className="text-blue-200 text-[11px]">{chip.label}</p>
-                <p className="text-white/60 text-[10px]">{chip.sub}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* ── Tab Navigation ────────────────────────────────────────────────────── */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-2 flex gap-1 overflow-x-auto">
