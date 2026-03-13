@@ -23,11 +23,13 @@ import type {
 import { toast } from 'sonner';
 import { useAppContext } from '../context/AppContext';
 import { KPIMatrixTab } from '../components/KPIMatrixTab';
+import { StrategicReviewTab } from '../components/StrategicReviewTab';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const TABS = [
   { id: 'bsc',       label: 'BSC Dashboard',      icon: BarChart2     },
   { id: 'kpi',       label: 'KPI Matrix',          icon: Layers        },
+  { id: 'strategic', label: 'Kajian Strategis',    icon: Building2     },
   { id: 'okr',       label: 'OKR',                icon: Target        },
   { id: 'map',       label: 'Strategic Map',       icon: Map           },
   { id: 'analytics', label: 'Analytics',           icon: TrendingUp    },
@@ -1363,6 +1365,7 @@ export default function PerformanceManagement() {
         <div className="p-5">
           {activeTab === 'bsc'       && <BSCTab />}
           {activeTab === 'kpi'       && <KPIMatrixTab />}
+          {activeTab === 'strategic' && <StrategicReviewTab />}
           {activeTab === 'okr'       && <OKRTab />}
           {activeTab === 'map'       && <StrategicMapTab />}
           {activeTab === 'analytics' && <AnalyticsTab />}
