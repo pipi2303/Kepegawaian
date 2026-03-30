@@ -8,6 +8,7 @@ import {
   ArrowUpRight, TrendingDown,
   XCircle, AlertTriangle, Info, CheckCircle2,
 } from 'lucide-react';
+import { C } from './colors';
 
 // ─── StatCard ──────────────────────────────────────────────────────────────────
 export interface StatCardProps {
@@ -29,7 +30,7 @@ export function StatCard({
 }: StatCardProps) {
   return (
     <div
-      className={`bg-white rounded-xl border border-gray-100 shadow-sm p-4 transition-all duration-200 ${onClick ? 'cursor-pointer hover:shadow-md hover:border-blue-100' : ''}`}
+      className={`bg-white rounded-xl border border-gray-100 shadow-sm p-4 transition-all duration-200 ${onClick ? 'cursor-pointer hover:shadow-md hover:border-[#038E7D]/30' : ''}`}
       onClick={onClick}
     >
       <div className="flex items-start justify-between mb-3">
@@ -65,7 +66,7 @@ export function AlertItem({ type, title, desc, count, onClick }: AlertItemProps)
   const styles = {
     danger:  { bg: 'bg-red-50',   border: 'border-red-200',   icon: XCircle,      iconColor: 'text-red-500',   textColor: 'text-red-800',   descColor: 'text-red-600',   badgeBg: 'bg-red-100 text-red-700' },
     warning: { bg: 'bg-amber-50', border: 'border-amber-200', icon: AlertTriangle, iconColor: 'text-amber-500', textColor: 'text-amber-800', descColor: 'text-amber-600', badgeBg: 'bg-amber-100 text-amber-700' },
-    info:    { bg: 'bg-blue-50',  border: 'border-blue-200',  icon: Info,         iconColor: 'text-blue-500',  textColor: 'text-blue-800',  descColor: 'text-blue-600',  badgeBg: 'bg-blue-100 text-blue-700' },
+    info:    { bg: 'bg-[#013E37]/5',  border: 'border-[#013E37]/20',  icon: Info,         iconColor: 'text-[#048A75]',  textColor: 'text-[#012B26]',  descColor: 'text-[#013E37]',  badgeBg: 'bg-[#013E37]/10 text-[#013E37]' },
     success: { bg: 'bg-green-50', border: 'border-green-200', icon: CheckCircle2, iconColor: 'text-green-500', textColor: 'text-green-800', descColor: 'text-green-600', badgeBg: 'bg-green-100 text-green-700' },
   };
   const s = styles[type];
@@ -100,12 +101,12 @@ export function TabButton({ active, onClick, icon: Icon, label, badge }: TabButt
   return (
     <button
       onClick={onClick}
-      className={`relative flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold rounded-lg transition-all ${active ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
+      className={`relative flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold rounded-lg transition-all ${active ? 'bg-[#013E37] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
     >
       <Icon className="w-3.5 h-3.5" />
       <span className="hidden sm:inline">{label}</span>
       {badge !== undefined && badge > 0 && (
-        <span className={`min-w-[16px] h-4 rounded-full text-[9px] font-bold flex items-center justify-center px-1 ${active ? 'bg-white text-blue-600' : 'bg-red-500 text-white'}`}>{badge}</span>
+        <span className={`min-w-[16px] h-4 rounded-full text-[9px] font-bold flex items-center justify-center px-1 ${active ? 'bg-white text-[#013E37]' : 'bg-red-500 text-white'}`}>{badge}</span>
       )}
     </button>
   );
@@ -127,7 +128,7 @@ export function MiniBar({ value, total, color }: MiniBarProps) {
 export interface HealthGaugeProps { score: number; }
 
 export function HealthGauge({ score }: HealthGaugeProps) {
-  const color = score >= 85 ? '#10b981' : score >= 70 ? '#3b82f6' : score >= 55 ? '#f59e0b' : '#ef4444';
+  const color = score >= 85 ? C.success : score >= 70 ? C.accent : score >= 55 ? C.warning : C.danger;
   const label = score >= 85 ? 'Sangat Baik' : score >= 70 ? 'Baik' : score >= 55 ? 'Cukup' : 'Perlu Perhatian';
   const radius = 36;
   const circumference = 2 * Math.PI * radius;

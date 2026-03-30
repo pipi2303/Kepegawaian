@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import RechartsWrapper from '../RechartsWrapper';
 import { TabButton, MiniBar } from '../DashboardWidgets';
+import { C, CHART_COLORS } from '../colors';
 import {
   revenueVsCost, bpjsVsNonBPJS, cashFlowData,
   claimTrend, claimAgingBuckets, rejectionReasons, claimOverview,
@@ -66,7 +67,7 @@ export default function FinanceDashboard() {
                 <h3 className="text-gray-800">Revenue vs Expense</h3>
                 <p className="text-xs text-gray-500 mt-0.5">Tren pendapatan vs pengeluaran 6 bulan</p>
               </div>
-              <RechartsWrapper type="bar" data={revenueVsCost} xKey="bulan" yKey={['revenue', 'cost']} colors={['#3b82f6', '#f87171']} height={220} radius={[4,4,0,0]} tooltipFormatter={(v: number) => fmtRpShort(v)} legendFormatter={(v: string) => v === 'revenue' ? 'Revenue' : 'Cost'} />
+              <RechartsWrapper type="bar" data={revenueVsCost} xKey="bulan" yKey={['revenue', 'cost']} colors={[CHART_COLORS[0], '#f87171']} height={220} radius={[4,4,0,0]} tooltipFormatter={(v: number) => fmtRpShort(v)} legendFormatter={(v: string) => v === 'revenue' ? 'Revenue' : 'Cost'} />
             </div>
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
               <div className="mb-4">
@@ -118,7 +119,7 @@ export default function FinanceDashboard() {
                 <p className="text-xs text-gray-500 mt-0.5">Tren volume klaim BPJS</p>
               </div>
               <RechartsWrapper type="line" data={claimTrend} xKey="bulan" lines={[
-                { dataKey: 'submitted', stroke: '#3b82f6', name: 'Submitted' },
+                { dataKey: 'submitted', stroke: CHART_COLORS[0], name: 'Submitted' },
                 { dataKey: 'approved', stroke: '#10b981', name: 'Approved' },
                 { dataKey: 'rejected', stroke: '#ef4444', name: 'Rejected' },
               ]} height={240} />
@@ -159,7 +160,7 @@ export default function FinanceDashboard() {
                 { kategori: 'ICU', 'Tarif': 8, 'Biaya': 9.5 },
                 { kategori: 'R. Inap', 'Tarif': 3.2, 'Biaya': 3.8 },
                 { kategori: 'R. Jalan', 'Tarif': 0.45, 'Biaya': 0.52 },
-              ]} xKey="kategori" yKey={['Tarif', 'Biaya']} colors={['#3b82f6', '#ef4444']} height={220} radius={[4,4,0,0]} tooltipFormatter={(v: number) => `Rp ${v} Jt`} />
+              ]} xKey="kategori" yKey={['Tarif', 'Biaya']} colors={[CHART_COLORS[0], '#ef4444']} height={220} radius={[4,4,0,0]} tooltipFormatter={(v: number) => `Rp ${v} Jt`} />
             </div>
           </div>
         </div>
@@ -197,7 +198,7 @@ export default function FinanceDashboard() {
                 <h3 className="text-gray-800">Revenue by Service Line</h3>
                 <p className="text-xs text-gray-500 mt-0.5">Kontribusi pendapatan per layanan</p>
               </div>
-              <RechartsWrapper type="pie" data={revenueByService} dataKey="value" nameKey="service" innerRadius={50} outerRadius={85} colors={['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4']} height={220} tooltipFormatter={(v: number) => fmtRpShort(v)} />
+              <RechartsWrapper type="pie" data={revenueByService} dataKey="value" nameKey="service" innerRadius={50} outerRadius={85} colors={[CHART_COLORS[0], CHART_COLORS[1], CHART_COLORS[3], CHART_COLORS[2], CHART_COLORS[4]]} height={220} tooltipFormatter={(v: number) => fmtRpShort(v)} />
             </div>
           </div>
         </div>
@@ -218,7 +219,7 @@ export default function FinanceDashboard() {
                 { bulan: 'Mei 26*', revenue: 33_200_000_000, cost: 27_100_000_000 },
                 { bulan: 'Jun 26*', revenue: 34_000_000_000, cost: 27_500_000_000 },
               ]} xKey="bulan" lines={[
-                { dataKey: 'revenue', stroke: '#3b82f6', name: 'Revenue' },
+                { dataKey: 'revenue', stroke: CHART_COLORS[0], name: 'Revenue' },
                 { dataKey: 'cost', stroke: '#ef4444', name: 'Cost' },
               ]} height={260} />
               <p className="text-[10px] text-gray-400 mt-2 text-center">* Proyeksi berdasarkan rata-rata pertumbuhan 3 bulan terakhir</p>

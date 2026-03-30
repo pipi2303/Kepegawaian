@@ -193,32 +193,32 @@ const ORG_DATA: OrgNode = {
 // ─── Node Style Map ──────────────────────────────────────────────────────────
 const NODE_STYLES: Record<string, { wrapper: string; title: string; sub: string; badge: string; connector: string }> = {
   hospital: {
-    wrapper: 'bg-[#1e3a5f] border-[#0f2744] shadow-blue-900/40',
-    title: 'text-white',
-    sub: 'text-blue-200',
-    badge: 'bg-blue-500/30 text-blue-200',
-    connector: '#3b82f6',
+    wrapper: 'bg-[#013E37] border-[#012B26] shadow-[#013E37]/40',
+    title: 'text-[#FFEFB2]',
+    sub: 'text-[#FFEFB2]/70',
+    badge: 'bg-[#FFEFB2]/20 text-[#FFEFB2]',
+    connector: '#048A75',
   },
   eselon2: {
-    wrapper: 'bg-blue-700 border-blue-800 shadow-blue-800/30',
-    title: 'text-white',
-    sub: 'text-blue-100',
-    badge: 'bg-yellow-400/20 text-yellow-200',
-    connector: '#2563eb',
+    wrapper: 'bg-[#025046] border-[#013E37] shadow-[#013E37]/30',
+    title: 'text-[#FFEFB2]',
+    sub: 'text-[#FFEFB2]/80',
+    badge: 'bg-[#FFEFB2]/20 text-[#FFEFB2]',
+    connector: '#036B5C',
   },
   eselon3: {
-    wrapper: 'bg-sky-600 border-sky-700 shadow-sky-700/30',
+    wrapper: 'bg-[#048A75] border-[#036B5C] shadow-[#036B5C]/30',
     title: 'text-white',
-    sub: 'text-sky-100',
+    sub: 'text-[#FFEFB2]/80',
     badge: 'bg-white/20 text-white',
-    connector: '#0284c7',
+    connector: '#048A75',
   },
   eselon4: {
-    wrapper: 'bg-teal-600 border-teal-700 shadow-teal-700/30',
+    wrapper: 'bg-[#36B5A0] border-[#048A75] shadow-[#048A75]/30',
     title: 'text-white',
-    sub: 'text-teal-100',
+    sub: 'text-white/90',
     badge: 'bg-white/20 text-white',
-    connector: '#0d9488',
+    connector: '#36B5A0',
   },
   unit: {
     wrapper: 'bg-white border-gray-200 shadow-gray-200/60',
@@ -230,10 +230,10 @@ const NODE_STYLES: Record<string, { wrapper: string; title: string; sub: string;
 };
 
 const LINE_COLOR: Record<string, string> = {
-  hospital: '#3b82f6',
-  eselon2: '#2563eb',
-  eselon3: '#0284c7',
-  eselon4: '#0d9488',
+  hospital: '#048A75',
+  eselon2: '#036B5C',
+  eselon3: '#048A75',
+  eselon4: '#36B5A0',
   unit: '#cbd5e1',
 };
 
@@ -322,8 +322,8 @@ function AddNodeModal({ allNodes, pegawai, initialParentId, onClose, onSubmit }:
         {/* Modal header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center">
-              <GitBranch className="w-4 h-4 text-white" />
+            <div className="w-9 h-9 rounded-xl bg-[#013E37] flex items-center justify-center">
+              <GitBranch className="w-4 h-4 text-[#FFEFB2]" />
             </div>
             <div>
               <h2 className="text-gray-800 text-sm">Tambah Node Baru</h2>
@@ -370,9 +370,9 @@ function AddNodeModal({ allNodes, pegawai, initialParentId, onClose, onSubmit }:
                     onClick={() => handleTypeChange(t)}
                     className={`text-left px-3 py-2 rounded-lg border-2 transition-all ${
                       type === t
-                        ? t === 'eselon2' ? 'border-blue-600 bg-blue-50 text-blue-800'
-                          : t === 'eselon3' ? 'border-sky-500 bg-sky-50 text-sky-800'
-                          : t === 'eselon4' ? 'border-teal-500 bg-teal-50 text-teal-800'
+                        ? t === 'eselon2' ? 'border-[#013E37] bg-[#013E37]/10 text-[#013E37]'
+                          : t === 'eselon3' ? 'border-[#048A75] bg-[#048A75]/10 text-[#048A75]'
+                          : t === 'eselon4' ? 'border-[#36B5A0] bg-[#36B5A0]/10 text-[#36B5A0]'
                           : 'border-gray-400 bg-gray-50 text-gray-700'
                         : 'border-gray-200 hover:border-gray-300 text-gray-600'
                     }`}
@@ -483,7 +483,7 @@ function AddNodeModal({ allNodes, pegawai, initialParentId, onClose, onSubmit }:
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-1.5"
+              className="px-5 py-2 text-xs bg-[#013E37] hover:bg-[#025046] text-[#FFEFB2] rounded-lg font-semibold transition-colors flex items-center gap-1.5"
             >
               <Plus className="w-3.5 h-3.5" />
               Tambah Node
@@ -621,7 +621,7 @@ function TreeNode({ node, pegawai, collapsedIds, selectedId, onToggle, onSelect,
             onClick={e => { e.stopPropagation(); onAddChild(node.id); }}
             title="Tambah node anak"
             className="absolute -bottom-3 left-1/2 -translate-x-1/2 opacity-0 group-hover/node:opacity-100 transition-all duration-150
-              w-6 h-6 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg
+              w-6 h-6 rounded-full bg-[#013E37] hover:bg-[#025046] text-[#FFEFB2] shadow-lg
               flex items-center justify-center z-20 border-2 border-white"
           >
             <Plus className="w-3 h-3" />
@@ -716,10 +716,10 @@ function DetailPanel({ node, pegawai, onClose }: { node: OrgNode; pegawai: Pegaw
   const style = NODE_STYLES[node.type];
 
   const eselonColor: Record<string, string> = {
-    hospital: 'bg-[#1e3a5f] text-white',
-    eselon2: 'bg-blue-700 text-white',
-    eselon3: 'bg-sky-600 text-white',
-    eselon4: 'bg-teal-600 text-white',
+    hospital: 'bg-[#013E37] text-[#FFEFB2]',
+    eselon2: 'bg-[#025046] text-[#FFEFB2]',
+    eselon3: 'bg-[#048A75] text-white',
+    eselon4: 'bg-[#36B5A0] text-white',
     unit: 'bg-gray-100 text-gray-700',
   };
 
@@ -755,8 +755,8 @@ function DetailPanel({ node, pegawai, onClose }: { node: OrgNode; pegawai: Pegaw
             <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
               Pejabat Struktural
             </p>
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-start gap-3">
-              <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+            <div className="bg-[#FFEFB2]/20 border border-[#FFEFB2]/40 rounded-xl p-3 flex items-start gap-3">
+              <div className="w-9 h-9 rounded-full bg-[#013E37] flex items-center justify-center text-[#FFEFB2] text-xs font-bold flex-shrink-0">
                 {pejabat.nama.split(' ').slice(0, 2).map(w => w[0]).join('')}
               </div>
               <div className="min-w-0">
@@ -998,7 +998,7 @@ export default function OrganisasiTree() {
           {/* Tambah Node button */}
           <button
             onClick={() => handleOpenAdd('rsud')}
-            className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg font-semibold transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-[#013E37] hover:bg-[#025046] text-[#FFEFB2] text-xs rounded-lg font-semibold transition-colors shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" />
             Tambah Node
@@ -1018,9 +1018,9 @@ export default function OrganisasiTree() {
       <div className="flex-shrink-0 bg-gray-50 border-b border-gray-100 px-5 py-2 flex items-center gap-4 overflow-x-auto">
         <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider whitespace-nowrap">Legenda:</p>
         {[
-          { label: 'Direktur (Eselon II/b)', color: 'bg-blue-700' },
-          { label: 'Wakil Direktur (Eselon II/b)', color: 'bg-sky-600' },
-          { label: 'Kepala Bidang / Bagian (Eselon III)', color: 'bg-teal-600' },
+          { label: 'Direktur (Eselon II/b)', color: 'bg-[#025046]' },
+          { label: 'Wakil Direktur (Eselon II/b)', color: 'bg-[#048A75]' },
+          { label: 'Kepala Bidang / Bagian (Eselon III)', color: 'bg-[#36B5A0]' },
           { label: 'Komite / Organ Non-Eselon', color: 'bg-gray-300' },
         ].map(l => (
           <div key={l.label} className="flex items-center gap-1.5 whitespace-nowrap">
@@ -1062,7 +1062,7 @@ export default function OrganisasiTree() {
           {/* Hint */}
           <div className="absolute bottom-4 left-4 z-10 bg-white/80 border border-gray-200 rounded-lg px-3 py-1.5 flex items-center gap-1.5 backdrop-blur-sm">
             <Info className="w-3 h-3 text-gray-400" />
-            <p className="text-[10px] text-gray-500">Scroll untuk zoom · Drag untuk geser · Hover node → klik <span className="font-semibold text-blue-600">+</span> untuk tambah anak</p>
+            <p className="text-[10px] text-gray-500">Scroll untuk zoom · Drag untuk geser · Hover node → klik <span className="font-semibold text-[#013E37]">+</span> untuk tambah anak</p>
           </div>
 
           {/* Tree */}

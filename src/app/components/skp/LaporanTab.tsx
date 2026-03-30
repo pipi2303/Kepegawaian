@@ -14,7 +14,7 @@ import jsPDF from 'jspdf';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const PREDIKAT_CFG: Record<string, { color: string; bg: string; hex: string }> = {
   'Sangat Baik': { color: 'text-emerald-700', bg: 'bg-emerald-100', hex: '#10b981' },
-  'Baik':        { color: 'text-blue-700',    bg: 'bg-blue-100',    hex: '#3b82f6' },
+  'Baik':        { color: 'text-blue-700',    bg: 'bg-blue-100',    hex: '#048A75' },
   'Cukup':       { color: 'text-yellow-700',  bg: 'bg-yellow-100',  hex: '#f59e0b' },
   'Kurang':      { color: 'text-orange-700',  bg: 'bg-orange-100',  hex: '#f97316' },
   'Sangat Kurang':{ color: 'text-red-700',    bg: 'bg-red-100',     hex: '#ef4444' },
@@ -22,7 +22,7 @@ const PREDIKAT_CFG: Record<string, { color: string; bg: string; hex: string }> =
 const STATUS_CFG: Record<string, string> = {
   'Draft': 'bg-gray-100 text-gray-600', 'Aktif': 'bg-blue-100 text-blue-700', 'Selesai': 'bg-green-100 text-green-700',
 };
-const UNIT_COLORS = ['#3b82f6','#10b981','#8b5cf6','#f59e0b','#ef4444','#06b6d4','#ec4899','#84cc16'];
+const UNIT_COLORS = ['#048A75','#10b981','#8b5cf6','#f59e0b','#ef4444','#06b6d4','#ec4899','#84cc16'];
 
 function getNilaiPredikat(n: number) {
   if (n >= 110) return 'Sangat Baik';

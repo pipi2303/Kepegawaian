@@ -13,13 +13,13 @@ import { useAppContext } from '../../context/AppContext';
 // ─── Types re-used from parent ───────────────────────────────────────────────
 const PREDIKAT_CFG: Record<string, { color: string; bg: string; border: string }> = {
   'Sangat Baik': { color: 'text-emerald-700', bg: 'bg-emerald-100', border: 'border-emerald-200' },
-  'Baik':        { color: 'text-blue-700',    bg: 'bg-blue-100',    border: 'border-blue-200'    },
+  'Baik':        { color: 'text-[#013E37]',    bg: 'bg-[#013E37]/10',    border: 'border-[#013E37]/20'    },
   'Cukup':       { color: 'text-yellow-700',  bg: 'bg-yellow-100',  border: 'border-yellow-200'  },
   'Kurang':      { color: 'text-orange-700',  bg: 'bg-orange-100',  border: 'border-orange-200'  },
   'Sangat Kurang':{ color: 'text-red-700',    bg: 'bg-red-100',     border: 'border-red-200'     },
 };
 const STATUS_CFG: Record<string, string> = {
-  'Draft': 'bg-gray-100 text-gray-600', 'Aktif': 'bg-blue-100 text-blue-700', 'Selesai': 'bg-green-100 text-green-700',
+  'Draft': 'bg-gray-100 text-gray-600', 'Aktif': 'bg-[#013E37]/10 text-[#013E37]', 'Selesai': 'bg-green-100 text-green-700',
 };
 const BEHAVIOR_DIMS = ['orientasi','integritas','kerjasama','inisiatif','kepemimpinan'];
 const BEHAVIOR_LABELS: Record<string,string> = {
@@ -220,7 +220,7 @@ export default function ProfilKinerjaTab() {
               },
               {
                 label: 'Nilai Terakhir', value: lastNilai ?? '–', sub: trendDir === 'up' ? `▲ Naik dari ${prevNilai}` : trendDir === 'down' ? `▼ Turun dari ${prevNilai}` : 'Stabil',
-                cls: 'bg-blue-50 border-blue-100', val: trendDir === 'up' ? 'text-emerald-600' : trendDir === 'down' ? 'text-red-600' : 'text-blue-600',
+                cls: 'bg-[#013E37]/5 border-[#013E37]/10', val: trendDir === 'up' ? 'text-emerald-600' : trendDir === 'down' ? 'text-red-600' : 'text-[#013E37]',
                 icon: trendDir === 'up' ? TrendingUp : trendDir === 'down' ? TrendingDown : Minus,
               },
               {
@@ -260,9 +260,9 @@ export default function ProfilKinerjaTab() {
                     <YAxis domain={[50, 130]} tick={{ fontSize: 10 }} />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
-                    <ReferenceLine y={90} stroke="#3b82f6" strokeDasharray="4 4" label={{ value: 'Baik', position: 'insideRight', fontSize: 9, fill: '#3b82f6' }} />
+                    <ReferenceLine y={90} stroke="#048A75" strokeDasharray="4 4" label={{ value: 'Baik', position: 'insideRight', fontSize: 9, fill: '#048A75' }} />
                     <ReferenceLine y={110} stroke="#10b981" strokeDasharray="4 4" label={{ value: 'SB', position: 'insideRight', fontSize: 9, fill: '#10b981' }} />
-                    <Line type="monotone" dataKey="Nilai KPI" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                    <Line type="monotone" dataKey="Nilai KPI" stroke="#048A75" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                     {trendData.some(d => d['Final Score'] !== d['Nilai KPI']) && (
                       <Line type="monotone" dataKey="Final Score" stroke="#8b5cf6" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} />
                     )}
@@ -353,7 +353,7 @@ export default function ProfilKinerjaTab() {
                         <div className="px-4 pb-4 border-t border-gray-50">
                           <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
                             {[
-                              { label: 'Nilai KPI', value: s.nilaiAkhir ?? '–', cls: 'bg-blue-50 text-blue-700' },
+                              { label: 'Nilai KPI', value: s.nilaiAkhir ?? '–', cls: 'bg-[#013E37]/5 text-[#013E37]' },
                               { label: 'Skor Perilaku', value: behScore ?? '–', cls: 'bg-purple-50 text-purple-700' },
                               { label: 'Final Score', value: finalScore ?? '–', cls: 'bg-indigo-50 text-indigo-700' },
                               { label: 'Butir Kegiatan', value: s.targetKinerja.length, cls: 'bg-gray-50 text-gray-700' },
@@ -383,7 +383,7 @@ export default function ProfilKinerjaTab() {
                                   <td className="py-2 text-center text-gray-500">{t.bobot}%</td>
                                   <td className="py-2 text-center">
                                     {t.nilaiCapaian != null ? (
-                                      <span className={`font-semibold ${t.nilaiCapaian >= 100 ? 'text-emerald-600' : t.nilaiCapaian >= 75 ? 'text-blue-600' : 'text-yellow-600'}`}>
+                                      <span className={`font-semibold ${t.nilaiCapaian >= 100 ? 'text-emerald-600' : t.nilaiCapaian >= 75 ? 'text-[#013E37]' : 'text-yellow-600'}`}>
                                         {t.nilaiCapaian.toFixed(1)}
                                       </span>
                                     ) : '–'}

@@ -12,6 +12,7 @@ import { useAppContext } from '../context/AppContext';
 import { toast } from 'sonner';
 import GlobalSearch from './GlobalSearch';
 import AskIntramedika from './AskIntramedika';
+import { C } from './colors';
 
 const menuItems = [
   {
@@ -112,13 +113,13 @@ const SidebarContent = memo(({ sidebarOpen, currentUser, onLogout, setMobileSide
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-[#2a4a6b]">
-        <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
-          <Hospital className="w-5 h-5 text-white" />
+      <div className="flex items-center gap-3 px-4 py-5 border-b border-[#025046]">
+        <div className="w-9 h-9 rounded-lg bg-[#FFEFB2]/20 flex items-center justify-center flex-shrink-0">
+          <Hospital className="w-5 h-5 text-[#FFEFB2]" />
         </div>
         {sidebarOpen && (
           <div className="overflow-hidden">
-            <p className="text-white font-semibold text-sm leading-tight">HCMS Application</p>
+            <p className="text-[#FFEFB2] font-semibold text-sm leading-tight">HCMS Application</p>
           </div>
         )}
       </div>
@@ -128,7 +129,7 @@ const SidebarContent = memo(({ sidebarOpen, currentUser, onLogout, setMobileSide
         {menuItems.map((section) => (
           <div key={section.section}>
             {sidebarOpen && (
-              <p className="px-4 mb-1 text-[10px] font-semibold text-blue-400 tracking-wider">{section.section}</p>
+              <p className="px-4 mb-1 text-[10px] font-semibold text-[#FFEFB2]/60 tracking-wider">{section.section}</p>
             )}
             {section.items.map((item) => (
               <NavLink
@@ -139,8 +140,8 @@ const SidebarContent = memo(({ sidebarOpen, currentUser, onLogout, setMobileSide
                 className={({ isActive }) =>
                   `flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg transition-all duration-150 group ${
                     isActive
-                      ? 'bg-white/20 text-white'
-                      : 'text-blue-200 hover:bg-white/10 hover:text-white'
+                      ? 'bg-[#FFEFB2]/20 text-[#FFEFB2]'
+                      : 'text-[#FFEFB2]/70 hover:bg-[#FFEFB2]/10 hover:text-[#FFEFB2]'
                   }`
                 }
               >
@@ -153,26 +154,26 @@ const SidebarContent = memo(({ sidebarOpen, currentUser, onLogout, setMobileSide
       </nav>
 
       {/* Bottom */}
-      <div className="border-t border-[#2a4a6b] p-3 space-y-1">
-        <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-blue-200 hover:bg-white/10 hover:text-white transition-all">
+      <div className="border-t border-[#025046] p-3 space-y-1">
+        <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-[#FFEFB2]/70 hover:bg-[#FFEFB2]/10 hover:text-[#FFEFB2] transition-all">
           <Settings className="w-4.5 h-4.5 flex-shrink-0" />
           {sidebarOpen && <span className="text-sm">Pengaturan</span>}
         </button>
         <button
           onClick={onLogout}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-blue-200 hover:bg-red-500/20 hover:text-red-300 transition-all"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-[#FFEFB2]/70 hover:bg-red-500/20 hover:text-red-300 transition-all"
         >
           <LogOut className="w-4.5 h-4.5 flex-shrink-0" />
           {sidebarOpen && <span className="text-sm">Keluar</span>}
         </button>
         {sidebarOpen && currentUser && (
-          <div className="mt-3 pt-3 border-t border-[#2a4a6b] flex items-center gap-3 px-1">
-            <div className="w-8 h-8 rounded-full bg-blue-400 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+          <div className="mt-3 pt-3 border-t border-[#025046] flex items-center gap-3 px-1">
+            <div className="w-8 h-8 rounded-full bg-[#FFEFB2] flex items-center justify-center text-[#013E37] text-xs font-semibold flex-shrink-0">
               {initials}
             </div>
             <div className="overflow-hidden">
-              <p className="text-white text-xs font-medium truncate">{currentUser.nama}</p>
-              <p className="text-blue-300 text-[10px]">{roleLabel[currentUser.role]}</p>
+              <p className="text-[#FFEFB2] text-xs font-medium truncate">{currentUser.nama}</p>
+              <p className="text-[#FFEFB2]/50 text-[10px]">{roleLabel[currentUser.role]}</p>
             </div>
           </div>
         )}
@@ -222,7 +223,7 @@ function Layout() {
 
   const Sidebar = () => (
     <aside
-      className={`hidden lg:flex flex-col bg-[#1e3a5f] transition-all duration-300 flex-shrink-0 ${
+      className={`hidden lg:flex flex-col bg-[#013E37] transition-all duration-300 flex-shrink-0 ${
         sidebarOpen ? 'w-[240px]' : 'w-[64px]'
       }`}
     >
@@ -233,20 +234,20 @@ function Layout() {
   const MobileSidebar = () => (
     <div className="fixed inset-0 z-50 lg:hidden">
       <div className="absolute inset-0 bg-black/50" onClick={() => setMobileSidebarOpen(false)} />
-      <aside className="absolute left-0 top-0 bottom-0 w-[240px] bg-[#1e3a5f] flex flex-col">
+      <aside className="absolute left-0 top-0 bottom-0 w-[240px] bg-[#013E37] flex flex-col">
         <SidebarContent sidebarOpen={true} currentUser={currentUser} onLogout={handleLogout} setMobileSidebarOpen={setMobileSidebarOpen} />
       </aside>
     </div>
   );
 
   return (
-    <div className="flex h-screen bg-gray-50 font-sans overflow-hidden">
+    <div className="flex h-screen font-sans overflow-hidden" style={{ backgroundColor: C.bg }}>
       <Sidebar />
       {mobileSidebarOpen && <MobileSidebar />}
 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 h-14 flex-shrink-0 z-10">
+        <header className="bg-white flex items-center justify-between px-4 lg:px-6 h-14 flex-shrink-0 z-10" style={{ borderBottom: `1px solid ${C.borderLight}` }}>
           <div className="flex items-center gap-3">
             <button
               className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
@@ -309,7 +310,7 @@ function Layout() {
                     ))}
                   </div>
                   <div className="px-4 py-2 text-center">
-                    <button className="text-xs text-blue-600 hover:underline">Lihat Semua Notifikasi</button>
+                    <button className="text-xs text-[#013E37] hover:underline">Lihat Semua Notifikasi</button>
                   </div>
                 </div>
               )}
@@ -321,7 +322,7 @@ function Layout() {
                 className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                 onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false); }}
               >
-                <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-semibold">{initials}</div>
+                <div className="w-7 h-7 rounded-full bg-[#013E37] flex items-center justify-center text-[#FFEFB2] text-xs font-semibold">{initials}</div>
                 <span className="hidden md:block text-sm font-medium text-gray-700 max-w-[140px] truncate">{currentUser?.nama}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
               </button>
@@ -357,7 +358,7 @@ function Layout() {
           <Suspense fallback={
             <div className="flex items-center justify-center h-full min-h-[400px]">
               <div className="flex flex-col items-center gap-3">
-                <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-2 border-[#013E37] border-t-transparent rounded-full animate-spin" />
                 <p className="text-sm text-gray-500">Memuat halaman...</p>
               </div>
             </div>

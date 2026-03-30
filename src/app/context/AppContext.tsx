@@ -371,6 +371,9 @@ export const appUsers: AppUser[] = [
   { id: 'U002', username: 'direktur', password: 'dir123', nama: 'dr. Imam Ghozali, Sp.An., M.Kes', role: 'direktur', jabatan: 'Direktur Rumah Sakit', pegawaiId: 'P001', golongan: 'IV/b' },
   { id: 'U003', username: 'kepala', password: 'kepala123', nama: 'dr. Asih Hendrastuti, M.Kes', role: 'kepala_unit', jabatan: 'Kepala Bidang Keperawatan', unitKerja: 'Bidang Keperawatan', pegawaiId: 'P012', golongan: 'IV/a' },
   { id: 'U004', username: 'pegawai', password: 'peg123', nama: 'Ns. Septi Kurniasari, M.Kep, Sp.KMB', role: 'pegawai', jabatan: 'Subkoordinator Substansi Bidang Keperawatan', unitKerja: 'Bidang Keperawatan', pegawaiId: 'P013', golongan: 'IV/a' },
+  { id: 'U005', username: 'Rivelino.hasugian@gmail.com', password: 'Rivelin0', nama: 'Rivelino Hasugian', role: 'admin', jabatan: 'Administrator Sistem', golongan: 'III/d' },
+  { id: 'U006', username: 'pipi@gmail.com', password: 'estehmanis', nama: 'Pipi Suryani', role: 'pegawai', jabatan: 'Staf Administrasi', unitKerja: 'Bagian Umum', pegawaiId: 'P050', golongan: 'III/a' },
+  { id: 'U007', username: 'andiko@gmail.com', password: 'Andik0', nama: 'Andiko Pratama', role: 'admin', jabatan: 'Administrator Sistem', golongan: 'III/d' },
 ];
 
 // ─── State Types ──────────────────────────────────────────────────────────────

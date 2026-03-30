@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import RechartsWrapper from '../RechartsWrapper';
 import { TabButton, MiniBar } from '../DashboardWidgets';
+import { C, CHART_COLORS } from '../colors';
 import {
   accreditationScore, incidentTrend, auditFindings,
   riskHeatmap, correctiveActionStatus,
@@ -42,7 +43,7 @@ export default function GRCDashboard() {
                   <svg className="absolute inset-0" viewBox="0 0 128 128">
                     <circle cx="64" cy="64" r="54" fill="none" stroke="#e5e7eb" strokeWidth="10" />
                     <circle cx="64" cy="64" r="54" fill="none"
-                      stroke={accreditationScore.overall >= 85 ? '#10b981' : '#f59e0b'}
+                      stroke={accreditationScore.overall >= 85 ? C.success : C.warning}
                       strokeWidth="10"
                       strokeDasharray={`${accreditationScore.overall * 3.39} 999`}
                       strokeLinecap="round"
@@ -107,7 +108,7 @@ export default function GRCDashboard() {
                 { bulan: 'Jan 26', skor: 86.5 },
                 { bulan: 'Feb 26', skor: 87.0 },
                 { bulan: 'Mar 26', skor: 87.4 },
-              ]} xKey="bulan" lines={[{ dataKey: 'skor', stroke: '#10b981', name: 'Compliance Score' }]} height={220} />
+              ]} xKey="bulan" lines={[{ dataKey: 'skor', stroke: C.success, name: 'Compliance Score' }]} height={220} />
             </div>
           </div>
         </div>
@@ -192,10 +193,10 @@ export default function GRCDashboard() {
                 <p className="text-xs text-gray-500 mt-0.5">Frekuensi insiden keselamatan pasien (6 bulan)</p>
               </div>
               <RechartsWrapper type="line" data={incidentTrend} xKey="bulan" lines={[
-                { dataKey: 'sentinel', stroke: '#ef4444', name: 'Sentinel' },
-                { dataKey: 'ktd', stroke: '#f59e0b', name: 'KTD' },
-                { dataKey: 'knc', stroke: '#3b82f6', name: 'KNC' },
-                { dataKey: 'kpc', stroke: '#8b5cf6', name: 'KPC' },
+                { dataKey: 'sentinel', stroke: C.danger, name: 'Sentinel' },
+                { dataKey: 'ktd', stroke: C.warning, name: 'KTD' },
+                { dataKey: 'knc', stroke: CHART_COLORS[0], name: 'KNC' },
+                { dataKey: 'kpc', stroke: CHART_COLORS[4], name: 'KPC' },
               ]} height={260} />
             </div>
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
@@ -210,7 +211,7 @@ export default function GRCDashboard() {
                 { name: 'Lingkungan', value: 12 },
                 { name: 'Alat/Fasilitas', value: 8 },
                 { name: 'Lainnya', value: 6 },
-              ]} dataKey="value" nameKey="name" innerRadius={50} outerRadius={85} colors={['#ef4444', '#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#94a3b8']} height={240} />
+              ]} dataKey="value" nameKey="name" innerRadius={50} outerRadius={85} colors={[C.danger, C.warning, CHART_COLORS[0], C.success, CHART_COLORS[4], '#94a3b8']} height={240} />
             </div>
           </div>
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">

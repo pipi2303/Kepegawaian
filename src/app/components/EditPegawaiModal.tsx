@@ -190,7 +190,7 @@ export default function EditPegawaiModal({ open, editData, onClose, onSave }: Pr
     const isChanged = isEdit && originalData && String((form as any)[field] ?? '') !== String((originalData as any)[field] ?? '');
     if (hasErr) return `${BASE_INPUT} border-red-300 focus:ring-red-200`;
     if (isChanged) return `${BASE_INPUT} border-amber-300 focus:ring-amber-200 bg-amber-50/40`;
-    return `${BASE_INPUT} border-gray-200 focus:ring-blue-300 focus:border-blue-400`;
+    return `${BASE_INPUT} border-gray-200 focus:ring-[#038E7D]/50 focus:border-[#038E7D]`;
   }
 
   function isChanged(field: string): boolean {
@@ -282,7 +282,7 @@ export default function EditPegawaiModal({ open, editData, onClose, onSave }: Pr
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[96vh] flex flex-col overflow-hidden">
 
         {/* ═══ HEADER ════════════════════════════════════════════════════════ */}
-        <div className="bg-gradient-to-r from-[#1e3a5f] to-[#2563eb] px-5 py-4 flex items-center gap-4 flex-shrink-0">
+        <div className="bg-gradient-to-r from-[#013E37] to-[#038E7D] px-5 py-4 flex items-center gap-4 flex-shrink-0">
           <EmployeeAvatar
             id={editData?.id || 'new'}
             nama={form.nama || '?'}
@@ -303,7 +303,7 @@ export default function EditPegawaiModal({ open, editData, onClose, onSave }: Pr
                 <span className="text-[10px] font-mono bg-white/15 text-white px-2 py-0.5 rounded">{form.nip}</span>
               )}
               <span className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
-                form.statusPegawai === 'PNS' ? 'bg-blue-400/30 text-blue-100'
+                form.statusPegawai === 'PNS' ? 'bg-[#013E37] text-white'
                 : form.statusPegawai === 'PPPK' ? 'bg-purple-400/30 text-purple-100'
                 : 'bg-orange-400/30 text-orange-100'
               }`}>{form.statusPegawai}</span>
@@ -345,7 +345,7 @@ export default function EditPegawaiModal({ open, editData, onClose, onSave }: Pr
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-4 py-3 text-sm whitespace-nowrap border-b-2 transition-all flex-shrink-0 ${
                   isActive
-                    ? 'border-blue-600 text-blue-700 bg-white'
+                    ? 'border-[#013E37] text-[#013E37] bg-white'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-white/60'
                 }`}
               >
@@ -450,8 +450,8 @@ export default function EditPegawaiModal({ open, editData, onClose, onSave }: Pr
                           <button key={v} type="button" onClick={() => setF('jenisKelamin', v)}
                             className={`flex-1 py-2 rounded-lg text-sm border transition-all ${
                               form.jenisKelamin === v
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
+                                ? 'bg-[#013E37] text-white border-[#013E37]'
+                                : 'bg-white text-gray-600 border-gray-200 hover:border-[#038E7D]'
                             }`}>
                             {v === 'L' ? 'Laki-laki' : 'Perempuan'}
                           </button>
@@ -555,7 +555,7 @@ export default function EditPegawaiModal({ open, editData, onClose, onSave }: Pr
                           <button key={s} type="button" onClick={() => setF('statusPegawai', s)}
                             className={`flex-1 py-2 rounded-lg text-xs border font-semibold transition-all ${
                               form.statusPegawai === s
-                                ? s === 'PNS' ? 'bg-blue-600 text-white border-blue-600'
+                                ? s === 'PNS' ? 'bg-[#013E37] text-white border-[#013E37]'
                                   : s === 'PPPK' ? 'bg-purple-600 text-white border-purple-600'
                                   : 'bg-orange-500 text-white border-orange-500'
                                 : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
@@ -675,8 +675,8 @@ export default function EditPegawaiModal({ open, editData, onClose, onSave }: Pr
                       <button key={p} type="button" onClick={() => setF('pendidikanTerakhir', p)}
                         className={`py-2.5 rounded-lg text-sm border font-medium transition-all ${
                           form.pendidikanTerakhir === p
-                            ? 'bg-blue-600 text-white border-blue-600'
-                            : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
+                            ? 'bg-[#013E37] text-white border-[#013E37]'
+                            : 'bg-white text-gray-600 border-gray-200 hover:border-[#038E7D]'
                         }`}>{p}</button>
                     ))}
                   </div>
@@ -749,7 +749,7 @@ export default function EditPegawaiModal({ open, editData, onClose, onSave }: Pr
                 <button key={t.id} type="button" onClick={() => setActiveTab(t.id)}
                   title={t.label}
                   className={`rounded-full transition-all ${
-                    isAct ? 'w-5 h-2 bg-blue-600'
+                    isAct ? 'w-5 h-2 bg-[#013E37]'
                     : status === 'error' ? 'w-2 h-2 bg-red-400'
                     : status === 'complete' ? 'w-2 h-2 bg-green-400'
                     : 'w-2 h-2 bg-gray-300'
@@ -772,12 +772,12 @@ export default function EditPegawaiModal({ open, editData, onClose, onSave }: Pr
             </button>
             {canNext ? (
               <button type="button" onClick={() => setActiveTab(TABS[tabIdx + 1].id)}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                className="flex items-center gap-1.5 px-4 py-2 text-sm text-white bg-[#013E37] rounded-lg hover:bg-[#025046] transition-colors">
                 Selanjutnya <ChevronRight className="w-4 h-4" />
               </button>
             ) : (
               <button type="button" onClick={handleSave}
-                className="flex items-center gap-2 px-5 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm">
+                className="flex items-center gap-2 px-5 py-2 text-sm text-white bg-[#013E37] rounded-lg hover:bg-[#025046] transition-colors font-medium shadow-sm">
                 <Save className="w-4 h-4" />
                 {isEdit
                   ? `Simpan Perubahan${changedCount > 0 ? ` (${changedCount})` : ''}`
@@ -804,7 +804,7 @@ export default function EditPegawaiModal({ open, editData, onClose, onSave }: Pr
                   Kembali
                 </button>
                 <button type="button" onClick={() => { setConfirmClose(false); handleSave(); }}
-                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors">
+                  className="flex-1 py-2 bg-[#013E37] text-white rounded-lg text-sm hover:bg-[#025046] transition-colors">
                   Simpan
                 </button>
               </div>

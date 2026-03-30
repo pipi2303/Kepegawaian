@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import RechartsWrapper from '../RechartsWrapper';
 import { TabButton, MiniBar } from '../DashboardWidgets';
+import { C, CHART_COLORS } from '../colors';
 import {
   clinicalKPI, patientVolumeTrend, topDiagnoses, borByWard,
   doctorProductivity, incidentTrend,
@@ -55,7 +56,7 @@ export default function ClinicalDashboard() {
               <p className="text-xs text-gray-500 mt-0.5">Tren volume pasien 6 bulan terakhir</p>
             </div>
             <RechartsWrapper type="line" data={patientVolumeTrend} xKey="bulan" lines={[
-              { dataKey: 'rawatInap', stroke: '#3b82f6', name: 'Rawat Inap' },
+              { dataKey: 'rawatInap', stroke: CHART_COLORS[0], name: 'Rawat Inap' },
               { dataKey: 'rawatJalan', stroke: '#10b981', name: 'Rawat Jalan' },
               { dataKey: 'igd', stroke: '#f59e0b', name: 'IGD' },
             ]} height={260} />
@@ -115,7 +116,7 @@ export default function ClinicalDashboard() {
                 <h3 className="text-gray-800">Top Diagnoses</h3>
                 <p className="text-xs text-gray-500 mt-0.5">10 diagnosa terbanyak (Mar 2026)</p>
               </div>
-              <RechartsWrapper type="bar" data={topDiagnoses} xKey="diagnosis" yKey="count" colors={['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#3b82f6', '#1d4ed8', '#1e40af', '#1e3a5f']} height={240} radius={[4,4,0,0]} />
+              <RechartsWrapper type="bar" data={topDiagnoses} xKey="diagnosis" yKey="count" colors={[C.brand, C.brandMid, CHART_COLORS[0], CHART_COLORS[4], C.lemon, '#FFE580', '#FFD84D', '#012B26']} height={240} radius={[4,4,0,0]} />
             </div>
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
               <div className="mb-4">
@@ -197,7 +198,7 @@ export default function ClinicalDashboard() {
               nama: d.nama.split(',')[0],
               Pasien: d.pasien,
               Prosedur: d.prosedur,
-            }))} xKey="nama" yKey={['Pasien', 'Prosedur']} colors={['#3b82f6', '#8b5cf6']} height={260} radius={[4,4,0,0]} />
+            }))} xKey="nama" yKey={['Pasien', 'Prosedur']} colors={[CHART_COLORS[0], '#8b5cf6']} height={260} radius={[4,4,0,0]} />
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
@@ -211,7 +212,7 @@ export default function ClinicalDashboard() {
                 { dept: 'Anak', volume: 290, successRate: 97 },
                 { dept: 'Obgyn', volume: 168, successRate: 99 },
                 { dept: 'Saraf', volume: 142, successRate: 95 },
-              ]} xKey="dept" yKey={['volume', 'successRate']} colors={['#3b82f6', '#10b981']} height={220} radius={[4,4,0,0]} legendFormatter={(v: string) => v === 'successRate' ? 'Success Rate' : 'Volume'} />
+              ]} xKey="dept" yKey={['volume', 'successRate']} colors={[CHART_COLORS[0], CHART_COLORS[1]]} height={220} radius={[4,4,0,0]} legendFormatter={(v: string) => v === 'successRate' ? 'Success Rate' : 'Volume'} />
             </div>
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
               <div className="mb-4">
@@ -251,7 +252,7 @@ export default function ClinicalDashboard() {
               <RechartsWrapper type="line" data={incidentTrend} xKey="bulan" lines={[
                 { dataKey: 'sentinel', stroke: '#ef4444', name: 'Sentinel' },
                 { dataKey: 'ktd', stroke: '#f59e0b', name: 'KTD' },
-                { dataKey: 'knc', stroke: '#3b82f6', name: 'KNC' },
+                { dataKey: 'knc', stroke: CHART_COLORS[0], name: 'KNC' },
                 { dataKey: 'kpc', stroke: '#8b5cf6', name: 'KPC' },
               ]} height={240} />
             </div>

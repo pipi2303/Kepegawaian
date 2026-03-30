@@ -11,6 +11,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   LineChart, Line, ResponsiveContainer, ReferenceLine,
 } from 'recharts';
+import { C, CHART_COLORS } from '../components/colors';
 import {
   bscObjectives, departmentScorecards, okrObjectives,
   performanceReviews, monthlyTrendData, perspectiveRadarData,
@@ -705,7 +706,7 @@ const AnalyticsTab = () => (
           <YAxis key="lc-yaxis" domain={[60, 100]} tick={{ fontSize: 11 }} />
           <Tooltip key="lc-tooltip" contentStyle={{ fontSize: 12 }} />
           <ReferenceLine key="lc-ref80" y={80} stroke="#10b981" strokeDasharray="4 4" label={{ value: 'Target 80', fontSize: 10, fill: '#10b981' }} />
-          <Line key="lc-bsc" type="monotone" dataKey="bsc" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 4 }} name="BSC Score" />
+          <Line key="lc-bsc" type="monotone" dataKey="bsc" stroke={CHART_COLORS[0]} strokeWidth={2.5} dot={{ r: 4 }} name="BSC Score" />
           <Line key="lc-okr" type="monotone" dataKey="okr" stroke="#8b5cf6" strokeWidth={2.5} dot={{ r: 4 }} name="OKR Score" />
           <Line key="lc-overall" type="monotone" dataKey="overall" stroke="#10b981" strokeWidth={3} dot={{ r: 5 }} name="Overall" />
         </LineChart>
@@ -722,7 +723,7 @@ const AnalyticsTab = () => (
             <PolarGrid key="rc-pgrid" />
             <PolarAngleAxis key="rc-angle" dataKey="subject" tick={{ fontSize: 11 }} />
             <PolarRadiusAxis key="rc-radius" angle={90} domain={[0, 100]} tick={{ fontSize: 10 }} />
-            <Radar key="rc-radar" name="Skor BSC Perspektif" dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.25} strokeWidth={2} />
+            <Radar key="rc-radar" name="Skor BSC Perspektif" dataKey="value" stroke={CHART_COLORS[0]} fill={CHART_COLORS[0]} fillOpacity={0.25} strokeWidth={2} />
             <Tooltip key="rc-tooltip" contentStyle={{ fontSize: 12 }} />
           </RadarChart>
         </ResponsiveContainer>
@@ -739,7 +740,7 @@ const AnalyticsTab = () => (
             <YAxis key="dbc-yaxis" domain={[50, 100]} tick={{ fontSize: 11 }} />
             <Tooltip key="dbc-tooltip" contentStyle={{ fontSize: 12 }} />
             <ReferenceLine key="dbc-ref80" y={80} stroke="#ef4444" strokeDasharray="4 4" />
-            <Bar key="dbc-score" dataKey="score" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Skor Divisi" />
+            <Bar key="dbc-score" dataKey="score" fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]} name="Skor Divisi" />
           </BarChart>
         </ResponsiveContainer>
       </div>

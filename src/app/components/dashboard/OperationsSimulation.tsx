@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import RechartsWrapper from '../RechartsWrapper';
 import { MiniBar } from '../DashboardWidgets';
+import { C, CHART_COLORS } from '../colors';
 import {
   borByWard, clinicalKPI, waitingTimeByUnit,
 } from '../../data/hospitalDashboardData';
@@ -246,7 +247,7 @@ function VolumeGrowthScenario() {
         <div className="flex flex-wrap gap-2 mb-5">
           {VOLUME_PRESETS.map(p => (
             <button key={p.label} onClick={() => setPct(p.pct)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${pct === p.pct ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'}`}>
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${pct === p.pct ? 'bg-[#013E37] text-white border-[#013E37]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#048A75]/50'}`}>
               {p.label} (+{p.pct}%)
             </button>
           ))}
@@ -285,7 +286,7 @@ function VolumeGrowthScenario() {
             <p className="text-xs text-gray-500 mt-0.5">BOR & Revenue bulanan (Miliar Rp)</p>
           </div>
           <RechartsWrapper type="line" data={result.timeline} xKey="bulan" lines={[
-            { dataKey: 'bor', stroke: '#3b82f6', name: 'BOR (%)' },
+            { dataKey: 'bor', stroke: '#048A75', name: 'BOR (%)' },
             { dataKey: 'revenue', stroke: '#10b981', name: 'Revenue (M)' },
           ]} height={220} />
         </div>
@@ -297,7 +298,7 @@ function VolumeGrowthScenario() {
             <p className="text-xs text-gray-500 mt-0.5">Dampak +{pct}% volume per ruangan</p>
           </div>
           <RechartsWrapper type="bar" data={result.wardProj} xKey="ward" yKey={['current', 'projected']}
-            colors={['#93c5fd', '#3b82f6']} height={220} radius={[4, 4, 0, 0]}
+            colors={['#36B5A0', '#048A75']} height={220} radius={[4, 4, 0, 0]}
             legendFormatter={(v: string) => v === 'current' ? 'Saat Ini' : 'Proyeksi'} />
         </div>
       </div>
@@ -501,7 +502,7 @@ function BedExpansionScenario() {
             <p className="text-xs text-gray-500 mt-0.5">Revenue vs Cost vs Profit (Miliar Rp)</p>
           </div>
           <RechartsWrapper type="bar" data={result.yearProjection} xKey="tahun" yKey={['revenue', 'cost', 'profit']}
-            colors={['#10b981', '#ef4444', '#3b82f6']} height={220} radius={[4, 4, 0, 0]}
+            colors={['#10b981', '#ef4444', '#048A75']} height={220} radius={[4, 4, 0, 0]}
             legendFormatter={(v: string) => v === 'revenue' ? 'Revenue' : v === 'cost' ? 'Cost' : 'Profit'} />
         </div>
       </div>

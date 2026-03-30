@@ -51,7 +51,7 @@ const TEMPLATE_DOKUMEN: Record<KategoriDokumen, string[]> = {
 };
 
 const KATEGORI_CONFIG: Record<KategoriDokumen, { icon: React.ElementType; color: string; bg: string; border: string }> = {
-  'Identitas Diri':       { icon: CreditCard,  color: 'text-blue-600',   bg: 'bg-blue-50',   border: 'border-blue-200' },
+  'Identitas Diri':       { icon: CreditCard,  color: 'text-[#013E37]',   bg: 'bg-[#013E37]/5',   border: 'border-[#013E37]/20' },
   'Kepegawaian':          { icon: Users,        color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
   'Pendidikan & Sertifikasi': { icon: GraduationCap, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
   'Dokumen Rumah Sakit':  { icon: Hospital,     color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
@@ -126,6 +126,10 @@ function ModalDokumen({ pegawaiId, editData, defaultKategori, defaultNama, onSav
     });
   }
 
+  function setField(key: keyof Omit<DokumenPegawai, 'id' | 'pegawaiId' | 'status'>, value: string) {
+    setForm(f => ({ ...f, [key]: value }));
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
@@ -143,7 +147,7 @@ function ModalDokumen({ pegawaiId, editData, defaultKategori, defaultNama, onSav
             <select
               value={form.kategori}
               onChange={e => setForm(f => ({ ...f, kategori: e.target.value as KategoriDokumen }))}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#038E7D]"
             >
               {(Object.keys(KATEGORI_CONFIG) as KategoriDokumen[]).map(k => (
                 <option key={k} value={k}>{k}</option>
@@ -159,7 +163,7 @@ function ModalDokumen({ pegawaiId, editData, defaultKategori, defaultNama, onSav
               onChange={e => setForm(f => ({ ...f, namaDokumen: e.target.value }))}
               list="doc-templates"
               placeholder="Contoh: KTP, Ijazah, STR..."
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#038E7D]"
             />
             <datalist id="doc-templates">
               {TEMPLATE_DOKUMEN[form.kategori].map(t => <option key={t} value={t} />)}
@@ -174,7 +178,7 @@ function ModalDokumen({ pegawaiId, editData, defaultKategori, defaultNama, onSav
                 value={form.nomorDokumen}
                 onChange={e => setForm(f => ({ ...f, nomorDokumen: e.target.value }))}
                 placeholder="No. dokumen"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#038E7D]"
               />
             </div>
             <div>
@@ -183,7 +187,7 @@ function ModalDokumen({ pegawaiId, editData, defaultKategori, defaultNama, onSav
                 value={form.instansiPenerbit}
                 onChange={e => setForm(f => ({ ...f, instansiPenerbit: e.target.value }))}
                 placeholder="Instansi"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#038E7D]"
               />
             </div>
           </div>
@@ -195,17 +199,17 @@ function ModalDokumen({ pegawaiId, editData, defaultKategori, defaultNama, onSav
               <input
                 type="date"
                 value={form.tanggalTerbit}
-                onChange={e => setForm(f => ({ ...f, tanggalTerbit: e.target.value }))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={e => setField('tanggalTerbit', e.target.value)}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#038E7D]"
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Tanggal Kadaluarsa</label>
+              <label className="block text-xs text-gray-500 mb-1">Tanggal Expired</label>
               <input
                 type="date"
                 value={form.tanggalKadaluarsa}
-                onChange={e => setForm(f => ({ ...f, tanggalKadaluarsa: e.target.value }))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={e => setField('tanggalKadaluarsa', e.target.value)}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#038E7D]"
               />
             </div>
           </div>
@@ -218,7 +222,7 @@ function ModalDokumen({ pegawaiId, editData, defaultKategori, defaultNama, onSav
               onChange={e => setForm(f => ({ ...f, keterangan: e.target.value }))}
               rows={2}
               placeholder="Catatan tambahan..."
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#038E7D] resize-none"
             />
           </div>
 
@@ -237,7 +241,7 @@ function ModalDokumen({ pegawaiId, editData, defaultKategori, defaultNama, onSav
             ) : (
               <button
                 onClick={() => fileRef.current?.click()}
-                className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 rounded-lg px-3 py-3 text-sm text-gray-400 hover:text-blue-600 transition-colors"
+                className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 hover:border-[#038E7D] hover:bg-[#013E37]/5 rounded-lg px-3 py-3 text-sm text-gray-400 hover:text-[#013E37] transition-colors"
               >
                 <Upload className="w-4 h-4" /> Klik untuk upload file
               </button>
@@ -252,7 +256,7 @@ function ModalDokumen({ pegawaiId, editData, defaultKategori, defaultNama, onSav
           <button
             onClick={handleSave}
             disabled={!form.namaDokumen.trim()}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-40 transition-colors"
+            className="flex-1 px-4 py-2 bg-[#013E37] text-white rounded-lg text-sm hover:bg-[#025046] disabled:opacity-40 transition-colors"
           >
             {editData ? 'Simpan Perubahan' : 'Tambah Dokumen'}
           </button>
@@ -359,12 +363,12 @@ export function DokumenPegawaiTab({ pegawaiId }: DokumenPegawaiTabProps) {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Cari dokumen..."
-              className="pl-8 pr-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 w-44"
+              className="pl-8 pr-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#038E7D] w-44"
             />
           </div>
           <button
             onClick={() => openAdd()}
-            className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 bg-[#013E37] text-white rounded-lg text-xs hover:bg-[#025046] transition-colors"
           >
             <Plus className="w-3.5 h-3.5" /> Tambah
           </button>
@@ -463,7 +467,7 @@ export function DokumenPegawaiTab({ pegawaiId }: DokumenPegawaiTabProps) {
                               <button
                                 onClick={() => setPreviewDoc(doc)}
                                 title="Lihat"
-                                className="p-1.5 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
+                                className="p-1.5 hover:bg-[#013E37]/10 text-[#013E37] rounded-lg transition-colors"
                               >
                                 <Eye className="w-3.5 h-3.5" />
                               </button>
@@ -554,7 +558,7 @@ export function DokumenPegawaiTab({ pegawaiId }: DokumenPegawaiTabProps) {
                 <a
                   href={previewDoc.fileUrl}
                   download={previewDoc.fileName || previewDoc.namaDokumen}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs hover:bg-blue-100 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#013E37]/5 text-[#013E37] rounded-lg text-xs hover:bg-[#013E37]/10 transition-colors"
                 >
                   <Download className="w-3.5 h-3.5" /> Unduh
                 </a>

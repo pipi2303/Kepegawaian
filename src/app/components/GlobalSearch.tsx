@@ -64,9 +64,9 @@ function statusBadge(status: string): { text: string; color: string } {
     'Pending': 'bg-yellow-100 text-yellow-700',
     'Disetujui': 'bg-green-100 text-green-700',
     'Ditolak': 'bg-red-100 text-red-700',
-    'Proses': 'bg-blue-100 text-blue-700',
+    'Proses': 'bg-[#013E37]/10 text-[#013E37]',
     'Selesai': 'bg-gray-100 text-gray-600',
-    'Berlangsung': 'bg-blue-100 text-blue-700',
+    'Berlangsung': 'bg-[#013E37]/10 text-[#013E37]',
     'Direncanakan': 'bg-purple-100 text-purple-700',
     'Tidak Aktif': 'bg-gray-100 text-gray-500',
   };
@@ -151,7 +151,7 @@ export default function GlobalSearch({ open, onClose }: Props) {
         badge: statusBadge(p.statusPegawai),
       }));
     if (pegawaiResults.length) {
-      out.push({ label: 'Pegawai', icon: Users, color: 'text-blue-500', results: pegawaiResults });
+      out.push({ label: 'Pegawai', icon: Users, color: 'text-[#048A75]', results: pegawaiResults });
     }
 
     // ── Cuti ────────────────────────────────────────────────────────────────
@@ -425,7 +425,7 @@ export default function GlobalSearch({ open, onClose }: Props) {
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
                           isActive ? 'bg-blue-100' : 'bg-gray-100'
                         }`}>
-                          <ResultIcon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
+                          <ResultIcon className={`w-4 h-4 ${isActive ? 'text-[#013E37]' : 'text-gray-500'}`} />
                         </div>
 
                         <div className="flex-1 min-w-0">

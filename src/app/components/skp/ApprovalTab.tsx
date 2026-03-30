@@ -36,7 +36,7 @@ function saveApproval(skpId: string, data: ApprovalData) {
 // ─── Config ───────────────────────────────────────────────────────────────────
 const STATUS_APPROVAL_CFG: Record<ApprovalStatus, { color: string; bg: string; border: string; icon: React.ElementType; step: number }> = {
   'Belum Diajukan': { color: 'text-gray-600',    bg: 'bg-gray-100',    border: 'border-gray-200',    icon: Clock,         step: 0 },
-  'Diajukan':       { color: 'text-blue-700',    bg: 'bg-blue-100',    border: 'border-blue-200',    icon: Send,          step: 1 },
+  'Diajukan':       { color: 'text-[#013E37]',    bg: 'bg-[#013E37]/10',    border: 'border-[#013E37]/20',    icon: Send,          step: 1 },
   'Disetujui Atasan':{ color: 'text-indigo-700', bg: 'bg-indigo-100',  border: 'border-indigo-200',  icon: CheckCircle2,  step: 2 },
   'Perlu Revisi':   { color: 'text-orange-700',  bg: 'bg-orange-100',  border: 'border-orange-200',  icon: RotateCcw,     step: 1 },
   'Final':          { color: 'text-emerald-700', bg: 'bg-emerald-100', border: 'border-emerald-200', icon: FileCheck,     step: 3 },
@@ -45,13 +45,13 @@ const STATUS_APPROVAL_CFG: Record<ApprovalStatus, { color: string; bg: string; b
 const STEPS = ['Belum Diajukan', 'Diajukan', 'Disetujui Atasan', 'Final'];
 const PREDIKAT_CFG: Record<string, { color: string; bg: string }> = {
   'Sangat Baik': { color: 'text-emerald-700', bg: 'bg-emerald-100' },
-  'Baik':        { color: 'text-blue-700',    bg: 'bg-blue-100'    },
+  'Baik':        { color: 'text-[#013E37]',    bg: 'bg-[#013E37]/10'    },
   'Cukup':       { color: 'text-yellow-700',  bg: 'bg-yellow-100'  },
   'Kurang':      { color: 'text-orange-700',  bg: 'bg-orange-100'  },
   'Sangat Kurang':{ color: 'text-red-700',    bg: 'bg-red-100'     },
 };
 const STATUS_SKP_CFG: Record<string, string> = {
-  'Draft': 'bg-gray-100 text-gray-600', 'Aktif': 'bg-blue-100 text-blue-700', 'Selesai': 'bg-green-100 text-green-700',
+  'Draft': 'bg-gray-100 text-gray-600', 'Aktif': 'bg-[#013E37]/10 text-[#013E37]', 'Selesai': 'bg-green-100 text-green-700',
 };
 
 // ─── Approval Steps Bar ───────────────────────────────────────────────────────
@@ -66,7 +66,7 @@ function ApprovalStepsBar({ currentStatus }: { currentStatus: ApprovalStatus }) 
         return (
           <div key={step} className="flex items-center gap-1">
             <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-medium transition-colors ${
-              active ? 'bg-blue-600 text-white' : isRevisi && idx === 1 ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-400'
+              active ? 'bg-[#013E37] text-white' : isRevisi && idx === 1 ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-400'
             }`}>
               {idx === 0 && <Clock className="w-2.5 h-2.5" />}
               {idx === 1 && !isRevisi && <Send className="w-2.5 h-2.5" />}
@@ -172,7 +172,7 @@ export default function ApprovalTab() {
     ajukan: 'Ajukan SKP', setujui: 'Setujui SKP', tolak: 'Minta Revisi', final: 'Tetapkan Final',
   };
   const ACTION_COLORS: Record<string, string> = {
-    ajukan: 'bg-blue-600 hover:bg-blue-700', setujui: 'bg-emerald-600 hover:bg-emerald-700',
+    ajukan: 'bg-[#013E37] hover:bg-[#025046]', setujui: 'bg-emerald-600 hover:bg-emerald-700',
     tolak: 'bg-orange-500 hover:bg-orange-600', final: 'bg-purple-600 hover:bg-purple-700',
   };
 
@@ -180,10 +180,10 @@ export default function ApprovalTab() {
     <div className="space-y-5">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
-        <FileCheck className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+        <FileCheck className="w-4 h-4 text-[#013E37] mt-0.5 flex-shrink-0" />
         <div>
           <p className="text-sm font-semibold text-blue-800">Alur Persetujuan SKP (Approval Workflow)</p>
-          <p className="text-xs text-blue-600 mt-0.5">Kelola siklus hidup SKP: dari penyusunan draft, pengajuan ke atasan, persetujuan bertingkat, hingga penetapan final. Setiap langkah tercatat dalam log riwayat persetujuan.</p>
+          <p className="text-xs text-[#013E37] mt-0.5">Kelola siklus hidup SKP: dari penyusunan draft, pengajuan ke atasan, persetujuan bertingkat, hingga penetapan final. Setiap langkah tercatat dalam log riwayat persetujuan.</p>
         </div>
       </div>
 
@@ -191,7 +191,7 @@ export default function ApprovalTab() {
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
         {[
           { label: 'Belum Diajukan', value: stats.belum, cls: 'bg-gray-50 border-gray-200 text-gray-700' },
-          { label: 'Diajukan', value: stats.diajukan, cls: 'bg-blue-50 border-blue-200 text-blue-700' },
+          { label: 'Diajukan', value: stats.diajukan, cls: 'bg-[#013E37]/5 border-[#013E37]/20 text-[#013E37]' },
           { label: 'Disetujui', value: stats.disetujui, cls: 'bg-indigo-50 border-indigo-200 text-indigo-700' },
           { label: 'Perlu Revisi', value: stats.revisi, cls: 'bg-orange-50 border-orange-200 text-orange-700' },
           { label: 'Final', value: stats.final, cls: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
@@ -206,12 +206,12 @@ export default function ApprovalTab() {
       {/* Filters */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex flex-col sm:flex-row gap-3">
         <select value={filterPegawai} onChange={e => setFilterPegawai(e.target.value)}
-          className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#048A75]">
           <option value="">Semua Pegawai</option>
           {pegawai.map(p => <option key={p.id} value={p.id}>{p.gelarDepan || ''} {p.nama} — {p.unitKerja}</option>)}
         </select>
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-          className="w-full sm:w-52 text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          className="w-full sm:w-52 text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#048A75]">
           <option value="">Semua Status Persetujuan</option>
           {Object.keys(STATUS_APPROVAL_CFG).map(s => <option key={s} value={s}>{s}</option>)}
         </select>
@@ -238,7 +238,7 @@ export default function ApprovalTab() {
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   {/* Left: identity */}
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-[#013E37]/10 text-[#013E37] flex items-center justify-center font-bold text-sm flex-shrink-0">
                       {p?.nama.charAt(0)}
                     </div>
                     <div className="min-w-0">
@@ -264,7 +264,7 @@ export default function ApprovalTab() {
                       {/* Action buttons based on status */}
                       {appr.status === 'Belum Diajukan' && (
                         <button onClick={() => { setModalSKP(s); setModalAction('ajukan'); setCatatan(''); }}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors">
+                          className="flex items-center gap-1 px-3 py-1.5 bg-[#013E37] text-white text-xs rounded-lg hover:bg-[#025046] transition-colors">
                           <Send className="w-3 h-3" /> Ajukan SKP
                         </button>
                       )}
@@ -346,9 +346,9 @@ export default function ApprovalTab() {
               {/* SKP Info */}
               <div className="p-3 bg-blue-50 rounded-xl">
                 <p className="text-sm font-medium text-blue-800">{getFullName(modalSKP.pegawaiId)}</p>
-                <p className="text-xs text-blue-600">SKP Semester {modalSKP.semester} — {modalSKP.tahun}</p>
+                <p className="text-xs text-[#013E37]">SKP Semester {modalSKP.semester} — {modalSKP.tahun}</p>
                 {modalSKP.nilaiAkhir && (
-                  <p className="text-xs text-blue-500 mt-0.5">Nilai KPI: {modalSKP.nilaiAkhir} ({modalSKP.predikat})</p>
+                  <p className="text-xs text-[#048A75] mt-0.5">Nilai KPI: {modalSKP.nilaiAkhir} ({modalSKP.predikat})</p>
                 )}
               </div>
 
@@ -381,7 +381,7 @@ export default function ApprovalTab() {
                 </label>
                 <textarea value={catatan} onChange={e => setCatatan(e.target.value)} rows={3}
                   placeholder={modalAction === 'tolak' ? 'Tuliskan arahan revisi secara spesifik...' : 'Catatan tambahan (opsional)...'}
-                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#048A75] resize-none" />
               </div>
             </div>
             <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">

@@ -45,7 +45,7 @@ export default function DetailPegawai() {
     return (
       <div className="p-6 text-center">
         <p className="text-gray-500">Pegawai tidak ditemukan</p>
-        <button onClick={() => navigate('/pegawai')} className="mt-4 text-blue-600 hover:underline text-sm">
+        <button onClick={() => navigate('/pegawai')} className="mt-4 text-[#013E37] hover:underline text-sm">
           Kembali ke Daftar Pegawai
         </button>
       </div>
@@ -94,7 +94,7 @@ export default function DetailPegawai() {
 
       {/* Profile Header */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 overflow-hidden">
-        <div className="bg-gradient-to-r from-[#1e3a5f] to-[#2563eb] px-6 pt-8 pb-5 relative">
+        <div className="bg-gradient-to-r from-[#013E37] to-[#038E7D] px-6 pt-8 pb-5 relative">
           <div className="flex flex-col md:flex-row md:items-end gap-5">
             {/* ID Badge Card — foto di tengah badge */}
             <div className="flex-shrink-0">
@@ -156,7 +156,7 @@ export default function DetailPegawai() {
               </button>
               <button
                 onClick={() => setShowEditModal(true)}
-                className="flex items-center gap-2 px-3 py-2 bg-white text-blue-700 rounded-lg text-sm hover:bg-blue-50 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 bg-white text-[#013E37] rounded-lg text-sm hover:bg-[#013E37]/5 transition-colors"
               >
                 <Edit2 className="w-4 h-4" /> Edit
               </button>
@@ -194,7 +194,7 @@ export default function DetailPegawai() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-5 py-3.5 text-sm whitespace-nowrap transition-all border-b-2 ${
                 activeTab === tab.id
-                  ? 'border-blue-600 text-blue-600 bg-blue-50/50'
+                  ? 'border-[#013E37] text-[#013E37] bg-[#013E37]/5'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -283,7 +283,7 @@ export default function DetailPegawai() {
                   <div className="space-y-4">
                     {riwayatJabatan.map((r, i) => (
                       <div key={r.id} className="flex gap-4 relative">
-                        <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center z-10 ${i === 0 ? 'bg-blue-600 text-white' : 'bg-white border-2 border-gray-300 text-gray-400'}`}>
+                        <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center z-10 ${i === 0 ? 'bg-[#013E37] text-white' : 'bg-white border-2 border-gray-300 text-gray-400'}`}>
                           <Briefcase className="w-4 h-4" />
                         </div>
                         <div className="flex-1 bg-gray-50 rounded-xl p-4 mb-2">

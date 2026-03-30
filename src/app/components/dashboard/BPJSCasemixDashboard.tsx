@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import RechartsWrapper from '../RechartsWrapper';
 import { TabButton, MiniBar } from '../DashboardWidgets';
+import { C, CHART_COLORS } from '../colors';
 import {
   claimOverview, claimTrend, claimAgingBuckets,
   rejectionReasons, codingAccuracy, missingDocRate,
@@ -61,7 +62,7 @@ export default function BPJSCasemixDashboard() {
                 <p className="text-xs text-gray-500 mt-0.5">Submitted vs Approved vs Rejected (6 bulan)</p>
               </div>
               <RechartsWrapper type="line" data={claimTrend} xKey="bulan" lines={[
-                { dataKey: 'submitted', stroke: '#3b82f6', name: 'Submitted' },
+                { dataKey: 'submitted', stroke: CHART_COLORS[0], name: 'Submitted' },
                 { dataKey: 'approved', stroke: '#10b981', name: 'Approved' },
                 { dataKey: 'rejected', stroke: '#ef4444', name: 'Rejected' },
               ]} height={240} />

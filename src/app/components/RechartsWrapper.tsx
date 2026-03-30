@@ -3,6 +3,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line,
 } from 'recharts';
+import { CHART_COLORS, C } from './colors';
 
 interface RechartsWrapperProps {
   type: 'bar' | 'pie' | 'line';
@@ -60,13 +61,13 @@ const RechartsWrapper: React.FC<RechartsWrapperProps> = ({
       return (
         <ResponsiveContainer width="100%" height={chartHeight}>
           <BarChart id={`${uid}-bar-v`} data={data} layout="vertical" margin={margin}>
-            <CartesianGrid key={`${uid}-grid`} strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+            <CartesianGrid key={`${uid}-grid`} strokeDasharray="3 3" stroke={C.borderLight} horizontal={false} />
             <XAxis key={`${uid}-xaxis`} type="number" tick={{ fontSize: 11 }} />
             <YAxis key={`${uid}-yaxis`} dataKey={yKey as string} type="category" tick={{ fontSize: 12 }} width={40} />
             <Tooltip key={`${uid}-tt`} formatter={tooltipFormatter} />
-            <Bar dataKey={xKey} fill={colors[0] || '#3b82f6'} radius={radius} isAnimationActive={false}>
+            <Bar dataKey={xKey} fill={colors[0] || CHART_COLORS[0]} radius={radius} isAnimationActive={false}>
               {data.map((_, i) => (
-                <Cell key={`cell-${uid}-${i}`} fill={colors[i] || colors[0] || '#3b82f6'} />
+                <Cell key={`cell-${uid}-${i}`} fill={colors[i] || colors[0] || CHART_COLORS[0]} />
               ))}
             </Bar>
           </BarChart>
@@ -78,7 +79,7 @@ const RechartsWrapper: React.FC<RechartsWrapperProps> = ({
     return (
       <ResponsiveContainer width="100%" height={chartHeight}>
         <BarChart id={`${uid}-bar-h`} data={data} margin={margin}>
-          <CartesianGrid key={`${uid}-grid`} strokeDasharray="3 3" stroke="#f0f0f0" />
+          <CartesianGrid key={`${uid}-grid`} strokeDasharray="3 3" stroke={C.borderLight} />
           <XAxis key={`${uid}-xaxis`} dataKey={xKey} tick={{ fontSize: 11 }} />
           <YAxis key={`${uid}-yaxis`} tick={{ fontSize: 11 }} />
           <Tooltip key={`${uid}-tt`} formatter={tooltipFormatter} />
@@ -88,13 +89,13 @@ const RechartsWrapper: React.FC<RechartsWrapperProps> = ({
               <Bar
                 key={`${uid}-bar-${k}`}
                 dataKey={k}
-                fill={colors[idx] || '#3b82f6'}
+                fill={colors[idx] || CHART_COLORS[0]}
                 radius={radius}
                 isAnimationActive={false}
               />
             ))
           ) : (
-            <Bar dataKey={yKey} fill={colors[0] || '#3b82f6'} radius={radius} isAnimationActive={false}>
+            <Bar dataKey={yKey} fill={colors[0] || CHART_COLORS[0]} radius={radius} isAnimationActive={false}>
               {colors.length > 1 && data.map((_, i) => (
                 <Cell key={`cell-${uid}-${i}`} fill={colors[i % colors.length] || colors[0]} />
               ))}
@@ -137,15 +138,15 @@ const RechartsWrapper: React.FC<RechartsWrapperProps> = ({
     const lineConfigs = lines && lines.length > 0
       ? lines
       : Array.isArray(yKey)
-        ? yKey.map((k, idx) => ({ dataKey: k, stroke: colors[idx] || '#3b82f6', name: k }))
+        ? yKey.map((k, idx) => ({ dataKey: k, stroke: colors[idx] || CHART_COLORS[0], name: k }))
         : yKey
-          ? [{ dataKey: yKey as string, stroke: colors[0] || '#3b82f6', name: yKey as string }]
+          ? [{ dataKey: yKey as string, stroke: colors[0] || CHART_COLORS[0], name: yKey as string }]
           : [];
 
     return (
       <ResponsiveContainer width="100%" height={chartHeight}>
         <LineChart id={`${uid}-line`} data={data} margin={margin}>
-          <CartesianGrid key={`${uid}-grid`} strokeDasharray="3 3" stroke="#f0f0f0" />
+          <CartesianGrid key={`${uid}-grid`} strokeDasharray="3 3" stroke={C.borderLight} />
           <XAxis key={`${uid}-xaxis`} dataKey={xKey} tick={{ fontSize: 11 }} />
           <YAxis key={`${uid}-yaxis`} tick={{ fontSize: 11 }} />
           <Tooltip key={`${uid}-tt`} formatter={tooltipFormatter} />
@@ -155,7 +156,7 @@ const RechartsWrapper: React.FC<RechartsWrapperProps> = ({
               key={`${uid}-line-${lc.dataKey}-${idx}`}
               type="monotone"
               dataKey={lc.dataKey}
-              stroke={lc.stroke || colors[idx] || '#3b82f6'}
+              stroke={lc.stroke || colors[idx] || CHART_COLORS[0]}
               name={lc.name || lc.dataKey}
               strokeWidth={2}
               dot={false}

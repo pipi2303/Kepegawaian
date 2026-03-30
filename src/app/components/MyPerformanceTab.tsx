@@ -4,6 +4,7 @@ import {
   Calendar, BarChart2, Target, Star, Clock, UserCheck,
   Activity, Award,
 } from 'lucide-react';
+import { C, CHART_COLORS } from './colors';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine, RadarChart, Radar,
@@ -160,7 +161,7 @@ export function MyPerformanceTab({ pegawai: pg }: Props) {
   return (
     <div className="space-y-6">
       {/* ── Score Header ────────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-blue-700 to-indigo-700 rounded-2xl p-6 text-white">
+      <div className="bg-gradient-to-br rounded-2xl p-6 text-white" style={{ background: `linear-gradient(135deg, ${C.brand} 0%, ${C.brandMid} 100%)` }}>
         <div className="flex flex-col md:flex-row md:items-center gap-6">
           {/* Big Score */}
           <div className={`flex-shrink-0 w-28 h-28 rounded-2xl border-2 ${rCfg.border} ${rCfg.bg} flex flex-col items-center justify-center`}>
@@ -223,9 +224,9 @@ export function MyPerformanceTab({ pegawai: pg }: Props) {
               <XAxis dataKey="period" tick={{ fontSize: 9 }} interval={0} angle={-30} textAnchor="end" height={40} />
               <YAxis domain={[50, 100]} tick={{ fontSize: 10 }} />
               <Tooltip contentStyle={{ fontSize: 11 }} />
-              <ReferenceLine y={76} stroke="#10b981" strokeDasharray="4 4" label={{ value: 'Baik', fontSize: 9, fill: '#10b981' }} />
-              <Line type="monotone" dataKey="skp" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} name="SKP" />
-              <Line type="monotone" dataKey="overall" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} name="Overall" strokeDasharray="4 2" />
+              <ReferenceLine y={76} stroke={C.success} strokeDasharray="4 4" label={{ value: 'Baik', fontSize: 9, fill: C.success }} />
+              <Line type="monotone" dataKey="skp" stroke={C.brandLight} strokeWidth={2} dot={{ r: 3 }} name="SKP" />
+              <Line type="monotone" dataKey="overall" stroke={CHART_COLORS[4]} strokeWidth={2} dot={{ r: 3 }} name="Overall" strokeDasharray="4 2" />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -244,7 +245,7 @@ export function MyPerformanceTab({ pegawai: pg }: Props) {
               <PolarGrid />
               <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
               <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} />
-              <Radar name="Skor" dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.25} strokeWidth={2} />
+              <Radar name="Skor" dataKey="value" stroke={C.brandLight} fill={C.brandLight} fillOpacity={0.25} strokeWidth={2} />
               <Tooltip contentStyle={{ fontSize: 11 }} />
             </RadarChart>
           </ResponsiveContainer>

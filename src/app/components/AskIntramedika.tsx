@@ -128,7 +128,7 @@ const STATIC_KB: Record<string, { answer: string; suggestions?: string[] }> = {
 // ─── Quick Topics ─────────────────────────────────────────────────────────────
 const QUICK_TOPICS: QuickTopic[] = [
   { id: 'cuti', icon: Calendar, label: 'Cuti & Izin', color: 'bg-orange-50 text-orange-600 border-orange-200', query: 'Berapa sisa cuti saya tahun ini?' },
-  { id: 'absensi', icon: Clock, label: 'Presensi', color: 'bg-blue-50 text-blue-600 border-blue-200', query: 'Rekap absensi saya bulan ini' },
+  { id: 'absensi', icon: Clock, label: 'Presensi', color: 'bg-[#013E37]/5 text-[#013E37] border-[#013E37]/20', query: 'Rekap absensi saya bulan ini' },
   { id: 'skp', icon: FileText, label: 'SKP & Kinerja', color: 'bg-purple-50 text-purple-600 border-purple-200', query: 'Status SKP terbaru saya' },
   { id: 'shift', icon: Activity, label: 'Jadwal Shift', color: 'bg-cyan-50 text-cyan-600 border-cyan-200', query: 'Jadwal shift saya minggu ini' },
   { id: 'str', icon: BadgeCheck, label: 'STR / SIP', color: 'bg-green-50 text-green-600 border-green-200', query: 'Status STR dan SIP saya' },
@@ -290,8 +290,8 @@ function ContextCard({ ctx }: { ctx: UserContext }) {
   return (
     <div className="mx-4 mb-3 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-3">
       <div className="flex items-center gap-1.5 mb-2">
-        <Info className="w-3 h-3 text-blue-600" />
-        <span className="text-[10px] font-semibold text-blue-700 uppercase tracking-wide">Info Kepegawaian Anda</span>
+        <Info className="w-3 h-3 text-[#013E37]" />
+        <span className="text-[10px] font-semibold text-[#013E37] uppercase tracking-wide">Info Kepegawaian Anda</span>
       </div>
       <div className="grid grid-cols-2 gap-1.5 text-[11px]">
         <div className="flex items-center gap-1.5">
@@ -603,22 +603,22 @@ export default function AskIntramedika() {
           style={{ boxShadow: '0 25px 60px -12px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.05)' }}
         >
           {/* ── Header ─────────────────────────────────────────────────────── */}
-          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#1e3a5f] via-[#1d4ed8] to-[#2563eb] flex-shrink-0">
+          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#013E37] via-[#025046] to-[#038E7D] flex-shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="relative">
-                <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center border border-white/20">
-                  <Sparkles className="w-4.5 h-4.5 text-white" />
+                <div className="w-9 h-9 rounded-xl bg-[#FFEFB2]/15 backdrop-blur flex items-center justify-center border border-[#FFEFB2]/20">
+                  <Sparkles className="w-4.5 h-4.5 text-[#FFEFB2]" />
                 </div>
-                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-[#1e3a5f]" />
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-[#013E37]" />
               </div>
               <div>
-                <p className="text-white text-sm font-bold tracking-tight leading-tight">Ask INTRAMEDIKA</p>
-                <p className="text-blue-200 text-[10px] leading-tight">
+                <p className="text-[#FFEFB2] text-sm font-bold tracking-tight leading-tight">Ask INTRAMEDIKA</p>
+                <p className="text-[#FFEFB2]/60 text-[10px] leading-tight">
                   {isTyping ? (
                     <span className="flex items-center gap-1">
-                      <span className="inline-block w-1.5 h-1.5 bg-blue-300 rounded-full animate-bounce" />
-                      <span className="inline-block w-1.5 h-1.5 bg-blue-300 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }} />
-                      <span className="inline-block w-1.5 h-1.5 bg-blue-300 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }} />
+                      <span className="inline-block w-1.5 h-1.5 bg-[#FFEFB2]/60 rounded-full animate-bounce" />
+                      <span className="inline-block w-1.5 h-1.5 bg-[#FFEFB2]/60 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }} />
+                      <span className="inline-block w-1.5 h-1.5 bg-[#FFEFB2]/60 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }} />
                       <span className="ml-1">Mengetik...</span>
                     </span>
                   ) : 'Asisten Digital Kepegawaian • Online'}
@@ -651,19 +651,19 @@ export default function AskIntramedika() {
           {!isMinimized && (
             <div className="contents">
               {/* ── User identity banner ─────────────────────────────────── */}
-              <div className="flex items-center justify-between px-4 py-2 bg-blue-50 border-b border-blue-100 flex-shrink-0">
+              <div className="flex items-center justify-between px-4 py-2 bg-[#FFEFB2]/30 border-b border-[#FFEFB2]/50 flex-shrink-0">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-[9px] font-bold">
+                  <div className="w-6 h-6 rounded-full bg-[#013E37] flex items-center justify-center text-[#FFEFB2] text-[9px] font-bold">
                     {currentUser?.nama?.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase().slice(0, 2) ?? 'U'}
                   </div>
                   <div>
-                    <p className="text-[11px] font-semibold text-blue-900 leading-tight truncate max-w-[200px]">{currentUser?.nama ?? 'Pegawai'}</p>
-                    <p className="text-[9px] text-blue-600 leading-tight">{currentUser?.jabatan ?? ''} · {currentUser?.golongan ?? ''}</p>
+                    <p className="text-[11px] font-semibold text-[#013E37] leading-tight truncate max-w-[200px]">{currentUser?.nama ?? 'Pegawai'}</p>
+                    <p className="text-[9px] text-[#025046] leading-tight">{currentUser?.jabatan ?? ''} · {currentUser?.golongan ?? ''}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowContextCard(p => !p)}
-                  className="flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-800 transition-colors"
+                  className="flex items-center gap-1 text-[10px] text-[#013E37] hover:text-[#025046] transition-colors"
                   title={showContextCard ? 'Sembunyikan ringkasan' : 'Tampilkan ringkasan'}
                 >
                   <Info className="w-3 h-3" />
@@ -686,8 +686,8 @@ export default function AskIntramedika() {
                       {/* Avatar */}
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
                         msg.role === 'user'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gradient-to-br from-[#1e3a5f] to-[#2563eb] text-white'
+                          ? 'bg-[#013E37] text-[#FFEFB2]'
+                          : 'bg-gradient-to-br from-[#013E37] to-[#038E7D] text-[#FFEFB2]'
                       }`}>
                         {msg.role === 'user' ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
                       </div>
@@ -696,7 +696,7 @@ export default function AskIntramedika() {
                         {/* Bubble */}
                         <div className={`rounded-2xl px-3.5 py-2.5 ${
                           msg.role === 'user'
-                            ? 'bg-blue-600 text-white rounded-tr-sm'
+                            ? 'bg-[#013E37] text-white rounded-tr-sm'
                             : 'bg-white text-gray-700 rounded-tl-sm border border-gray-100 shadow-sm'
                         }`}>
                           {msg.role === 'user'
@@ -736,7 +736,7 @@ export default function AskIntramedika() {
                               <button
                                 key={i}
                                 onClick={() => sendMessage(s)}
-                                className="px-2.5 py-1 text-[11px] bg-blue-50 text-blue-700 border border-blue-200 rounded-full hover:bg-blue-100 active:scale-95 transition-all"
+                                className="px-2.5 py-1 text-[11px] bg-[#FFEFB2]/30 text-[#013E37] border border-[#FFEFB2] rounded-full hover:bg-[#FFEFB2]/50 active:scale-95 transition-all"
                               >
                                 {s}
                               </button>
@@ -750,14 +750,14 @@ export default function AskIntramedika() {
                   {/* Typing indicator */}
                   {isTyping && (
                     <div className="flex gap-2">
-                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#1e3a5f] to-[#2563eb] flex items-center justify-center flex-shrink-0">
-                        <Bot className="w-3.5 h-3.5 text-white" />
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#013E37] to-[#038E7D] flex items-center justify-center flex-shrink-0">
+                        <Bot className="w-3.5 h-3.5 text-[#FFEFB2]" />
                       </div>
                       <div className="bg-white border border-gray-100 shadow-sm rounded-2xl rounded-tl-sm px-4 py-3">
                         <div className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                          <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                          <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                          <span className="w-2 h-2 bg-[#038E7D] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="w-2 h-2 bg-[#038E7D] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <span className="w-2 h-2 bg-[#038E7D] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                         </div>
                       </div>
                     </div>
@@ -796,13 +796,13 @@ export default function AskIntramedika() {
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Tanya sesuatu tentang kepegawaian..."
-                  className="flex-1 pl-3 pr-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                  className="flex-1 pl-3 pr-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#013E37]/20 focus:border-[#038E7D] transition-all"
                   disabled={isTyping}
                 />
                 <button
                   type="submit"
                   disabled={!inputValue.trim() || isTyping}
-                  className="w-9 h-9 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:cursor-not-allowed text-white flex items-center justify-center transition-all active:scale-95 flex-shrink-0"
+                  className="w-9 h-9 rounded-xl bg-[#013E37] hover:bg-[#025046] disabled:bg-gray-200 disabled:cursor-not-allowed text-[#FFEFB2] flex items-center justify-center transition-all active:scale-95 flex-shrink-0"
                 >
                   <Send className="w-3.5 h-3.5" />
                 </button>
@@ -831,17 +831,17 @@ export default function AskIntramedika() {
       <div className="relative group">
         {!isOpen && (
           <div className="contents">
-            <span className="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-20" />
+            <span className="absolute inset-0 rounded-full bg-[#038E7D] animate-ping opacity-20" />
           </div>
         )}
 
         {/* Tooltip label */}
         {!isOpen && (
           <div className="absolute right-16 bottom-2.5 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <div className="bg-[#1e3a5f] text-white text-[11px] font-medium px-3 py-2 rounded-xl shadow-xl whitespace-nowrap flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3 text-yellow-300" />
+            <div className="bg-[#013E37] text-[#FFEFB2] text-[11px] font-medium px-3 py-2 rounded-xl shadow-xl whitespace-nowrap flex items-center gap-1.5">
+              <Sparkles className="w-3 h-3 text-[#FFEFB2]" />
               Ask INTRAMEDIKA
-              <div className="absolute right-[-5px] top-1/2 -translate-y-1/2 w-2 h-2 bg-[#1e3a5f] rotate-45" />
+              <div className="absolute right-[-5px] top-1/2 -translate-y-1/2 w-2 h-2 bg-[#013E37] rotate-45" />
             </div>
           </div>
         )}
@@ -855,8 +855,8 @@ export default function AskIntramedika() {
           onClick={isOpen ? () => setIsOpen(false) : handleOpen}
           className="relative w-14 h-14 rounded-full text-white flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95"
           style={{
-            background: 'linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 60%, #3b82f6 100%)',
-            boxShadow: '0 8px 32px rgba(37, 99, 235, 0.5), 0 2px 8px rgba(0,0,0,0.15)',
+            background: 'linear-gradient(135deg, #013E37 0%, #025046 60%, #038E7D 100%)',
+            boxShadow: '0 8px 32px rgba(1, 62, 55, 0.5), 0 2px 8px rgba(0,0,0,0.15)',
           }}
           title="Ask INTRAMEDIKA – Asisten Digital Kepegawaian"
         >

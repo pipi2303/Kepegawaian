@@ -141,7 +141,7 @@ export function AvatarUpload({ foto, nama, id, onChange, onRemove }: UploadProps
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-[#048A75]/50 text-[#013E37] rounded-lg hover:bg-[#013E37]/5 transition-colors"
         >
           <UserCircle2 className="w-3.5 h-3.5" />
           {foto && !imgErr ? 'Ganti Foto' : 'Upload Foto'}

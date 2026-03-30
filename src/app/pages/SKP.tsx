@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 
 import { useAppContext } from '../context/AppContext';
+import { C, CHART_COLORS } from '../components/colors';
 import type { SKPRecord, SKPItem } from '../types';
 import { toast } from 'sonner';
 import { bscObjectives, okrObjectives } from '../data/performanceData';
@@ -185,7 +186,7 @@ function useAutoKPI() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── UNIT BAR CHART COLORS ────────────────────────────────────────────────────
-const BAR_COLORS = ['#3b82f6','#10b981','#8b5cf6','#f59e0b','#ef4444','#06b6d4','#ec4899','#84cc16'];
+const BAR_COLORS = CHART_COLORS as unknown as string[];
 
 // ─── TAB 1: Dashboard ─────────────────────────────────────────────────────────
 function DashboardTab({ onTabChange }: { onTabChange: (t: TabId) => void }) {

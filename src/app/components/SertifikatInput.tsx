@@ -99,7 +99,7 @@ export function SertifikatInput({ value, onChange, changed }: SertifikatInputPro
           <button
             type="button"
             onClick={add}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-[#013E37] text-white rounded-lg hover:bg-[#025046] transition-colors"
           >
             <Plus className="w-3 h-3" /> Tambah "{input.trim()}"
           </button>
@@ -123,7 +123,7 @@ export function SertifikatInput({ value, onChange, changed }: SertifikatInputPro
                 key={s}
                 type="button"
                 onClick={() => { if (!value.includes(s)) onChange([...value, s]); }}
-                className="text-[11px] px-2 py-0.5 rounded-full border border-dashed border-gray-300 text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                className="text-[11px] px-2 py-0.5 rounded-full border border-dashed border-gray-300 text-gray-500 hover:border-[#048A75] hover:text-[#013E37] hover:bg-[#013E37]/5 transition-colors"
               >
                 + {s}
               </button>

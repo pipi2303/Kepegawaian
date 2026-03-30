@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import RechartsWrapper from '../RechartsWrapper';
 import { TabButton, MiniBar } from '../DashboardWidgets';
+import { C, CHART_COLORS } from '../colors';
 import {
   patientJourneyFunnel, waitingTimeByUnit, borByWard,
   orUtilization, equipmentUsage, labTurnaroundTime,
@@ -108,7 +109,7 @@ export default function OperationsDashboard() {
               { bulan: 'Feb 26', poliUmum: 43, poliSpesialis: 56, igd: 13 },
               { bulan: 'Mar 26', poliUmum: 41, poliSpesialis: 54, igd: 12 },
             ]} xKey="bulan" lines={[
-              { dataKey: 'poliUmum', stroke: '#3b82f6', name: 'Poli Umum' },
+              { dataKey: 'poliUmum', stroke: CHART_COLORS[0], name: 'Poli Umum' },
               { dataKey: 'poliSpesialis', stroke: '#ef4444', name: 'Poli Spesialis' },
               { dataKey: 'igd', stroke: '#f59e0b', name: 'IGD' },
             ]} height={220} />
@@ -223,7 +224,7 @@ export default function OperationsDashboard() {
                 <h3 className="text-gray-800">Lab Turnaround Time</h3>
                 <p className="text-xs text-gray-500 mt-0.5">Target vs Actual (menit)</p>
               </div>
-              <RechartsWrapper type="bar" data={labTurnaroundTime.filter(l => l.target <= 300)} xKey="jenis" yKey={['target', 'actual']} colors={['#3b82f6', '#f59e0b']} height={200} radius={[4,4,0,0]} tooltipFormatter={(v: number) => `${v} mnt`} legendFormatter={(v: string) => v === 'target' ? 'Target' : 'Actual'} />
+              <RechartsWrapper type="bar" data={labTurnaroundTime.filter(l => l.target <= 300)} xKey="jenis" yKey={['target', 'actual']} colors={[CHART_COLORS[0], '#f59e0b']} height={200} radius={[4,4,0,0]} tooltipFormatter={(v: number) => `${v} mnt`} legendFormatter={(v: string) => v === 'target' ? 'Target' : 'Actual'} />
             </div>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

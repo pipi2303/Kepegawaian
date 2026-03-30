@@ -12,10 +12,11 @@ import {
 } from 'recharts';
 import { chartGolongan, chartUnitKerja } from '../data/mockData';
 import { useAppContext } from '../context/AppContext';
+import { C, CHART_COLORS } from '../components/colors';
 
 // ─── Colour Palettes ──────────────────────────────────────────────────────────
-const C = {
-  blue:    ['#dbeafe','#93c5fd','#3b82f6','#1d4ed8','#1e3a5f'],
+const CP = {
+  blue:    [C.lemon, C.brandXLight, C.brandLight, C.brandMid, C.brand],
   green:   ['#d1fae5','#6ee7b7','#10b981','#059669','#064e3b'],
   amber:   ['#fef3c7','#fcd34d','#f59e0b','#d97706','#78350f'],
   red:     ['#fee2e2','#fca5a5','#ef4444','#dc2626','#7f1d1d'],
@@ -75,12 +76,12 @@ const gajiByUnit = [
   { unit: 'Instalasi Bedah', rata: 8.3 },
 ];
 const insidenByType = [
-  { type: 'Pajanan Jarum', jumlah: 8, fill: C.red[2] },
-  { type: 'Kecelakaan Kerja', jumlah: 5, fill: C.orange[2] },
-  { type: 'Pajanan Cairan', jumlah: 6, fill: C.amber[2] },
-  { type: 'Bahan Kimia', jumlah: 3, fill: C.purple[2] },
-  { type: 'Radiasi', jumlah: 2, fill: C.blue[2] },
-  { type: 'Near Miss', jumlah: 7, fill: C.teal[2] },
+  { type: 'Pajanan Jarum', jumlah: 8, fill: CP.red[2] },
+  { type: 'Kecelakaan Kerja', jumlah: 5, fill: CP.orange[2] },
+  { type: 'Pajanan Cairan', jumlah: 6, fill: CP.amber[2] },
+  { type: 'Bahan Kimia', jumlah: 3, fill: CP.purple[2] },
+  { type: 'Radiasi', jumlah: 2, fill: CP.blue[2] },
+  { type: 'Near Miss', jumlah: 7, fill: CP.teal[2] },
 ];
 const insidenTrend = [
   { bulan: 'Sep', total: 4, selesai: 4 }, { bulan: 'Okt', total: 3, selesai: 3 },
@@ -201,7 +202,7 @@ function DonutChart({ data, colors, height = 200 }: { data: { name: string; valu
   );
 }
 
-function SimpleBar({ data, dataKey, xKey, fill = C.blue[2], height = 200 }: {
+function SimpleBar({ data, dataKey, xKey, fill = CP.blue[2], height = 200 }: {
   data: any[]; dataKey: string; xKey: string; fill?: string; height?: number;
 }) {
   const uid = useId().replace(/:/g, '');
@@ -312,7 +313,7 @@ function MultiLine({ data, lines, xKey, height = 240 }: {
   );
 }
 
-function HorizBar({ data, dataKey, yKey, fill = C.blue[2], height = 220 }: {
+function HorizBar({ data, dataKey, yKey, fill = CP.blue[2], height = 220 }: {
   data: any[]; dataKey: string; yKey: string; fill?: string; height?: number;
 }) {
   const uid = useId().replace(/:/g, '');
@@ -337,8 +338,8 @@ function RadarChart2({ data, height = 260 }: { data: any[]; height?: number }) {
         <PolarGrid key={`${uid}-pg`} stroke="#e2e8f0" />
         <PolarAngleAxis key={`${uid}-pa`} dataKey="subject" tick={{ fontSize: 11 }} />
         <PolarRadiusAxis key={`${uid}-pr`} angle={30} domain={[0, 100]} tick={{ fontSize: 9 }} />
-        <Radar key={`${uid}-r1`} name="Target" dataKey="B" stroke={C.blue[2]} fill={C.blue[2]} fillOpacity={0.15} isAnimationActive={false} />
-        <Radar key={`${uid}-r2`} name="Aktual" dataKey="A" stroke={C.green[2]} fill={C.green[2]} fillOpacity={0.2} isAnimationActive={false} />
+        <Radar key={`${uid}-r1`} name="Target" dataKey="B" stroke={CP.blue[2]} fill={CP.blue[2]} fillOpacity={0.15} isAnimationActive={false} />
+        <Radar key={`${uid}-r2`} name="Aktual" dataKey="A" stroke={CP.green[2]} fill={CP.green[2]} fillOpacity={0.2} isAnimationActive={false} />
         <Legend key={`${uid}-lg`} iconSize={8} wrapperStyle={{ fontSize: 11 }} />
         <Tooltip key={`${uid}-tt`} />
       </RadarChart>
@@ -357,7 +358,7 @@ function CellBar({ data, xKey, yKey, height = 220 }: { data: any[]; xKey: string
         <Tooltip key={`${uid}-tt`} formatter={(v: any) => [fmt(v)]} />
         <Bar key={`${uid}-b`} dataKey={yKey} radius={[4, 4, 0, 0]} isAnimationActive={false}>
           {data.map((entry, i) => (
-            <Cell key={`${uid}-c${i}`} fill={entry.fill || C.blue[2]} />
+            <Cell key={`${uid}-c${i}`} fill={entry.fill || CP.blue[2]} />
           ))}
         </Bar>
       </BarChart>
@@ -496,7 +497,7 @@ export default function Laporan() {
     // Golongan colored
     const golonganColored = chartGolongan.map((e: any, i: number) => ({
       golongan: e.golongan, jumlah: e.jumlah,
-      fill: [C.blue[1], C.blue[2], C.blue[3], C.blue[4]][i % 4],
+      fill: [CP.blue[1], CP.blue[2], CP.blue[3], CP.blue[4]][i % 4],
     }));
 
     // Unit kerja top 8
@@ -542,10 +543,10 @@ export default function Laporan() {
 
   // ── SKP data for chart ───────────────────────────────────────────────────────
   const skpChartData = useMemo(() => [
-    { predikat: 'Sangat Baik', jumlah: Math.max(stats.skpDist[0].jumlah, 42), fill: C.green[2] },
-    { predikat: 'Baik',        jumlah: Math.max(stats.skpDist[1].jumlah, 68), fill: C.blue[2]  },
-    { predikat: 'Cukup',       jumlah: Math.max(stats.skpDist[2].jumlah, 8),  fill: C.amber[2] },
-    { predikat: 'Kurang',      jumlah: Math.max(stats.skpDist[3].jumlah, 2),  fill: C.red[2]   },
+    { predikat: 'Sangat Baik', jumlah: Math.max(stats.skpDist[0].jumlah, 42), fill: CP.green[2] },
+    { predikat: 'Baik',        jumlah: Math.max(stats.skpDist[1].jumlah, 68), fill: CP.blue[2]  },
+    { predikat: 'Cukup',       jumlah: Math.max(stats.skpDist[2].jumlah, 8),  fill: CP.amber[2] },
+    { predikat: 'Kurang',      jumlah: Math.max(stats.skpDist[3].jumlah, 2),  fill: CP.red[2]   },
   ], [stats.skpDist]);
 
   return (
@@ -631,7 +632,7 @@ export default function Laporan() {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <SectionHeader title="Komposisi Status Pegawai" sub="PNS · PPPK · Honorer" />
             <div className="flex items-center gap-4">
-              <DonutChart data={stats.statusData} colors={[C.blue[3], C.green[2], C.amber[2]]} height={160} />
+              <DonutChart data={stats.statusData} colors={[CP.blue[3], CP.green[2], CP.amber[2]]} height={160} />
               <div className="space-y-3 flex-1">
                 {[
                   { label: 'PNS', val: stats.pns, color: 'bg-blue-600' },
@@ -659,7 +660,7 @@ export default function Laporan() {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <SectionHeader title="Komposisi Jenis Kelamin" />
             <div className="flex items-center gap-4">
-              <DonutChart data={stats.genderData} colors={[C.blue[3], C.pink[2]]} height={160} />
+              <DonutChart data={stats.genderData} colors={[CP.blue[3], CP.pink[2]]} height={160} />
               <div className="space-y-4 flex-1">
                 {[
                   { label: 'Laki-laki', val: stats.L, color: 'bg-blue-600', pct: Math.round((stats.L / stats.total) * 100) },
@@ -695,11 +696,11 @@ export default function Laporan() {
               data={trendAbsensi}
               xKey="bulan"
               bars={[
-                { key: 'hadir', name: 'Hadir',  fill: C.blue[2]  },
-                { key: 'sakit', name: 'Sakit',  fill: C.amber[2] },
-                { key: 'cuti',  name: 'Cuti',   fill: C.purple[2]},
-                { key: 'izin',  name: 'Izin',   fill: C.teal[2]  },
-                { key: 'alpha', name: 'Alpha',  fill: C.red[2]   },
+                { key: 'hadir', name: 'Hadir',  fill: CP.blue[2]  },
+                { key: 'sakit', name: 'Sakit',  fill: CP.amber[2] },
+                { key: 'cuti',  name: 'Cuti',   fill: CP.purple[2]},
+                { key: 'izin',  name: 'Izin',   fill: CP.teal[2]  },
+                { key: 'alpha', name: 'Alpha',  fill: CP.red[2]   },
               ]}
               height={220}
             />
@@ -790,15 +791,15 @@ export default function Laporan() {
             </div>
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <SectionHeader title="Jenjang Pendidikan Terakhir" />
-              <HorizBar data={jenjangData} dataKey="jumlah" yKey="jenjang" fill={C.indigo[2]} height={220} />
+              <HorizBar data={jenjangData} dataKey="jumlah" yKey="jenjang" fill={CP.indigo[2]} height={220} />
             </div>
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <SectionHeader title="Distribusi Usia Pegawai" sub="dalam tahun" />
-              <SimpleBar data={usiaData} dataKey="jumlah" xKey="range" fill={C.teal[2]} height={200} />
+              <SimpleBar data={usiaData} dataKey="jumlah" xKey="range" fill={CP.teal[2]} height={200} />
             </div>
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <SectionHeader title="Distribusi Masa Kerja" sub="dalam tahun" />
-              <SimpleBar data={masaKerjaData} dataKey="jumlah" xKey="range" fill={C.purple[2]} height={200} />
+              <SimpleBar data={masaKerjaData} dataKey="jumlah" xKey="range" fill={CP.purple[2]} height={200} />
             </div>
           </div>
 
@@ -866,10 +867,10 @@ export default function Laporan() {
               data={trendAbsensi}
               xKey="bulan"
               areas={[
-                { key: 'hadir', name: 'Hadir',  stroke: C.blue[2],   fill: C.blue[0]   },
-                { key: 'sakit', name: 'Sakit',  stroke: C.amber[2],  fill: C.amber[0]  },
-                { key: 'cuti',  name: 'Cuti',   stroke: C.purple[2], fill: C.purple[0] },
-                { key: 'alpha', name: 'Alpha',  stroke: C.red[2],    fill: C.red[0]    },
+                { key: 'hadir', name: 'Hadir',  stroke: CP.blue[2],   fill: CP.blue[0]   },
+                { key: 'sakit', name: 'Sakit',  stroke: CP.amber[2],  fill: CP.amber[0]  },
+                { key: 'cuti',  name: 'Cuti',   stroke: CP.purple[2], fill: CP.purple[0] },
+                { key: 'alpha', name: 'Alpha',  stroke: CP.red[2],    fill: CP.red[0]    },
               ]}
               height={280}
             />
@@ -940,9 +941,9 @@ export default function Laporan() {
                 data={trendKP}
                 xKey="tahun"
                 lines={[
-                  { key: 'reguler', name: 'KP Reguler', stroke: C.blue[3] },
-                  { key: 'fungsional', name: 'KP Fungsional', stroke: C.purple[2] },
-                  { key: 'total', name: 'Total KP', stroke: C.green[2] },
+                  { key: 'reguler', name: 'KP Reguler', stroke: CP.blue[3] },
+                  { key: 'fungsional', name: 'KP Fungsional', stroke: CP.purple[2] },
+                  { key: 'total', name: 'Total KP', stroke: CP.green[2] },
                 ]}
                 height={220}
               />
@@ -1022,8 +1023,8 @@ export default function Laporan() {
                 data={trendDiklat}
                 xKey="bulan"
                 lines={[
-                  { key: 'jp', name: 'Jam Pelajaran', stroke: C.blue[3] },
-                  { key: 'peserta', name: 'Peserta', stroke: C.green[2] },
+                  { key: 'jp', name: 'Jam Pelajaran', stroke: CP.blue[3] },
+                  { key: 'peserta', name: 'Peserta', stroke: CP.green[2] },
                 ]}
                 height={220}
               />
@@ -1113,8 +1114,8 @@ export default function Laporan() {
                 data={insidenTrend}
                 xKey="bulan"
                 bars={[
-                  { key: 'total', name: 'Total Insiden', fill: C.red[2] },
-                  { key: 'selesai', name: 'Selesai Ditangani', fill: C.green[2] },
+                  { key: 'total', name: 'Total Insiden', fill: CP.red[2] },
+                  { key: 'selesai', name: 'Selesai Ditangani', fill: CP.green[2] },
                 ]}
                 height={220}
               />
@@ -1244,13 +1245,13 @@ export default function Laporan() {
               <SmoothArea
                 data={trendGajiData}
                 xKey="bulan"
-                areas={[{ key: 'total', name: 'Total Bruto (Rp M)', stroke: C.blue[3], fill: C.blue[0] }]}
+                areas={[{ key: 'total', name: 'Total Bruto (Rp M)', stroke: CP.blue[3], fill: CP.blue[0] }]}
                 height={220}
               />
             </div>
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <SectionHeader title="Rata-rata Gaji per Unit Kerja" sub="(Rp Juta/bulan)" />
-              <HorizBar data={gajiByUnit} dataKey="rata" yKey="unit" fill={C.indigo[2]} height={220} />
+              <HorizBar data={gajiByUnit} dataKey="rata" yKey="unit" fill={CP.indigo[2]} height={220} />
             </div>
           </div>
 

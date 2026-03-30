@@ -11,17 +11,12 @@ import {
   ClipboardList, ArrowUpRight, UserPlus,
   TrendingDown, LayoutDashboard, RefreshCw,
   Filter, Minus, CheckCircle2, AlertTriangle,
-  Crown, Stethoscope, Settings2, FileText, ShieldCheck,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { chartKehadiran, chartUnitKerja } from '../data/mockData';
 import RechartsWrapper from '../components/RechartsWrapper';
-import ExecutiveDashboard from '../components/dashboard/ExecutiveDashboard';
-import FinanceDashboard from '../components/dashboard/FinanceDashboard';
-import ClinicalDashboard from '../components/dashboard/ClinicalDashboard';
-import OperationsDashboard from '../components/dashboard/OperationsDashboard';
-import BPJSCasemixDashboard from '../components/dashboard/BPJSCasemixDashboard';
-import GRCDashboard from '../components/dashboard/GRCDashboard';
+import { C, CHART_COLORS } from '../components/colors';
+
 import {
   StatCard, AlertItem, TabButton, MiniBar, HealthGauge,
 } from '../components/DashboardWidgets';
@@ -65,8 +60,7 @@ export default function Dashboard() {
     mutasi, penghargaan, cpd, grievance,
   } = useAppContext();
 
-  type DashboardRole = 'hr' | 'executive' | 'finance' | 'clinical' | 'operations' | 'bpjs' | 'grc';
-  const [dashboardRole, setDashboardRole] = useState<DashboardRole>('hr');
+
   const [activeTab, setActiveTab] = useState<'ringkasan' | 'kehadiran' | 'sdm' | 'kinerja'>('ringkasan');
   const [activityFeed, setActivityFeed] = useState<'aktivitas' | 'pengingat'>('aktivitas');
 
@@ -416,7 +410,7 @@ export default function Dashboard() {
 
   const chartSKPDistrib = useMemo(() => [
     { label: 'Sangat Baik (≥110)', value: stats.skpSangatBaik, color: '#10b981' },
-    { label: 'Baik (90–109)', value: stats.skpBaik, color: '#3b82f6' },
+    { label: 'Baik (90–109)', value: stats.skpBaik, color: '#048A75' },
     { label: 'Cukup (70–89)', value: stats.skpCukup, color: '#f59e0b' },
     { label: 'Kurang (<70)', value: stats.skpKurang, color: '#ef4444' },
   ], [stats]);
@@ -511,7 +505,7 @@ export default function Dashboard() {
   ];
 
   const quickActions = [
-    { label: 'Data Pegawai', icon: Users, path: '/pegawai', color: 'bg-blue-600', badge: String(stats.totalPegawai) },
+    { label: 'Data Pegawai', icon: Users, path: '/pegawai', color: 'bg-[#013E37]', badge: String(stats.totalPegawai) },
     { label: 'Presensi', icon: Clock, path: '/absensi', color: 'bg-emerald-600', badge: `${stats.kehadiranPct}%` },
     { label: 'Cuti', icon: CalendarDays, path: '/cuti', color: 'bg-orange-500', badge: stats.cutiPending > 0 ? `${stats.cutiPending}` : undefined },
     { label: 'Kenaikan Pangkat', icon: TrendingUp, path: '/kenaikan-pangkat', color: 'bg-purple-600', badge: stats.kpProses > 0 ? `${stats.kpProses}` : undefined },
@@ -554,59 +548,14 @@ export default function Dashboard() {
     { label: 'Diklat', score: stats.trainingScore, weight: '15%', color: 'bg-pink-500' },
   ];
 
-  const DASHBOARD_ROLES: { id: DashboardRole; label: string; desc: string; icon: React.ElementType; gradient: string }[] = [
-    { id: 'executive', label: 'Executive Command Center', desc: 'Direktur / Board', icon: Crown, gradient: 'from-amber-500 to-amber-700' },
-    { id: 'finance', label: 'Financial Control', desc: 'Direktur Keuangan', icon: DollarSign, gradient: 'from-emerald-500 to-emerald-700' },
-    { id: 'clinical', label: 'Clinical Performance', desc: 'Direktur Medis', icon: Stethoscope, gradient: 'from-blue-500 to-blue-700' },
-    { id: 'operations', label: 'Operations Control Tower', desc: 'Manajer Operasional', icon: Settings2, gradient: 'from-purple-500 to-purple-700' },
-    { id: 'hr', label: 'Workforce Analytics', desc: 'Direktur SDM / HRGA', icon: Users, gradient: 'from-[#1e3a5f] to-[#2563a8]' },
-    { id: 'bpjs', label: 'BPJS & Casemix Control', desc: 'Tim BPJS / Casemix', icon: FileText, gradient: 'from-cyan-500 to-cyan-700' },
-    { id: 'grc', label: 'Governance, Risk & Compliance', desc: 'Mutu / Akreditasi', icon: ShieldCheck, gradient: 'from-red-500 to-red-700' },
-  ];
+
 
   return (
     <div className="p-4 lg:p-6 space-y-5">
 
-      {/* ── Role Selector ──────────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3">
-        <div className="flex items-center gap-2 mb-2 px-1">
-          <LayoutDashboard className="w-4 h-4 text-gray-400" />
-          <span className="text-xs font-semibold text-gray-500">Dashboard View</span>
-        </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {DASHBOARD_ROLES.map(role => {
-            const isActive = dashboardRole === role.id;
-            return (
-              <button
-                key={role.id}
-                onClick={() => setDashboardRole(role.id)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left transition-all flex-shrink-0 ${
-                  isActive
-                    ? `bg-gradient-to-r ${role.gradient} text-white border-transparent shadow-md`
-                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-100'
-                }`}
-              >
-                <role.icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-400'}`} />
-                <div>
-                  <p className={`text-[11px] font-semibold leading-tight ${isActive ? 'text-white' : 'text-gray-700'}`}>{role.label}</p>
-                  <p className={`text-[9px] ${isActive ? 'text-white/70' : 'text-gray-400'}`}>{role.desc}</p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
 
-      {/* ── Non-HR Dashboard Views ── */}
-      {dashboardRole === 'executive' && <ExecutiveDashboard />}
-      {dashboardRole === 'finance' && <FinanceDashboard />}
-      {dashboardRole === 'clinical' && <ClinicalDashboard />}
-      {dashboardRole === 'operations' && <OperationsDashboard />}
-      {dashboardRole === 'bpjs' && <BPJSCasemixDashboard />}
-      {dashboardRole === 'grc' && <GRCDashboard />}
 
-      {/* ── HR Director Dashboard (existing) ── */}
-      {dashboardRole === 'hr' && (
+      {/* ── HR Director Dashboard ── */}
       <div className="contents">
 
       {/* ── Tab Navigation ────────────────────────────────────────────────────── */}
@@ -877,7 +826,7 @@ export default function Dashboard() {
                 xKey="bulan"
                 lines={[
                   { dataKey: 'hadir', stroke: '#10b981', name: 'Hadir' },
-                  { dataKey: 'sakit', stroke: '#3b82f6', name: 'Sakit' },
+                  { dataKey: 'sakit', stroke: '#048A75', name: 'Sakit' },
                   { dataKey: 'cuti', stroke: '#f59e0b', name: 'Cuti' },
                   { dataKey: 'alpha', stroke: '#ef4444', name: 'Alpha' },
                 ]}
@@ -896,7 +845,7 @@ export default function Dashboard() {
                 nameKey="name"
                 innerRadius={55}
                 outerRadius={90}
-                colors={['#3b82f6', '#8b5cf6', '#94a3b8']}
+                colors={['#048A75', '#8b5cf6', '#94a3b8']}
                 height={200}
               />
               <div className="grid grid-cols-3 gap-2 mt-2 pt-2 border-t border-gray-50">
@@ -928,7 +877,7 @@ export default function Dashboard() {
                 data={chartGolongan}
                 xKey="golongan"
                 yKey="jumlah"
-                colors={['#93c5fd', '#3b82f6', '#1d4ed8', '#1e3a5f']}
+                colors={['#36B5A0', '#048A75', '#025046', '#013E37']}
                 height={200}
                 radius={[6, 6, 0, 0]}
               />
@@ -948,7 +897,7 @@ export default function Dashboard() {
                 data={chartUnitKerja.slice(0, 8)}
                 xKey="name"
                 yKey="value"
-                colors={['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#f97316', '#6366f1']}
+                colors={['#048A75', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#f97316', '#6366f1']}
                 height={200}
                 radius={[6, 6, 0, 0]}
               />
@@ -969,7 +918,7 @@ export default function Dashboard() {
                 nameKey="name"
                 innerRadius={45}
                 outerRadius={75}
-                colors={['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444', '#06b6d4']}
+                colors={['#10b981', '#f59e0b', '#048A75', '#8b5cf6', '#ef4444', '#06b6d4']}
                 height={200}
               />
             </div>
@@ -985,7 +934,7 @@ export default function Dashboard() {
                 nameKey="name"
                 innerRadius={50}
                 outerRadius={80}
-                colors={['#3b82f6', '#ec4899']}
+                colors={['#048A75', '#ec4899']}
                 height={170}
               />
               <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-gray-50">
@@ -1228,7 +1177,7 @@ export default function Dashboard() {
                     onClick={() => setSelectedWeekIdx(i)}
                     className={`px-2.5 py-1 text-[11px] rounded-lg border transition-all font-medium ${
                       selectedWeekIdx === i
-                        ? 'bg-blue-600 text-white border-blue-600'
+                        ? 'bg-[#013E37] text-white border-[#013E37]'
                         : 'bg-gray-50 text-gray-500 border-gray-200 hover:border-blue-300 hover:text-blue-600'
                     }`}
                   >
@@ -1266,7 +1215,7 @@ export default function Dashboard() {
                 data={selectedWeekData}
                 xKey="hari"
                 yKey={['hadir', 'sakit', 'izin', 'alpha']}
-                colors={['#10b981', '#3b82f6', '#f59e0b', '#ef4444']}
+                colors={['#10b981', '#048A75', '#f59e0b', '#ef4444']}
                 height={200}
                 radius={[4, 4, 0, 0]}
               />
@@ -1396,7 +1345,7 @@ export default function Dashboard() {
                 xKey="bulan"
                 lines={[
                   { dataKey: 'hadir',    stroke: '#10b981', name: 'Hadir' },
-                  { dataKey: 'sakit',    stroke: '#3b82f6', name: 'Sakit' },
+                  { dataKey: 'sakit',    stroke: '#048A75', name: 'Sakit' },
                   { dataKey: 'cuti',     stroke: '#f59e0b', name: 'Cuti' },
                   { dataKey: 'alpha',    stroke: '#ef4444', name: 'Alpha' },
                   { dataKey: 'izin',     stroke: '#8b5cf6', name: 'Izin' },
@@ -1426,7 +1375,7 @@ export default function Dashboard() {
                   data={comparisonChartData}
                   xKey="kategori"
                   yKey={[chartKehadiran[compareIdxA].bulan, chartKehadiran[compareIdxB].bulan]}
-                  colors={['#3b82f6', '#10b981']}
+                  colors={['#048A75', '#10b981']}
                   height={240}
                   radius={[4, 4, 0, 0]}
                 />
@@ -1518,7 +1467,7 @@ export default function Dashboard() {
                     nameKey="name"
                     innerRadius={40}
                     outerRadius={70}
-                    colors={['#3b82f6', '#f59e0b', '#1e40af', '#06b6d4']}
+                    colors={['#048A75', '#f59e0b', '#013E37', '#06b6d4']}
                     height={160}
                   />
                   <div className="space-y-2">
@@ -1638,7 +1587,7 @@ export default function Dashboard() {
                 data={chartAgeDistrib}
                 xKey="kel"
                 yKey="jml"
-                colors={['#bfdbfe', '#60a5fa', '#3b82f6', '#1d4ed8', '#1e3a5f']}
+                colors={['#FFEFB2', '#36B5A0', '#048A75', '#025046', '#013E37']}
                 height={220}
                 radius={[6, 6, 0, 0]}
               />
@@ -1709,7 +1658,7 @@ export default function Dashboard() {
                 nameKey="jenis"
                 innerRadius={50}
                 outerRadius={85}
-                colors={['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444']}
+                colors={['#048A75', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444']}
                 height={220}
               />
             </div>
@@ -2171,7 +2120,6 @@ export default function Dashboard() {
       )}
 
       </div>
-      )}
 
     </div>
   );

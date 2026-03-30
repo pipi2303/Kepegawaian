@@ -5,6 +5,7 @@ import {
   TrendingUp, TrendingDown, Minus, Database, Clock, User,
   BookOpen, Layers, Zap, Activity,
 } from 'lucide-react';
+import { C, CHART_COLORS, BSC_COLORS } from './colors';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine, Cell,
@@ -26,7 +27,7 @@ const PERSPEKTIF_CFG: Record<BSCPerspektiveName, {
   ring: string; icon: string; hex: string;
 }> = {
   'Financial':         { color: 'text-emerald-700', bg: 'bg-emerald-50',  border: 'border-emerald-200', textLight: 'text-emerald-600', ring: 'ring-emerald-200', icon: '💰', hex: '#059669' },
-  'Customer':          { color: 'text-blue-700',    bg: 'bg-blue-50',     border: 'border-blue-200',    textLight: 'text-blue-600',    ring: 'ring-blue-200',    icon: '🏥', hex: '#2563eb' },
+  'Customer':          { color: 'text-blue-700',    bg: 'bg-blue-50',     border: 'border-blue-200',    textLight: 'text-blue-600',    ring: 'ring-blue-200',    icon: '🏥', hex: '#0891B2' },
   'Internal Process':  { color: 'text-violet-700',  bg: 'bg-violet-50',   border: 'border-violet-200',  textLight: 'text-violet-600',  ring: 'ring-violet-200',  icon: '⚙️', hex: '#7c3aed' },
   'Learning & Growth': { color: 'text-orange-700',  bg: 'bg-orange-50',   border: 'border-orange-200',  textLight: 'text-orange-600',  ring: 'ring-orange-200',  icon: '📚', hex: '#ea580c' },
 };
@@ -101,7 +102,7 @@ const MiniGauge = ({ value, max = 100, label, color = 'bg-blue-500' }: {
           <circle cx="18" cy="18" r="15.5" fill="none" stroke="#e5e7eb" strokeWidth="3" />
           <circle
             cx="18" cy="18" r="15.5" fill="none"
-            stroke={pct >= 90 ? '#10b981' : pct >= 75 ? '#3b82f6' : pct >= 60 ? '#f59e0b' : '#ef4444'}
+            stroke={pct >= 90 ? '#10b981' : pct >= 75 ? C.brandLight : pct >= 60 ? '#f59e0b' : '#ef4444'}
             strokeWidth="3"
             strokeDasharray={`${pct} 100`}
             strokeLinecap="round"
@@ -515,7 +516,7 @@ export function KPIMatrixTab() {
                 <YAxis key="kpi-yaxis" domain={[0, 100]} tick={{ fontSize: 9 }} />
                 <Tooltip key="kpi-tooltip" contentStyle={{ fontSize: 11 }} />
                 <ReferenceLine key="kpi-ref80" y={80} stroke="#10b981" strokeDasharray="4 2" label={{ value: '80', fontSize: 8, fill: '#10b981' }} />
-                <Bar key="kpi-bar-bsc" dataKey="BSC" fill="#3b82f6" opacity={0.8} radius={[2,2,0,0]} name="BSC Score" />
+                <Bar key="kpi-bar-bsc" dataKey="BSC" fill={CHART_COLORS[0]} opacity={0.8} radius={[2,2,0,0]} name="BSC Score" />
                 <Bar key="kpi-bar-okr" dataKey="OKR" fill="#8b5cf6" opacity={0.8} radius={[2,2,0,0]} name="OKR Score" />
                 <Bar key="kpi-bar-combined" dataKey="Combined" fill="#0f172a" opacity={0.9} radius={[3,3,0,0]} name="Combined Score" />
               </BarChart>

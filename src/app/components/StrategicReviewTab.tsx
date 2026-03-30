@@ -5,6 +5,7 @@ import {
   Target, Zap, BarChart2, FileText, Stethoscope,
   ArrowRight, Info, Star, Flag, Lightbulb,
 } from 'lucide-react';
+import { C, CHART_COLORS, BSC_COLORS } from './colors';
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 interface KPIRow {

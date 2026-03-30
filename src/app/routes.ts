@@ -9,10 +9,11 @@ import NotFound from './components/NotFound';
 import Dashboard from './pages/Dashboard';
 import Penggajian from './pages/Penggajian';
 import Absensi from './pages/Absensi';
+import DataPegawai from './pages/DataPegawai';
+import OrganisasiTree from './pages/OrganisasiTree';
 
 // Semua halaman lain tetap lazy-loaded untuk performa optimal.
 const Login              = lazy(() => import('./pages/Login'));
-const DataPegawai        = lazy(() => import('./pages/DataPegawai'));
 const DetailPegawai      = lazy(() => import('./pages/DetailPegawai'));
 const Cuti               = lazy(() => import('./pages/Cuti'));
 const RiwayatJabatan     = lazy(() => import('./pages/RiwayatJabatan'));
@@ -31,7 +32,6 @@ const Penghargaan        = lazy(() => import('./pages/Penghargaan'));
 const Mutasi             = lazy(() => import('./pages/Mutasi'));
 const KomiteRS           = lazy(() => import('./pages/KomiteRS'));
 const HubunganIndustrial = lazy(() => import('./pages/HubunganIndustrial'));
-const OrganisasiTree     = lazy(() => import('./pages/OrganisasiTree'));
 const PerformanceManagement = lazy(() => import('./pages/PerformanceManagement'));
 
 // ─── Router Singleton ─────────────────────────────────────────────────────────

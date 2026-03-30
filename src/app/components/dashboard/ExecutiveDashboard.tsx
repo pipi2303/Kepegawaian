@@ -10,7 +10,8 @@ import {
   Users, BarChart2, Layers, Gauge,
 } from 'lucide-react';
 import RechartsWrapper from '../RechartsWrapper';
-import { MiniBar, TabButton } from '../DashboardWidgets';
+import { TabButton, MiniBar, ScoreGauge } from '../DashboardWidgets';
+import { C, CHART_COLORS } from '../colors';
 import {
   revenueVsCost, revenueByService, bpjsVsNonBPJS,
   clinicalKPI, patientVolumeTrend, borByWard,
@@ -78,7 +79,7 @@ export default function ExecutiveDashboard() {
                 data={revenueVsCost}
                 xKey="bulan"
                 yKey={['revenue', 'cost']}
-                colors={['#3b82f6', '#f87171']}
+                colors={[CHART_COLORS[0], '#f87171']}
                 height={240}
                 radius={[4, 4, 0, 0]}
                 tooltipFormatter={(v: number) => fmtRpShort(v)}
@@ -116,7 +117,7 @@ export default function ExecutiveDashboard() {
                 data={patientVolumeTrend}
                 xKey="bulan"
                 lines={[
-                  { dataKey: 'rawatInap', stroke: '#3b82f6', name: 'Rawat Inap' },
+                  { dataKey: 'rawatInap', stroke: CHART_COLORS[0], name: 'Rawat Inap' },
                   { dataKey: 'rawatJalan', stroke: '#10b981', name: 'Rawat Jalan' },
                   { dataKey: 'igd', stroke: '#f59e0b', name: 'IGD' },
                 ]}
@@ -193,7 +194,7 @@ export default function ExecutiveDashboard() {
                 nameKey="service"
                 innerRadius={50}
                 outerRadius={85}
-                colors={['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4']}
+                colors={[CHART_COLORS[0], CHART_COLORS[1], CHART_COLORS[3], CHART_COLORS[2], CHART_COLORS[4]]}
                 height={220}
                 tooltipFormatter={(v: number) => fmtRpShort(v)}
               />
@@ -253,7 +254,7 @@ export default function ExecutiveDashboard() {
                 ] : []}
                 xKey="kategori"
                 yKey={['Tarif INA-CBG', 'Biaya Riil']}
-                colors={['#3b82f6', '#ef4444']}
+                colors={[CHART_COLORS[0], '#ef4444']}
                 height={220}
                 radius={[4, 4, 0, 0]}
                 tooltipFormatter={(v: number) => fmtRpShort(v)}
@@ -377,7 +378,7 @@ export default function ExecutiveDashboard() {
               data={patientVolumeTrend}
               xKey="bulan"
               lines={[
-                { dataKey: 'rawatInap', stroke: '#3b82f6', name: 'Rawat Inap' },
+                { dataKey: 'rawatInap', stroke: CHART_COLORS[0], name: 'Rawat Inap' },
                 { dataKey: 'rawatJalan', stroke: '#10b981', name: 'Rawat Jalan' },
                 { dataKey: 'igd', stroke: '#f59e0b', name: 'IGD' },
               ]}
@@ -465,7 +466,7 @@ export default function ExecutiveDashboard() {
                 lines={[
                   { dataKey: 'sentinel', stroke: '#ef4444', name: 'Sentinel' },
                   { dataKey: 'ktd', stroke: '#f59e0b', name: 'KTD' },
-                  { dataKey: 'knc', stroke: '#3b82f6', name: 'KNC' },
+                  { dataKey: 'knc', stroke: CHART_COLORS[0], name: 'KNC' },
                   { dataKey: 'kpc', stroke: '#8b5cf6', name: 'KPC' },
                 ]}
                 height={220}
