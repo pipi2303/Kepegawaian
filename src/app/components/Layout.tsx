@@ -327,7 +327,7 @@ function Layout() {
                 <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
               </button>
               {profileOpen && (
-                <div className="absolute right-0 top-12 w-52 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
+                <div className="absolute right-0 top-12 w-52 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden" onClick={e => e.stopPropagation()}>
                   <div className="px-4 py-3 border-b border-gray-100">
                     <p className="font-medium text-gray-800 text-sm">{currentUser?.nama}</p>
                     <p className="text-xs text-gray-500">{roleLabel[currentUser?.role || '']} · {currentUser?.golongan}</p>
@@ -341,7 +341,7 @@ function Layout() {
                     </button>
                     <div className="border-t border-gray-100 my-1" />
                     <button
-                      onClick={handleLogout}
+                      onClick={() => { setProfileOpen(false); handleLogout(); }}
                       className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
                     >
                       <LogOut className="w-4 h-4" /> Keluar
