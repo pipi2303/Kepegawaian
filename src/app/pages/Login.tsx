@@ -83,7 +83,7 @@ export default function Login() {
               </div>
             ))}
             <p className="text-[#FFEFB2]/40 text-xs mt-4 border-t border-white/10 pt-4">
-              HCMS Application v2.0 · Hak Cipta © 2026
+              HCMS Application v2.0 ·<br />Hak Cipta © 2026
             </p>
           </div>
         </div>
@@ -155,6 +155,12 @@ export default function Login() {
               {loading ? 'Memverifikasi...' : 'Masuk'}
             </button>
           </form>
+
+          <div className="text-center mt-6 text-xs text-gray-400">
+            <p>Developed by</p>
+            <p className="font-bold text-[#013E37]">INTRAMEDIKA</p>
+            <p style={{ fontStyle: 'italic' }}>Innovating Healthcare Systems</p>
+          </div>
 
         </div>
       </div>
