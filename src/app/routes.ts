@@ -1,5 +1,5 @@
 import { lazy } from 'react';
-import { createBrowserRouter } from 'react-router';
+import { createHashRouter } from 'react-router';
 import Layout from './components/Layout';
 import Root   from './components/Root';
 import NotFound from './components/NotFound';
@@ -38,10 +38,10 @@ const PerformanceManagement = lazy(() => import('./pages/PerformanceManagement')
 // Singleton mencegah RouterProvider menerima instance router baru saat HMR
 // (router baru → React Router unmount/remount context → useNavigate error).
 const ROUTER_KEY = '__hrAppRouter_v8';
-type RouterType = ReturnType<typeof createBrowserRouter>;
+type RouterType = ReturnType<typeof createHashRouter>;
 
 function buildRouter(): RouterType {
-  return createBrowserRouter([
+  return createHashRouter([
     {
       // Pathless layout route — menyediakan AppProvider + Toaster untuk semua rute.
       Component: Root,
