@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router';
 import { Toaster } from 'sonner';
-import { AppProvider } from '../context/AppContext';
+import { AppProvider, useAppContext } from '../context/AppContext';
 
 /**
  * Root – komponen layout tanpa path (pathless layout route).
@@ -21,17 +21,18 @@ export default function Root() {
 function RootContent() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isLoggedIn } = useAppContext();
 
   useEffect(() => {
-    // Redirect ke dashboard setiap kali aplikasi di-refresh (load pertama kali)
-    // Kecuali user ada di halaman login
-    const isFirstLoad = !window.sessionStorage.getItem('hr_app_loaded');
-    
-    if (isFirstLoad && location.pathname !== '/login') {
-      window.sessionStorage.setItem('hr_app_loaded', 'true');
+    // Jika user sudah login (dari localStorage) dan berada di /login, redirect ke dashboard
+    if (isLoggedIn && location.pathname === '/login') {
       navigate('/', { replace: true });
     }
-  }, [navigate, location.pathname]);
+    // Jika user belum login dan BUKAN di /login, redirect ke login
+    if (!isLoggedIn && location.pathname !== '/login') {
+      navigate('/login', { replace: true });
+    }
+  }, [isLoggedIn, location.pathname, navigate]);
 
   return (
     <Suspense

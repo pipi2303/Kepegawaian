@@ -820,8 +820,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const savedUser = (() => {
     try {
       const saved = localStorage.getItem('hr_app_user');
-      return saved ? JSON.parse(saved) : null;
-    } catch { return null; }
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      // Validasi: pastikan user masih ada di daftar appUsers
+      const matched = appUsers.find(u => u.id === parsed.id && u.username === parsed.username);
+      if (matched) {
+        // Perbarui data dari daftar terbaru (misal: excludedModules baru ditambahkan)
+        localStorage.setItem('hr_app_user', JSON.stringify(matched));
+        return matched;
+      }
+      // User tidak cocok lagi, hapus data lama
+      localStorage.removeItem('hr_app_user');
+      return null;
+    } catch {
+      localStorage.removeItem('hr_app_user');
+      return null;
+    }
   })();
 
   const [state, dispatch] = useReducer(reducer, {
