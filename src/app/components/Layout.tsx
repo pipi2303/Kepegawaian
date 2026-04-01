@@ -155,10 +155,12 @@ const SidebarContent = memo(({ sidebarOpen, currentUser, onLogout, setMobileSide
 
       {/* Bottom */}
       <div className="border-t border-[#025046] p-3 space-y-1">
+        {!currentUser?.excludedModules?.includes('pengaturan') && (
         <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-[#FFEFB2]/70 hover:bg-[#FFEFB2]/10 hover:text-[#FFEFB2] transition-all">
           <Settings className="w-4.5 h-4.5 flex-shrink-0" />
           {sidebarOpen && <span className="text-sm">Pengaturan</span>}
         </button>
+        )}
         <button
           onClick={onLogout}
           className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-[#FFEFB2]/70 hover:bg-red-500/20 hover:text-red-300 transition-all"
@@ -336,9 +338,11 @@ function Layout() {
                     <button className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
                       <UserCircle className="w-4 h-4" /> Profil Saya
                     </button>
+                    {!currentUser?.excludedModules?.includes('pengaturan') && (
                     <button className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
                       <Settings className="w-4 h-4" /> Pengaturan
                     </button>
+                    )}
                     <div className="border-t border-gray-100 my-1" />
                     <button
                       onClick={() => { setProfileOpen(false); handleLogout(); }}

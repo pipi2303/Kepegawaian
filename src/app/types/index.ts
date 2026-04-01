@@ -368,6 +368,7 @@ export interface AppUser {
   golongan?: string;
   unitKerja?: string;
   pegawaiId?: string;
+  excludedModules?: string[];
 }
 
 // ─── STR (Surat Tanda Registrasi) ────────────────────────────────────────────
