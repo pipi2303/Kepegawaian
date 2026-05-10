@@ -72,7 +72,10 @@ function buildRouter(): RouterType {
               element: <ProtectedRoute roles={['admin', 'direktur']}><Disiplin /></ProtectedRoute>
             },
             { path: 'diklat',                   Component: Diklat },
-            { path: 'surat-kepegawaian',        Component: SuratKepegawaian },
+            { 
+              path: 'surat-kepegawaian',        
+              element: <ProtectedRoute roles={['admin', 'direktur']}><SuratKepegawaian /></ProtectedRoute> 
+            },
             { 
               path: 'credentialing',            
               element: <ProtectedRoute roles={['admin', 'kepala_unit']}><Credentialing /></ProtectedRoute>

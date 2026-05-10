@@ -96,7 +96,7 @@ const menuItems: MenuSection[] = [
   {
     section: 'SURAT & LAPORAN',
     items: [
-      { path: '/surat-kepegawaian', label: 'Surat Kepegawaian', icon: Mail },
+      { path: '/surat-kepegawaian', label: 'Surat Kepegawaian', icon: Mail, roles: ['admin', 'direktur'] },
       { path: '/laporan', label: 'Laporan & Statistik', icon: FileBarChart2, roles: ['admin', 'direktur'] },
     ],
   },
