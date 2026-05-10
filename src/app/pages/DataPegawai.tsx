@@ -25,8 +25,9 @@ const EMPTY_FORM: Omit<Pegawai, 'id'> = {
 
 export default function DataPegawai() {
   const navigate = useNavigate();
-  const { pegawai: dataPegawai, addPegawai, updatePegawai, deletePegawai } = useAppContext();
+  const { pegawai: dataPegawai, addPegawai, updatePegawai, deletePegawai, isLoading } = useAppContext();
   const [search, setSearch] = useState('');
+  // ... rest of state declarations ...
   const [filterUnit, setFilterUnit] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterJenis, setFilterJenis] = useState('');
@@ -38,6 +39,7 @@ export default function DataPegawai() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const filtered = useMemo(() => {
+    if (isLoading) return [];
     return dataPegawai.filter(p => {
       const fullName = `${p.gelarDepan || ''} ${p.nama}${p.gelarBelakang ? ', ' + p.gelarBelakang : ''}`.toLowerCase();
       const matchSearch = !search || fullName.includes(search.toLowerCase()) || p.nip.includes(search) || p.jabatan.toLowerCase().includes(search.toLowerCase());
@@ -47,7 +49,22 @@ export default function DataPegawai() {
       const matchGolongan = !filterGolongan || p.golongan.startsWith(filterGolongan);
       return matchSearch && matchUnit && matchStatus && matchJenis && matchGolongan;
     });
-  }, [dataPegawai, search, filterUnit, filterStatus, filterJenis, filterGolongan]);
+  }, [dataPegawai, search, filterUnit, filterStatus, filterJenis, filterGolongan, isLoading]);
+
+  if (isLoading) {
+    return (
+      <div className="p-4 lg:p-6 space-y-6">
+        <div className="h-20 bg-gray-100 animate-pulse rounded-xl w-full" />
+        <div className="grid grid-cols-4 gap-4">
+          <div className="h-32 bg-gray-100 animate-pulse rounded-xl" />
+          <div className="h-32 bg-gray-100 animate-pulse rounded-xl" />
+          <div className="h-32 bg-gray-100 animate-pulse rounded-xl" />
+          <div className="h-32 bg-gray-100 animate-pulse rounded-xl" />
+        </div>
+        <div className="h-96 bg-gray-50 animate-pulse rounded-xl" />
+      </div>
+    );
+  }
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginatedData = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);

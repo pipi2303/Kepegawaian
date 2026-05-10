@@ -290,7 +290,9 @@ export default function Cuti() {
                 <option value="Ditolak">Ditolak</option>
               </select>
             </div>
-            <div className="overflow-x-auto">
+
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-100">
@@ -335,6 +337,45 @@ export default function Cuti() {
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-gray-100">
+              {allCuti.length === 0 ? (
+                <div className="py-10 text-center text-gray-400 text-sm">Tidak ada data cuti</div>
+              ) : allCuti.map(c => {
+                const sc = statusConfig[c.status];
+                return (
+                  <div key={c.id} className="p-4 hover:bg-gray-50 transition-colors cursor-pointer space-y-3" onClick={() => openDetail(c)}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">{getFullName(c.pegawaiId)}</p>
+                        <p className="text-xs text-gray-400">{getPegawai(c.pegawaiId)?.unitKerja}</p>
+                      </div>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${sc.bg} ${sc.color}`}>{c.status}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                      <div>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wide">Jenis Cuti</p>
+                        <p className="text-sm font-semibold text-gray-700">{c.jenisCuti}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wide">Durasi</p>
+                        <p className="text-sm font-semibold text-blue-600">{c.jumlahHari} Hari</p>
+                      </div>
+                      <div className="col-span-2">
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wide">Periode</p>
+                        <p className="text-xs font-medium text-gray-600">{fmtDate(c.tanggalMulai)} s.d. {fmtDate(c.tanggalSelesai)}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-end gap-1" onClick={e => e.stopPropagation()}>
+                      <button onClick={() => openDetail(c)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg bg-gray-100"><Eye className="w-4 h-4" /></button>
+                      <button onClick={() => openEdit(c)} className="p-1.5 text-gray-500 hover:bg-gray-200 rounded-lg bg-gray-100"><Edit2 className="w-4 h-4" /></button>
+                      <button onClick={() => setShowDeleteConfirm(c.id)} className="p-1.5 text-red-500 hover:bg-red-100 rounded-lg bg-gray-100"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
@@ -360,7 +401,9 @@ export default function Cuti() {
               </div>
             </div>
             <h4 className="text-sm font-semibold text-gray-700 mb-3">Saldo Cuti Tahunan 2026</h4>
-            <div className="overflow-x-auto">
+            
+            {/* Desktop Table View for Saldo */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50">
@@ -404,6 +447,35 @@ export default function Cuti() {
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View for Saldo */}
+            <div className="md:hidden divide-y divide-gray-100">
+              {pegawai.filter(p => p.statusAktif === 'Aktif').slice(0, 12).map(p => {
+                const kuota = 12;
+                const cutiPegawai = cuti.filter(c => c.pegawaiId === p.id && c.status === 'Disetujui');
+                const terpakai = cutiPegawai.reduce((s, c) => s + c.jumlahHari, 0);
+                const sisa = Math.max(0, kuota - terpakai);
+                const persen = Math.min(100, Math.round((terpakai / kuota) * 100));
+                return (
+                  <div key={p.id} className="py-3">
+                    <div className="mb-2">
+                      <p className="text-sm font-medium text-gray-800">{p.nama}</p>
+                      <p className="text-xs text-gray-400">{p.unitKerja}</p>
+                    </div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-gray-500">Terpakai: <span className="font-semibold text-orange-600">{terpakai} hari</span></span>
+                      <span className="text-gray-500">Sisa: <span className={`font-semibold ${sisa <= 3 ? 'text-red-600' : sisa <= 6 ? 'text-yellow-600' : 'text-green-600'}`}>{sisa} hari</span></span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-gray-100 rounded-full h-2">
+                        <div className={`h-2 rounded-full transition-all ${persen >= 80 ? 'bg-red-500' : persen >= 50 ? 'bg-yellow-500' : 'bg-blue-500'}`} style={{ width: `${persen}%` }} />
+                      </div>
+                      <span className="text-[10px] font-semibold text-gray-500 w-8 text-right">{persen}%</span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

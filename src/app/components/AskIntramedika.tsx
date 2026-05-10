@@ -8,6 +8,7 @@ import {
   Info, ChevronRight, Trash2,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // ─── Storage key ──────────────────────────────────────────────────────────────
 const CHAT_STORAGE_KEY = 'intramedika_chat_v2';
@@ -496,7 +497,7 @@ export default function AskIntramedika() {
     }
   }, [isOpen, isMinimized]);
 
-  const sendMessage = useCallback((text: string) => {
+  const sendMessage = useCallback(async (text: string) => {
     if (!text.trim()) return;
     const userMsg: ChatMessage = {
       id: `u-${Date.now()}`,
@@ -509,8 +510,8 @@ export default function AskIntramedika() {
     setShowQuickTopics(false);
     setIsTyping(true);
 
-    setTimeout(() => {
-      // Try personalized answer first
+    try {
+      // Prioritaskan jawaban terpersonalisasi secara real-time
       const personalized = buildPersonalizedAnswer(text, userCtx);
       if (personalized) {
         setMessages(prev => [...prev, {
@@ -525,33 +526,82 @@ export default function AskIntramedika() {
         return;
       }
 
-      // Try static KB
-      const staticResult = findStaticAnswer(text);
-      if (staticResult) {
+      // Coba akses Gemini AI
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (apiKey) {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        
+        const systemPrompt = `Anda adalah Ask INTRAMEDIKA, asisten digital cerdas terintegrasi di Sistem Informasi Manajemen Sumber Daya Manusia (HCMS) sebuah Rumah Sakit.
+Anda sedang berbicara secara eksklusif dengan:
+- Nama: ${userCtx.nama}
+- Jabatan: ${userCtx.jabatan}
+- Unit Kerja: ${userCtx.unitKerja}
+
+Data Real-Time Pegawai Ini:
+- Sisa Cuti Tahunan: ${userCtx.sisaCutiTahunan} hari (Telah dipakai: ${userCtx.cutiDiambil} hari)
+- Rekap Kehadiran (Bulan Ini): Hadir ${userCtx.totalAbsensiMaret.hadir}x, Terlambat ${userCtx.totalAbsensiMaret.terlambat}x, Alpha ${userCtx.totalAbsensiMaret.alpha}x.
+- Status STR: ${userCtx.strStatus?.status ?? 'Tidak Terdaftar'} (${userCtx.strStatus?.expired ?? '-'})
+- Status SIP: ${userCtx.sipStatus?.status ?? 'Tidak Terdaftar'} (${userCtx.sipStatus?.expired ?? '-'})
+- SKP Terakhir: ${userCtx.skpTerakhir ? `${userCtx.skpTerakhir.nilai}% (${userCtx.skpTerakhir.kategori})` : 'Belum dinilai'}
+
+Tugas Anda:
+1. Jawab pertanyaan user berdasarkan data real-time di atas jika relevan.
+2. Berikan jawaban yang ringkas, ramah, dan profesional. Gunakan bahasa Indonesia. Gunakan list atau poin-poin agar mudah dibaca.
+3. Jangan pernah memberikan jawaban fiktif jika user menanyakan informasi spesifik yang tidak ada di prompt ini; berikan arahan untuk menghubungi Subbag Kepegawaian (Ext. 101).`;
+
+        const result = await model.generateContent([
+          { text: systemPrompt },
+          { text: `Pertanyaan dari user: ${text}` }
+        ]);
+        const response = await result.response;
+        const responseText = response.text();
+
         setMessages(prev => [...prev, {
           id: `a-${Date.now()}`,
           role: 'assistant',
-          content: staticResult.answer,
+          content: responseText,
           timestamp: new Date().toISOString(),
           feedback: null,
-          suggestions: staticResult.suggestions,
         }]);
-        setIsTyping(false);
-        return;
+      } else {
+        // Jika API Key tidak ada, fallback ke static knowledge base
+        const staticResult = findStaticAnswer(text);
+        if (staticResult) {
+          setMessages(prev => [...prev, {
+            id: `a-${Date.now()}`,
+            role: 'assistant',
+            content: staticResult.answer,
+            timestamp: new Date().toISOString(),
+            feedback: null,
+            suggestions: staticResult.suggestions,
+          }]);
+        } else {
+          const fallback = buildFallback(text);
+          setMessages(prev => [...prev, {
+            id: `a-${Date.now()}`,
+            role: 'assistant',
+            content: fallback.answer,
+            timestamp: new Date().toISOString(),
+            feedback: null,
+            suggestions: fallback.suggestions,
+          }]);
+        }
       }
-
-      // Fallback
+    } catch (error) {
+      console.error("Gemini API Error:", error);
       const fallback = buildFallback(text);
       setMessages(prev => [...prev, {
         id: `a-${Date.now()}`,
         role: 'assistant',
-        content: fallback.answer,
+        content: fallback.answer + "\n\n*(Sistem AI pintar sedang tidak merespon. Menampilkan jawaban standar.)*",
         timestamp: new Date().toISOString(),
         feedback: null,
         suggestions: fallback.suggestions,
       }]);
+    } finally {
       setIsTyping(false);
-    }, 700 + Math.random() * 600);
+    }
   }, [userCtx]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -621,7 +671,7 @@ export default function AskIntramedika() {
                       <span className="inline-block w-1.5 h-1.5 bg-[#FFEFB2]/60 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }} />
                       <span className="ml-1">Mengetik...</span>
                     </span>
-                  ) : 'Asisten Digital Kepegawaian • Online'}
+                  ) : 'Asisten Digital (Gemini AI) • Online'}
                 </p>
               </div>
             </div>

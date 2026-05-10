@@ -14,7 +14,20 @@ import GlobalSearch from './GlobalSearch';
 import AskIntramedika from './AskIntramedika';
 import { C } from './colors';
 
-const menuItems = [
+type MenuItem = {
+  path: string;
+  label: string;
+  icon: any;
+  roles?: UserRole[];
+};
+
+type MenuSection = {
+  section: string;
+  items: MenuItem[];
+  roles?: UserRole[];
+};
+
+const menuItems: MenuSection[] = [
   {
     section: 'UTAMA',
     items: [
@@ -23,11 +36,12 @@ const menuItems = [
   },
   {
     section: 'DATA PEGAWAI',
+    roles: ['admin', 'direktur', 'kepala_unit'],
     items: [
       { path: '/pegawai', label: 'Data Pegawai', icon: Users },
       { path: '/organisasi', label: 'Struktur Organisasi', icon: Network },
-      { path: '/mutasi', label: 'Mutasi & Rotasi', icon: ArrowRightLeft },
-      { path: '/penghargaan', label: 'Penghargaan', icon: Award },
+      { path: '/mutasi', label: 'Mutasi & Rotasi', icon: ArrowRightLeft, roles: ['admin'] },
+      { path: '/penghargaan', label: 'Penghargaan', icon: Award, roles: ['admin'] },
     ],
   },
   {
@@ -35,34 +49,36 @@ const menuItems = [
     items: [
       { path: '/absensi', label: 'Presensi / Absensi', icon: Clock },
       { path: '/cuti', label: 'Manajemen Cuti', icon: CalendarDays },
-      { path: '/penjadwalan', label: 'Penjadwalan Shift', icon: CalendarClock },
+      { path: '/penjadwalan', label: 'Penjadwalan Shift', icon: CalendarClock, roles: ['admin', 'kepala_unit'] },
     ],
   },
   {
     section: 'KARIR & PANGKAT',
+    roles: ['admin', 'direktur', 'kepala_unit', 'pegawai'],
     items: [
       { path: '/riwayat-jabatan', label: 'Riwayat Jabatan', icon: Briefcase },
-      { path: '/kenaikan-pangkat', label: 'Kenaikan Pangkat', icon: TrendingUp },
+      { path: '/kenaikan-pangkat', label: 'Kenaikan Pangkat', icon: TrendingUp, roles: ['admin'] },
     ],
   },
   {
     section: 'KINERJA & PENGEMBANGAN',
     items: [
       { path: '/skp', label: 'SKP & Penilaian Kinerja', icon: Target },
-      { path: '/performance', label: 'Performance Management', icon: Gauge },
+      { path: '/performance', label: 'Performance Management', icon: Gauge, roles: ['admin', 'direktur'] },
       { path: '/diklat', label: 'Diklat & Kompetensi', icon: GraduationCap },
     ],
   },
   {
     section: 'KLINIS & LISENSI',
     items: [
-      { path: '/credentialing', label: 'Credentialing & Lisensi', icon: ShieldCheck },
+      { path: '/credentialing', label: 'Credentialing & Lisensi', icon: ShieldCheck, roles: ['admin', 'kepala_unit'] },
       { path: '/k3rs', label: 'K3RS & Kesehatan Kerja', icon: HeartPulse },
-      { path: '/komite-rs', label: 'Komite Rumah Sakit', icon: Users2 },
+      { path: '/komite-rs', label: 'Komite Rumah Sakit', icon: Users2, roles: ['admin', 'direktur'] },
     ],
   },
   {
     section: 'KEPEGAWAIAN',
+    roles: ['admin', 'direktur'],
     items: [
       { path: '/penggajian', label: 'Penggajian & Tunjangan', icon: DollarSign },
       { path: '/bpjs', label: 'BPJS Kesehatan & BPJS Ketenagakerjaan', icon: Heart },
@@ -71,6 +87,7 @@ const menuItems = [
   },
   {
     section: 'DISIPLIN & HUKUM',
+    roles: ['admin', 'direktur'],
     items: [
       { path: '/disiplin', label: 'Disiplin Pegawai', icon: ShieldAlert },
       { path: '/hubungan-industrial', label: 'Hubungan Industrial', icon: Scale },
@@ -80,7 +97,7 @@ const menuItems = [
     section: 'SURAT & LAPORAN',
     items: [
       { path: '/surat-kepegawaian', label: 'Surat Kepegawaian', icon: Mail },
-      { path: '/laporan', label: 'Laporan & Statistik', icon: FileBarChart2 },
+      { path: '/laporan', label: 'Laporan & Statistik', icon: FileBarChart2, roles: ['admin', 'direktur'] },
     ],
   },
 ];
@@ -110,6 +127,24 @@ const SidebarContent = memo(({ sidebarOpen, currentUser, onLogout, setMobileSide
     ? currentUser.nama.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase()
     : 'U';
 
+  const filteredMenu = useMemo(() => {
+    if (!currentUser) return [];
+    const role = currentUser.role as UserRole;
+    const excluded = currentUser.excludedModules || [];
+
+    return menuItems
+      .filter(section => !section.roles || section.roles.includes(role))
+      .map(section => ({
+        ...section,
+        items: section.items.filter(item => {
+          const hasRole = !item.roles || item.roles.includes(role);
+          const isExcluded = excluded.some((ex: string) => item.path.includes(ex.toLowerCase()));
+          return hasRole && !isExcluded;
+        })
+      }))
+      .filter(section => section.items.length > 0);
+  }, [currentUser]);
+
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
@@ -126,7 +161,7 @@ const SidebarContent = memo(({ sidebarOpen, currentUser, onLogout, setMobileSide
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-4 space-y-5 custom-scrollbar">
-        {menuItems.map((section) => (
+        {filteredMenu.map((section) => (
           <div key={section.section}>
             {sidebarOpen && (
               <p className="px-4 mb-1 text-[10px] font-semibold text-[#FFEFB2]/60 tracking-wider">{section.section}</p>

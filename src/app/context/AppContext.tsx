@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   Pegawai, CutiRecord, AbsensiRecord, SKPRecord, RiwayatJabatan,
   KenaikanPangkat, DisiplinRecord, DiklatRecord, AppUser,
@@ -34,6 +35,7 @@ import {
   dataPHK as initialPHK,
   dataCPD as initialCPD,
 } from '../data/mockDataRS';
+import { pegawaiApi, cutiApi, absensiApi } from '../data/api';
 
 // ─── Generator: Absensi Maret 2026 ────────────────────────────────────────────
 function generateInitialAbsensi(): AbsensiRecord[] {
@@ -411,25 +413,14 @@ interface AppState {
   isLoggedIn: boolean;
 }
 
-// ─── Actions ───────────────────────────��──────────────────────────────────────
+// ─── Actions ──────────────────────────────────────────────────────────────────
 type Action =
   | { type: 'LOGIN'; user: AppUser }
   | { type: 'LOGOUT' }
-  // Pegawai CRUD
-  | { type: 'ADD_PEGAWAI'; pegawai: Pegawai }
-  | { type: 'UPDATE_PEGAWAI'; pegawai: Pegawai }
-  | { type: 'DELETE_PEGAWAI'; id: string }
-  // Cuti CRUD + approval
-  | { type: 'ADD_CUTI'; cuti: CutiRecord }
-  | { type: 'UPDATE_CUTI'; cuti: CutiRecord }
-  | { type: 'DELETE_CUTI'; id: string }
-  | { type: 'APPROVE_CUTI'; id: string; level: number; nama: string; catatan?: string }
-  | { type: 'REJECT_CUTI'; id: string; level: number; nama: string; catatan?: string }
-  // Absensi CRUD
-  | { type: 'ADD_ABSENSI'; absensi: AbsensiRecord }
-  | { type: 'UPDATE_ABSENSI'; absensi: AbsensiRecord }
-  | { type: 'DELETE_ABSENSI'; id: string }
-  | { type: 'BULK_INPUT_ABSENSI'; records: AbsensiRecord[] }
+  // Data Setters
+  | { type: 'SET_PEGAWAI'; data: Pegawai[] }
+  | { type: 'SET_CUTI'; data: CutiRecord[] }
+  | { type: 'SET_ABSENSI'; data: AbsensiRecord[] }
   // SKP CRUD
   | { type: 'ADD_SKP'; skp: SKPRecord }
   | { type: 'UPDATE_SKP'; skp: SKPRecord }
@@ -510,70 +501,9 @@ function reducer(state: AppState, action: Action): AppState {
     case 'LOGOUT':
       return { ...state, currentUser: null, isLoggedIn: false };
 
-    // Pegawai
-    case 'ADD_PEGAWAI':
-      return { ...state, pegawai: [...state.pegawai, action.pegawai] };
-    case 'UPDATE_PEGAWAI':
-      return { ...state, pegawai: state.pegawai.map(p => p.id === action.pegawai.id ? action.pegawai : p) };
-    case 'DELETE_PEGAWAI':
-      return { ...state, pegawai: state.pegawai.filter(p => p.id !== action.id) };
-
-    // Cuti
-    case 'ADD_CUTI':
-      return { ...state, cuti: [...state.cuti, action.cuti] };
-    case 'UPDATE_CUTI':
-      return { ...state, cuti: state.cuti.map(c => c.id === action.cuti.id ? action.cuti : c) };
-    case 'DELETE_CUTI':
-      return { ...state, cuti: state.cuti.filter(c => c.id !== action.id) };
-    case 'APPROVE_CUTI': {
-      return {
-        ...state,
-        cuti: state.cuti.map(c => {
-          if (c.id !== action.id) return c;
-          const levels = (c.approvalLevels || []).map(l =>
-            l.level === action.level
-              ? { ...l, status: 'Disetujui' as const, nama: action.nama, tanggal: new Date().toISOString().split('T')[0], catatan: action.catatan }
-              : l
-          );
-          const allApproved = levels.every(l => l.status === 'Disetujui');
-          const nextLevel = action.level + 1;
-          return {
-            ...c,
-            approvalLevels: levels,
-            currentLevel: allApproved ? action.level : nextLevel,
-            status: allApproved ? 'Disetujui' as const : 'Pending' as const,
-            disetujuiOleh: allApproved ? action.nama : c.disetujuiOleh,
-          };
-        }),
-      };
-    }
-    case 'REJECT_CUTI': {
-      return {
-        ...state,
-        cuti: state.cuti.map(c => {
-          if (c.id !== action.id) return c;
-          const levels = (c.approvalLevels || []).map(l =>
-            l.level === action.level
-              ? { ...l, status: 'Ditolak' as const, nama: action.nama, tanggal: new Date().toISOString().split('T')[0], catatan: action.catatan }
-              : l
-          );
-          return { ...c, approvalLevels: levels, status: 'Ditolak' as const };
-        }),
-      };
-    }
-
-    // Absensi
-    case 'ADD_ABSENSI':
-      return { ...state, absensi: [...state.absensi, action.absensi] };
-    case 'UPDATE_ABSENSI':
-      return { ...state, absensi: state.absensi.map(a => a.id === action.absensi.id ? action.absensi : a) };
-    case 'DELETE_ABSENSI':
-      return { ...state, absensi: state.absensi.filter(a => a.id !== action.id) };
-    case 'BULK_INPUT_ABSENSI': {
-      const newDates = new Set(action.records.map(r => r.tanggal));
-      const kept = state.absensi.filter(a => !newDates.has(a.tanggal));
-      return { ...state, absensi: [...kept, ...action.records] };
-    }
+    case 'SET_PEGAWAI': return { ...state, pegawai: action.data };
+    case 'SET_CUTI':    return { ...state, cuti: action.data };
+    case 'SET_ABSENSI': return { ...state, absensi: action.data };
 
     // SKP
     case 'ADD_SKP':
@@ -702,6 +632,7 @@ interface AppContextValue extends AppState {
   dispatch: React.Dispatch<Action>;
   login: (username: string, password: string) => boolean;
   logout: () => void;
+  isLoading: boolean;
   addPegawai: (p: Omit<Pegawai, 'id'>) => void;
   updatePegawai: (p: Pegawai) => void;
   deletePegawai: (id: string) => void;
@@ -783,8 +714,6 @@ interface AppContextValue extends AppState {
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
-// Use a stable globalThis singleton so HMR hot-reloads don't create a new
-// context object (which would cause Provider / Consumer reference mismatch).
 type AppCtxType = React.Context<AppContextValue | null>;
 const AppContext: AppCtxType =
   (globalThis as Record<string, unknown>).__hrAppCtx as AppCtxType ??
@@ -795,52 +724,22 @@ const AppContext: AppCtxType =
   })();
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  // Enrich cuti data with multi-level approval structure
-  const enrichedCuti: CutiRecord[] = initialCuti.map(c => ({
-    ...c,
-    currentLevel: c.status === 'Pending' ? 1 : c.status === 'Disetujui' ? 2 : 0,
-    approvalLevels: [
-      {
-        level: 1,
-        jabatan: 'Kepala Unit Kerja',
-        nama: c.status !== 'Pending' ? 'dr. Surya Puspa Dewi, MARS' : '',
-        status: c.status === 'Pending' ? 'Pending' as const : 'Disetujui' as const,
-        tanggal: c.status !== 'Pending' ? c.tanggalPengajuan : undefined,
-      },
-      {
-        level: 2,
-        jabatan: 'Direktur RSUD',
-        nama: c.status === 'Disetujui' ? 'dr. Imam Ghozali, Sp.An., M.Kes' : '',
-        status: c.status === 'Disetujui' ? 'Disetujui' as const : c.status === 'Ditolak' ? 'Ditolak' as const : 'Pending' as const,
-        tanggal: c.status === 'Disetujui' ? c.tanggalPengajuan : undefined,
-      },
-    ],
-  }));
+  const queryClient = useQueryClient();
 
   const savedUser = (() => {
     try {
       const saved = localStorage.getItem('hr_app_user');
       if (!saved) return null;
       const parsed = JSON.parse(saved);
-      // Validasi: pastikan user masih ada di daftar appUsers
       const matched = appUsers.find(u => u.id === parsed.id && u.username === parsed.username);
-      if (matched) {
-        // Perbarui data dari daftar terbaru (misal: excludedModules baru ditambahkan)
-        localStorage.setItem('hr_app_user', JSON.stringify(matched));
-        return matched;
-      }
-      // User tidak cocok lagi, hapus data lama
-      localStorage.removeItem('hr_app_user');
+      if (matched) return matched;
       return null;
-    } catch {
-      localStorage.removeItem('hr_app_user');
-      return null;
-    }
+    } catch { return null; }
   })();
 
   const [state, dispatch] = useReducer(reducer, {
     pegawai: initialPegawai,
-    cuti: enrichedCuti,
+    cuti: [],
     absensi: INITIAL_ABSENSI_DATA,
     skp: initialSKP,
     riwayatJabatan: initialRiwayatJabatan,
@@ -868,6 +767,74 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     isLoggedIn: !!savedUser,
   });
 
+  // ─── Queries ───────────────────────────────────────────────────────────────
+  const { data: pegawaiData, isLoading: isLoadingPegawai } = useQuery({
+    queryKey: ['pegawai'],
+    queryFn: pegawaiApi.getAll,
+    initialData: initialPegawai,
+  });
+
+  const { data: cutiData, isLoading: isLoadingCuti } = useQuery({
+    queryKey: ['cuti'],
+    queryFn: async () => {
+      const raw = await cutiApi.getAll();
+      return raw.map(c => ({
+        ...c,
+        currentLevel: c.status === 'Pending' ? 1 : c.status === 'Disetujui' ? 2 : 0,
+        approvalLevels: [
+          {
+            level: 1,
+            jabatan: 'Kepala Unit Kerja',
+            nama: c.status !== 'Pending' ? 'dr. Surya Puspa Dewi, MARS' : '',
+            status: c.status === 'Pending' ? 'Pending' as const : 'Disetujui' as const,
+            tanggal: c.status !== 'Pending' ? c.tanggalPengajuan : undefined,
+          },
+          {
+            level: 2,
+            jabatan: 'Direktur RSUD',
+            nama: c.status === 'Disetujui' ? 'dr. Imam Ghozali, Sp.An., M.Kes' : '',
+            status: c.status === 'Disetujui' ? 'Disetujui' as const : c.status === 'Ditolak' ? 'Ditolak' as const : 'Pending' as const,
+            tanggal: c.status === 'Disetujui' ? c.tanggalPengajuan : undefined,
+          },
+        ],
+      }));
+    },
+    initialData: initialCuti.map(c => ({ ...c, currentLevel: 1 })),
+  });
+
+  const { data: absensiData, isLoading: isLoadingAbsensi } = useQuery({
+    queryKey: ['absensi'],
+    queryFn: async () => {
+      const data = await absensiApi.getAll();
+      return data.length > 0 ? data : INITIAL_ABSENSI_DATA;
+    },
+    initialData: INITIAL_ABSENSI_DATA,
+  });
+
+  useEffect(() => { if (pegawaiData) dispatch({ type: 'SET_PEGAWAI', data: pegawaiData }); }, [pegawaiData]);
+  useEffect(() => { if (cutiData)    dispatch({ type: 'SET_CUTI',    data: cutiData }); }, [cutiData]);
+  useEffect(() => { if (absensiData) dispatch({ type: 'SET_ABSENSI', data: absensiData }); }, [absensiData]);
+
+  // ─── Mutations ─────────────────────────────────────────────────────────────
+  const mutationOptions = (key: string[]) => ({
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
+  });
+
+  const pegawaiMutation = useMutation({
+    mutationFn: async (newData: Pegawai[]) => pegawaiApi.saveAll(newData),
+    ...mutationOptions(['pegawai']),
+  });
+
+  const cutiMutation = useMutation({
+    mutationFn: async (newData: CutiRecord[]) => cutiApi.saveAll(newData),
+    ...mutationOptions(['cuti']),
+  });
+
+  const absensiMutation = useMutation({
+    mutationFn: async (newData: AbsensiRecord[]) => absensiApi.saveAll(newData),
+    ...mutationOptions(['absensi']),
+  });
+
   const login = useCallback((username: string, password: string) => {
     const user = appUsers.find(u => u.username === username && u.password === password);
     if (user) {
@@ -885,36 +852,98 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const genId = (prefix: string) => `${prefix}${Date.now()}`;
 
-  const addPegawai = useCallback((p: Omit<Pegawai, 'id'>) => dispatch({ type: 'ADD_PEGAWAI', pegawai: { ...p, id: genId('P') } }), []);
-  const updatePegawai = useCallback((p: Pegawai) => dispatch({ type: 'UPDATE_PEGAWAI', pegawai: p }), []);
-  const deletePegawai = useCallback((id: string) => dispatch({ type: 'DELETE_PEGAWAI', id }), []);
+  const addPegawai = useCallback((p: Omit<Pegawai, 'id'>) => {
+    const newList = [...state.pegawai, { ...p, id: genId('P') }];
+    pegawaiMutation.mutate(newList);
+  }, [state.pegawai, pegawaiMutation]);
+
+  const updatePegawai = useCallback((p: Pegawai) => {
+    const newList = state.pegawai.map(x => x.id === p.id ? p : x);
+    pegawaiMutation.mutate(newList);
+  }, [state.pegawai, pegawaiMutation]);
+
+  const deletePegawai = useCallback((id: string) => {
+    const newList = state.pegawai.filter(x => x.id !== id);
+    pegawaiMutation.mutate(newList);
+  }, [state.pegawai, pegawaiMutation]);
 
   const addCuti = useCallback((c: Omit<CutiRecord, 'id'>) => {
     const id = genId('C');
-    dispatch({
-      type: 'ADD_CUTI', cuti: {
-        ...c, id,
-        currentLevel: 1,
-        approvalLevels: [
-          { level: 1, jabatan: 'Kepala Unit Kerja', nama: '', status: 'Pending' },
-          { level: 2, jabatan: 'Direktur RSUD', nama: '', status: 'Pending' },
-        ],
-      }
-    });
-  }, []);
-  const updateCuti = useCallback((c: CutiRecord) => dispatch({ type: 'UPDATE_CUTI', cuti: c }), []);
-  const deleteCuti = useCallback((id: string) => dispatch({ type: 'DELETE_CUTI', id }), []);
-  const approveCuti = useCallback((id: string, level: number, nama: string, catatan?: string) => dispatch({ type: 'APPROVE_CUTI', id, level, nama, catatan }), []);
-  const rejectCuti = useCallback((id: string, level: number, nama: string, catatan?: string) => dispatch({ type: 'REJECT_CUTI', id, level, nama, catatan }), []);
+    const newList = [...state.cuti, {
+      ...c, id,
+      currentLevel: 1,
+      approvalLevels: [
+        { level: 1, jabatan: 'Kepala Unit Kerja', nama: '', status: 'Pending' },
+        { level: 2, jabatan: 'Direktur RSUD', nama: '', status: 'Pending' },
+      ],
+    } as CutiRecord];
+    cutiMutation.mutate(newList);
+  }, [state.cuti, cutiMutation]);
 
-  // Absensi CRUD
-  const addAbsensi = useCallback((a: Omit<AbsensiRecord, 'id'>) => dispatch({ type: 'ADD_ABSENSI', absensi: { ...a, id: genId('AB') } }), []);
-  const updateAbsensi = useCallback((a: AbsensiRecord) => dispatch({ type: 'UPDATE_ABSENSI', absensi: a }), []);
-  const deleteAbsensi = useCallback((id: string) => dispatch({ type: 'DELETE_ABSENSI', id }), []);
+  const updateCuti = useCallback((c: CutiRecord) => {
+    const newList = state.cuti.map(x => x.id === c.id ? c : x);
+    cutiMutation.mutate(newList);
+  }, [state.cuti, cutiMutation]);
+
+  const deleteCuti = useCallback((id: string) => {
+    const newList = state.cuti.filter(x => x.id !== id);
+    cutiMutation.mutate(newList);
+  }, [state.cuti, cutiMutation]);
+
+  const approveCuti = useCallback((id: string, level: number, nama: string, catatan?: string) => {
+    const newList = state.cuti.map(c => {
+      if (c.id !== id) return c;
+      const levels = (c.approvalLevels || []).map(l =>
+        l.level === level
+          ? { ...l, status: 'Disetujui' as const, nama: nama, tanggal: new Date().toISOString().split('T')[0], catatan }
+          : l
+      );
+      const allApproved = levels.every(l => l.status === 'Disetujui');
+      return {
+        ...c,
+        approvalLevels: levels,
+        currentLevel: allApproved ? level : level + 1,
+        status: allApproved ? 'Disetujui' as const : 'Pending' as const,
+        disetujuiOleh: allApproved ? nama : c.disetujuiOleh,
+      };
+    });
+    cutiMutation.mutate(newList);
+  }, [state.cuti, cutiMutation]);
+
+  const rejectCuti = useCallback((id: string, level: number, nama: string, catatan?: string) => {
+    const newList = state.cuti.map(c => {
+      if (c.id !== id) return c;
+      const levels = (c.approvalLevels || []).map(l =>
+        l.level === level
+          ? { ...l, status: 'Ditolak' as const, nama: nama, tanggal: new Date().toISOString().split('T')[0], catatan }
+          : l
+      );
+      return { ...c, approvalLevels: levels, status: 'Ditolak' as const };
+    });
+    cutiMutation.mutate(newList);
+  }, [state.cuti, cutiMutation]);
+
+  const addAbsensi = useCallback((a: Omit<AbsensiRecord, 'id'>) => {
+    const newList = [...state.absensi, { ...a, id: genId('AB') }];
+    absensiMutation.mutate(newList);
+  }, [state.absensi, absensiMutation]);
+
+  const updateAbsensi = useCallback((a: AbsensiRecord) => {
+    const newList = state.absensi.map(x => x.id === a.id ? a : x);
+    absensiMutation.mutate(newList);
+  }, [state.absensi, absensiMutation]);
+
+  const deleteAbsensi = useCallback((id: string) => {
+    const newList = state.absensi.filter(x => x.id !== id);
+    absensiMutation.mutate(newList);
+  }, [state.absensi, absensiMutation]);
+
   const bulkInputAbsensi = useCallback((records: Omit<AbsensiRecord, 'id'>[]) => {
-    const withIds: AbsensiRecord[] = records.map((r, i) => ({ ...r, id: `AB${Date.now()}${i}` }));
-    dispatch({ type: 'BULK_INPUT_ABSENSI', records: withIds });
-  }, []);
+    const newDates = new Set(records.map(r => r.tanggal));
+    const kept = state.absensi.filter(a => !newDates.has(a.tanggal));
+    const withIds = records.map((r, i) => ({ ...r, id: `AB${Date.now()}${i}` }));
+    absensiMutation.mutate([...kept, ...withIds]);
+  }, [state.absensi, absensiMutation]);
 
   const addSKP = useCallback((s: Omit<SKPRecord, 'id'>) => dispatch({ type: 'ADD_SKP', skp: { ...s, id: genId('S') } }), []);
   const updateSKP = useCallback((s: SKPRecord) => dispatch({ type: 'UPDATE_SKP', skp: s }), []);
@@ -935,54 +964,71 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const addRiwayatJabatan = useCallback((r: Omit<RiwayatJabatan, 'id'>) => dispatch({ type: 'ADD_RIWAYAT_JABATAN', rj: { ...r, id: genId('RJ') } }), []);
   const updateRiwayatJabatan = useCallback((r: RiwayatJabatan) => dispatch({ type: 'UPDATE_RIWAYAT_JABATAN', rj: r }), []);
   const deleteRiwayatJabatan = useCallback((id: string) => dispatch({ type: 'DELETE_RIWAYAT_JABATAN', id }), []);
+
   const addSTR = useCallback((s: Omit<STRRecord, 'id'>) => dispatch({ type: 'ADD_STR', str: { ...s, id: genId('STR') } }), []);
   const updateSTR = useCallback((s: STRRecord) => dispatch({ type: 'UPDATE_STR', str: s }), []);
   const deleteSTR = useCallback((id: string) => dispatch({ type: 'DELETE_STR', id }), []);
+
   const addSIP = useCallback((s: Omit<SIPRecord, 'id'>) => dispatch({ type: 'ADD_SIP', sip: { ...s, id: genId('SIP') } }), []);
   const updateSIP = useCallback((s: SIPRecord) => dispatch({ type: 'UPDATE_SIP', sip: s }), []);
   const deleteSIP = useCallback((id: string) => dispatch({ type: 'DELETE_SIP', id }), []);
+
   const addCredentialing = useCallback((c: Omit<CredentialingRecord, 'id'>) => dispatch({ type: 'ADD_CREDENTIALING', cr: { ...c, id: genId('CR') } }), []);
   const updateCredentialing = useCallback((c: CredentialingRecord) => dispatch({ type: 'UPDATE_CREDENTIALING', cr: c }), []);
   const deleteCredentialing = useCallback((id: string) => dispatch({ type: 'DELETE_CREDENTIALING', id }), []);
+
   const addCPD = useCallback((c: Omit<CPDRecord, 'id'>) => dispatch({ type: 'ADD_CPD', cpd: { ...c, id: genId('CPD') } }), []);
   const updateCPD = useCallback((c: CPDRecord) => dispatch({ type: 'UPDATE_CPD', cpd: c }), []);
   const deleteCPD = useCallback((id: string) => dispatch({ type: 'DELETE_CPD', id }), []);
+
   const addInsiden = useCallback((i: Omit<InsidenK3RS, 'id'>) => dispatch({ type: 'ADD_INSIDEN', insiden: { ...i, id: genId('IK') } }), []);
   const updateInsiden = useCallback((i: InsidenK3RS) => dispatch({ type: 'UPDATE_INSIDEN', insiden: i }), []);
   const deleteInsiden = useCallback((id: string) => dispatch({ type: 'DELETE_INSIDEN', id }), []);
+
   const addVaksinasi = useCallback((v: Omit<VaksinasiRecord, 'id'>) => dispatch({ type: 'ADD_VAKSINASI', vak: { ...v, id: genId('VAK') } }), []);
   const updateVaksinasi = useCallback((v: VaksinasiRecord) => dispatch({ type: 'UPDATE_VAKSINASI', vak: v }), []);
   const deleteVaksinasi = useCallback((id: string) => dispatch({ type: 'DELETE_VAKSINASI', id }), []);
+
   const addMCU = useCallback((m: Omit<MCURecord, 'id'>) => dispatch({ type: 'ADD_MCU', mcu: { ...m, id: genId('MCU') } }), []);
   const updateMCU = useCallback((m: MCURecord) => dispatch({ type: 'UPDATE_MCU', mcu: m }), []);
   const deleteMCU = useCallback((id: string) => dispatch({ type: 'DELETE_MCU', id }), []);
+
   const addSlipGaji = useCallback((s: Omit<SlipGaji, 'id'>) => dispatch({ type: 'ADD_SLIP_GAJI', slip: { ...s, id: genId('SG') } }), []);
   const updateSlipGaji = useCallback((s: SlipGaji) => dispatch({ type: 'UPDATE_SLIP_GAJI', slip: s }), []);
   const deleteSlipGaji = useCallback((id: string) => dispatch({ type: 'DELETE_SLIP_GAJI', id }), []);
+
   const addJadwal = useCallback((j: Omit<JadwalShift, 'id'>) => dispatch({ type: 'ADD_JADWAL', jadwal: { ...j, id: genId('JS') } }), []);
   const updateJadwal = useCallback((j: JadwalShift) => dispatch({ type: 'UPDATE_JADWAL', jadwal: j }), []);
   const deleteJadwal = useCallback((id: string) => dispatch({ type: 'DELETE_JADWAL', id }), []);
+
   const addBPJS = useCallback((b: Omit<BPJSRecord, 'id'>) => dispatch({ type: 'ADD_BPJS', bpjs: { ...b, id: genId('BPJS') } }), []);
   const updateBPJS = useCallback((b: BPJSRecord) => dispatch({ type: 'UPDATE_BPJS', bpjs: b }), []);
   const deleteBPJS = useCallback((id: string) => dispatch({ type: 'DELETE_BPJS', id }), []);
+
   const addKontrak = useCallback((k: Omit<KontrakRecord, 'id'>) => dispatch({ type: 'ADD_KONTRAK', kontrak: { ...k, id: genId('KK') } }), []);
   const updateKontrak = useCallback((k: KontrakRecord) => dispatch({ type: 'UPDATE_KONTRAK', kontrak: k }), []);
   const deleteKontrak = useCallback((id: string) => dispatch({ type: 'DELETE_KONTRAK', id }), []);
+
   const addPenghargaan = useCallback((p: Omit<PenghargaanRecord, 'id'>) => dispatch({ type: 'ADD_PENGHARGAAN', ph: { ...p, id: genId('PH') } }), []);
   const updatePenghargaan = useCallback((p: PenghargaanRecord) => dispatch({ type: 'UPDATE_PENGHARGAAN', ph: p }), []);
   const deletePenghargaan = useCallback((id: string) => dispatch({ type: 'DELETE_PENGHARGAAN', id }), []);
+
   const addMutasi = useCallback((m: Omit<MutasiRecord, 'id'>) => dispatch({ type: 'ADD_MUTASI', mutasi: { ...m, id: genId('MT') } }), []);
   const updateMutasi = useCallback((m: MutasiRecord) => dispatch({ type: 'UPDATE_MUTASI', mutasi: m }), []);
   const deleteMutasi = useCallback((id: string) => dispatch({ type: 'DELETE_MUTASI', id }), []);
+
   const addAnggotaKomite = useCallback((a: Omit<AnggotaKomite, 'id'>) => dispatch({ type: 'ADD_ANGGOTA_KOMITE', ak: { ...a, id: genId('AK') } }), []);
   const updateAnggotaKomite = useCallback((a: AnggotaKomite) => dispatch({ type: 'UPDATE_ANGGOTA_KOMITE', ak: a }), []);
   const deleteAnggotaKomite = useCallback((id: string) => dispatch({ type: 'DELETE_ANGGOTA_KOMITE', id }), []);
+
   const addKegiatanKomite = useCallback((k: Omit<KegiatanKomite, 'id'>) => dispatch({ type: 'ADD_KEGIATAN_KOMITE', kk: { ...k, id: genId('KKG') } }), []);
   const updateKegiatanKomite = useCallback((k: KegiatanKomite) => dispatch({ type: 'UPDATE_KEGIATAN_KOMITE', kk: k }), []);
   const deleteKegiatanKomite = useCallback((id: string) => dispatch({ type: 'DELETE_KEGIATAN_KOMITE', id }), []);
+
   const addGrievance = useCallback((g: Omit<GrievanceRecord, 'id'>) => dispatch({ type: 'ADD_GRIEVANCE', gr: { ...g, id: genId('GR') } }), []);
   const updateGrievance = useCallback((g: GrievanceRecord) => dispatch({ type: 'UPDATE_GRIEVANCE', gr: g }), []);
   const deleteGrievance = useCallback((id: string) => dispatch({ type: 'DELETE_GRIEVANCE', id }), []);
+
   const addPHK = useCallback((p: Omit<PHKRecord, 'id'>) => dispatch({ type: 'ADD_PHK', phk: { ...p, id: genId('PHK') } }), []);
   const updatePHK = useCallback((p: PHKRecord) => dispatch({ type: 'UPDATE_PHK', phk: p }), []);
   const deletePHK = useCallback((id: string) => dispatch({ type: 'DELETE_PHK', id }), []);
@@ -991,6 +1037,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     ...state,
     dispatch,
     login, logout,
+    isLoading: isLoadingPegawai || isLoadingCuti || isLoadingAbsensi,
     addPegawai, updatePegawai, deletePegawai,
     addCuti, updateCuti, deleteCuti, approveCuti, rejectCuti,
     addAbsensi, updateAbsensi, deleteAbsensi, bulkInputAbsensi,

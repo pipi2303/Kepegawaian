@@ -1,6 +1,7 @@
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router';
 import { Toaster } from 'sonner';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppProvider, useAppContext } from '../context/AppContext';
 
 /**
@@ -10,11 +11,23 @@ import { AppProvider, useAppContext } from '../context/AppContext';
  * sama-sama tersedia dalam satu konteks Router yang sama.
  */
 export default function Root() {
+  // Initialize QueryClient only once
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 1000 * 60 * 5, // 5 minutes
+        retry: 1,
+      },
+    },
+  }));
+
   return (
-    <AppProvider>
-      <RootContent />
-      <Toaster position="top-right" richColors closeButton />
-    </AppProvider>
+    <QueryClientProvider client={queryClient}>
+      <AppProvider>
+        <RootContent />
+        <Toaster position="top-right" richColors closeButton />
+      </AppProvider>
+    </QueryClientProvider>
   );
 }
 

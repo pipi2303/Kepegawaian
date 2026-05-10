@@ -1,13 +1,13 @@
 /**
  * ExecutiveDashboard.tsx — Hospital Director / Board: Executive Command Center
  * Tab 1: Hospital Overview | Tab 2: Financial & Sustainability
- * Tab 3: Operational Performance | Tab 4: Risk & Compliance
+ * Tab 3: Operational Performance | Tab 4: Risk & Compliance | Tab 5: Analytics Pro
  */
 import React, { useState } from 'react';
 import {
   Activity, TrendingUp, Bed, Clock, DollarSign,
   AlertCircle, ShieldCheck, Heart, ChevronRight, Stethoscope,
-  Users, BarChart2, Layers, Gauge,
+  Users, BarChart2, Layers, Gauge, Lightbulb, UserMinus, TrendingDown,
 } from 'lucide-react';
 import RechartsWrapper from '../RechartsWrapper';
 import { TabButton, MiniBar, ScoreGauge } from '../DashboardWidgets';
@@ -22,7 +22,7 @@ import {
   claimOverview,
 } from '../../data/hospitalDashboardData';
 
-type Tab = 'overview' | 'financial' | 'operational' | 'risk';
+type Tab = 'overview' | 'financial' | 'operational' | 'risk' | 'predictive';
 
 export default function ExecutiveDashboard() {
   const [tab, setTab] = useState<Tab>('overview');
@@ -32,6 +32,20 @@ export default function ExecutiveDashboard() {
     margin: Number(((r.revenue - r.cost) / r.revenue * 100).toFixed(1)),
   }));
 
+  const churnData = [
+    { departemen: 'Keperawatan', risiko: 'Tinggi', persentase: 12.5, alasan: 'Beban kerja, Insentif' },
+    { departemen: 'Farmasi', risiko: 'Sedang', persentase: 5.2, alasan: 'Pengembangan karir' },
+    { departemen: 'Pelayanan Medis', risiko: 'Rendah', persentase: 2.1, alasan: 'Pensiun' },
+    { departemen: 'Administrasi', risiko: 'Sedang', persentase: 4.8, alasan: 'Kompensasi' },
+  ];
+
+  const budgetProjection = [
+    { kuartal: 'Q1', gaji: 12.5, operasional: 8.2, alkes: 5.4, estimasi: 26.1 },
+    { kuartal: 'Q2', gaji: 12.8, operasional: 8.5, alkes: 6.1, estimasi: 27.4 },
+    { kuartal: 'Q3', gaji: 13.5, operasional: 8.8, alkes: 6.5, estimasi: 28.8 },
+    { kuartal: 'Q4', gaji: 14.2, operasional: 9.5, alkes: 7.2, estimasi: 30.9 },
+  ];
+
   return (
     <div className="space-y-5">
       {/* Tab Navigation */}
@@ -40,6 +54,7 @@ export default function ExecutiveDashboard() {
         <TabButton active={tab === 'financial'} onClick={() => setTab('financial')} icon={DollarSign} label="Financial & Sustainability" />
         <TabButton active={tab === 'operational'} onClick={() => setTab('operational')} icon={Activity} label="Operational Performance" />
         <TabButton active={tab === 'risk'} onClick={() => setTab('risk')} icon={ShieldCheck} label="Risk & Compliance" />
+        <TabButton active={tab === 'predictive'} onClick={() => setTab('predictive')} icon={Lightbulb} label="Analytics Pro (AI)" />
       </div>
 
       {/* ── TAB 1: Hospital Overview ── */}
@@ -498,6 +513,84 @@ export default function ExecutiveDashboard() {
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB 5: Analytics Pro (Predictive) ── */}
+      {tab === 'predictive' && (
+        <div className="space-y-5">
+          <div className="p-4 bg-gradient-to-r from-[#013E37] to-[#038E7D] rounded-xl flex items-start gap-4 text-white shadow-lg">
+            <Lightbulb className="w-8 h-8 text-[#FFEFB2] flex-shrink-0 mt-1" />
+            <div>
+              <h2 className="text-lg font-bold text-[#FFEFB2]">HCMS Predictive Analytics Engine</h2>
+              <p className="text-sm text-white/80 mt-1">Proyeksi berbasis data menggunakan algoritma Machine Learning untuk memprediksi turnover tenaga kesehatan dan ekskalasi beban gaji, memungkinkan intervensi strategis yang lebih proaktif.</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {/* Churn Prediction */}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-gray-800">Workforce Churn Prediction</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">Prediksi risiko pengunduran diri 6 bulan ke depan</p>
+                </div>
+                <UserMinus className="w-5 h-5 text-gray-400" />
+              </div>
+              <div className="space-y-3">
+                {churnData.map((d, i) => (
+                  <div key={i} className="p-3 border border-gray-100 rounded-lg">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-semibold text-gray-800">{d.departemen}</span>
+                      <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
+                        d.risiko === 'Tinggi' ? 'bg-red-100 text-red-700' :
+                        d.risiko === 'Sedang' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
+                      }`}>{d.risiko} Risk</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 bg-gray-100 rounded-full h-2">
+                        <div className={`h-2 rounded-full ${
+                          d.risiko === 'Tinggi' ? 'bg-red-500' : d.risiko === 'Sedang' ? 'bg-amber-500' : 'bg-green-500'
+                        }`} style={{ width: `${d.persentase * 5}%` }} />
+                      </div>
+                      <span className="text-xs font-bold text-gray-700">{d.persentase}%</span>
+                    </div>
+                    <p className="text-[10px] text-gray-500 mt-2"><strong>Prediktor Utama:</strong> {d.alasan}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 p-3 bg-red-50 rounded-lg flex gap-2">
+                <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+                <p className="text-xs text-red-800"><strong>Intervensi Direkomendasikan:</strong> Tinjau ulang beban kerja dan struktur insentif untuk Departemen Keperawatan guna menekan risiko churn sebesar 12.5%.</p>
+              </div>
+            </div>
+
+            {/* Budget Projection */}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-gray-800">Budget Projection FY 2026</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">Estimasi kebutuhan anggaran (dalam Milyar Rupiah)</p>
+                </div>
+                <TrendingDown className="w-5 h-5 text-gray-400" />
+              </div>
+              <RechartsWrapper
+                type="bar"
+                data={budgetProjection}
+                xKey="kuartal"
+                yKey={['gaji', 'operasional', 'alkes']}
+                colors={['#3b82f6', '#8b5cf6', '#10b981']}
+                height={260}
+                radius={[4, 4, 0, 0]}
+                tooltipFormatter={(v: number) => fmtRpShort(v * 1_000_000_000)}
+                legendFormatter={(v: string) => v === 'gaji' ? 'Beban Pegawai' : v === 'operasional' ? 'Biaya Operasional' : 'Alkes & Obat'}
+              />
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg flex gap-2">
+                <Info className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                <p className="text-xs text-blue-800">Model memproyeksikan kenaikan beban pegawai sebesar <strong>4.2%</strong> di Q4 akibat penambahan formasi PPPK tenaga kesehatan tahap 2.</p>
               </div>
             </div>
           </div>

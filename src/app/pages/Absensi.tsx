@@ -377,7 +377,7 @@ export default function Absensi() {
             </div>
           </div>
 
-          {/* Table */}
+          {/* Table / Card View */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
             {filteredRecords.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center px-4">
@@ -392,115 +392,177 @@ export default function Absensi() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-100">
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 w-10">No</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Nama Pegawai</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 hidden md:table-cell">Unit Kerja</th>
-                      <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">Jam Masuk</th>
-                      <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">Jam Keluar</th>
-                      <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">Status</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 hidden lg:table-cell">Keterangan</th>
-                      <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 w-24">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {filteredRecords.map((rec, i) => {
-                      const p = pegawai.find(px => px.id === rec.pegawaiId);
-                      return (
-                        <tr
-                          key={rec.id}
-                          className="hover:bg-gray-50/60 transition-colors group cursor-pointer"
-                          onClick={() => setDetailRecord(rec)}
-                        >
-                          <td className="px-4 py-3 text-gray-400 text-xs">{i + 1}</td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2.5">
-                              <div className={`w-8 h-8 rounded-full ${getAvatarColor(rec.pegawaiId)} flex items-center justify-center flex-shrink-0`}>
-                                <span className="text-white text-xs font-semibold">{getInitials(p?.nama || '?')}</span>
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-sm font-medium text-gray-800 leading-tight truncate max-w-44">
-                                  {p?.gelarDepan || ''} {p?.nama}{p?.gelarBelakang ? `, ${p.gelarBelakang}` : ''}
-                                </p>
-                                <p className="text-xs text-gray-400 truncate max-w-44">{p?.jabatan}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 hidden md:table-cell">
-                            <p className="text-xs text-gray-500 max-w-36 truncate">{p?.unitKerja}</p>
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <div className="flex flex-col items-center gap-0.5">
-                              <span className={`text-sm font-medium ${rec.jamMasuk ? 'text-gray-800' : 'text-gray-300'}`}>
-                                {rec.jamMasuk || '—'}
-                              </span>
-                              {isLate(rec.jamMasuk) && (
-                                <span className="text-xs text-orange-500 font-medium bg-orange-50 px-1.5 rounded-full">Terlambat</span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <div className="flex flex-col items-center gap-0.5">
-                              <span className={`text-sm font-medium ${rec.jamKeluar ? 'text-gray-800' : 'text-gray-300'}`}>
-                                {rec.jamKeluar || '—'}
-                              </span>
-                              {rec.status === 'Hadir' && isEarlyLeave(rec.jamKeluar) && (
-                                <span className="text-xs text-red-400 font-medium bg-red-50 px-1.5 rounded-full">Pulang Cepat</span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <StatusBadge status={rec.status} />
-                          </td>
-                          <td className="px-4 py-3 hidden lg:table-cell">
-                            <p className="text-xs text-gray-500 max-w-40 truncate">{rec.keterangan || '—'}</p>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center justify-center gap-1">
-                              {deleteConfirmId === rec.id ? (
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    onClick={e => { e.stopPropagation(); handleDelete(rec.id); }}
-                                    className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium"
-                                  >
-                                    Hapus
-                                  </button>
-                                  <button
-                                    onClick={e => { e.stopPropagation(); setDeleteConfirmId(null); }}
-                                    className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
-                                  >
-                                    Batal
-                                  </button>
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-100">
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 w-10">No</th>
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Nama Pegawai</th>
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 hidden md:table-cell">Unit Kerja</th>
+                        <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">Jam Masuk</th>
+                        <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">Jam Keluar</th>
+                        <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">Status</th>
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 hidden lg:table-cell">Keterangan</th>
+                        <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 w-24">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {filteredRecords.map((rec, i) => {
+                        const p = pegawai.find(px => px.id === rec.pegawaiId);
+                        return (
+                          <tr
+                            key={rec.id}
+                            className="hover:bg-gray-50/60 transition-colors group cursor-pointer"
+                            onClick={() => setDetailRecord(rec)}
+                          >
+                            <td className="px-4 py-3 text-gray-400 text-xs">{i + 1}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2.5">
+                                <div className={`w-8 h-8 rounded-full ${getAvatarColor(rec.pegawaiId)} flex items-center justify-center flex-shrink-0`}>
+                                  <span className="text-white text-xs font-semibold">{getInitials(p?.nama || '?')}</span>
                                 </div>
-                              ) : (
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button
-                                    onClick={e => { e.stopPropagation(); openEditModal(rec); }}
-                                    className="p-1.5 hover:bg-blue-50 text-blue-500 rounded-lg transition-colors"
-                                    title="Edit"
-                                  >
-                                    <Edit2 className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button
-                                    onClick={e => { e.stopPropagation(); setDeleteConfirmId(rec.id); }}
-                                    className="p-1.5 hover:bg-red-50 text-red-400 rounded-lg transition-colors"
-                                    title="Hapus"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium text-gray-800 leading-tight truncate max-w-44">
+                                    {p?.gelarDepan || ''} {p?.nama}{p?.gelarBelakang ? `, ${p.gelarBelakang}` : ''}
+                                  </p>
+                                  <p className="text-xs text-gray-400 truncate max-w-44">{p?.jabatan}</p>
                                 </div>
-                              )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 hidden md:table-cell">
+                              <p className="text-xs text-gray-500 max-w-36 truncate">{p?.unitKerja}</p>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <div className="flex flex-col items-center gap-0.5">
+                                <span className={`text-sm font-medium ${rec.jamMasuk ? 'text-gray-800' : 'text-gray-300'}`}>
+                                  {rec.jamMasuk || '—'}
+                                </span>
+                                {isLate(rec.jamMasuk) && (
+                                  <span className="text-xs text-orange-500 font-medium bg-orange-50 px-1.5 rounded-full">Terlambat</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <div className="flex flex-col items-center gap-0.5">
+                                <span className={`text-sm font-medium ${rec.jamKeluar ? 'text-gray-800' : 'text-gray-300'}`}>
+                                  {rec.jamKeluar || '—'}
+                                </span>
+                                {rec.status === 'Hadir' && isEarlyLeave(rec.jamKeluar) && (
+                                  <span className="text-xs text-red-400 font-medium bg-red-50 px-1.5 rounded-full">Pulang Cepat</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <StatusBadge status={rec.status} />
+                            </td>
+                            <td className="px-4 py-3 hidden lg:table-cell">
+                              <p className="text-xs text-gray-500 max-w-40 truncate">{rec.keterangan || '—'}</p>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center justify-center gap-1">
+                                {deleteConfirmId === rec.id ? (
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      onClick={e => { e.stopPropagation(); handleDelete(rec.id); }}
+                                      className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium"
+                                    >
+                                      Hapus
+                                    </button>
+                                    <button
+                                      onClick={e => { e.stopPropagation(); setDeleteConfirmId(null); }}
+                                      className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+                                    >
+                                      Batal
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                      onClick={e => { e.stopPropagation(); openEditModal(rec); }}
+                                      className="p-1.5 hover:bg-blue-50 text-blue-500 rounded-lg transition-colors"
+                                      title="Edit"
+                                    >
+                                      <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={e => { e.stopPropagation(); setDeleteConfirmId(rec.id); }}
+                                      className="p-1.5 hover:bg-red-50 text-red-400 rounded-lg transition-colors"
+                                      title="Hapus"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden divide-y divide-gray-100">
+                  {filteredRecords.map((rec, i) => {
+                    const p = pegawai.find(px => px.id === rec.pegawaiId);
+                    return (
+                      <div
+                        key={rec.id}
+                        className="p-4 hover:bg-gray-50 transition-colors cursor-pointer space-y-3"
+                        onClick={() => setDetailRecord(rec)}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-full ${getAvatarColor(rec.pegawaiId)} flex items-center justify-center flex-shrink-0`}>
+                              <span className="text-white text-sm font-semibold">{getInitials(p?.nama || '?')}</span>
                             </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-800 leading-tight">
+                                {p?.gelarDepan || ''} {p?.nama}{p?.gelarBelakang ? `, ${p.gelarBelakang}` : ''}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-0.5">{p?.unitKerja}</p>
+                            </div>
+                          </div>
+                          <StatusBadge status={rec.status} />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                          <div>
+                            <p className="text-[10px] text-gray-400 uppercase tracking-wide">Jam Masuk</p>
+                            <p className="text-sm font-semibold text-gray-700">{rec.jamMasuk || '—'}</p>
+                            {isLate(rec.jamMasuk) && <span className="text-[9px] text-orange-500 font-medium">Terlambat</span>}
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-gray-400 uppercase tracking-wide">Jam Keluar</p>
+                            <p className="text-sm font-semibold text-gray-700">{rec.jamKeluar || '—'}</p>
+                            {rec.status === 'Hadir' && isEarlyLeave(rec.jamKeluar) && <span className="text-[9px] text-red-400 font-medium">Pulang Cepat</span>}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-gray-500 truncate max-w-[200px]">{rec.keterangan || 'Tidak ada keterangan'}</p>
+                          <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                            {deleteConfirmId === rec.id ? (
+                               <div className="flex items-center gap-1">
+                                  <button onClick={() => handleDelete(rec.id)} className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-lg font-medium">Hapus</button>
+                                  <button onClick={() => setDeleteConfirmId(null)} className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded-lg">Batal</button>
+                               </div>
+                            ) : (
+                               <div className="flex items-center gap-1">
+                                  <button onClick={() => openEditModal(rec)} className="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><Edit2 className="w-3.5 h-3.5" /></button>
+                                  <button onClick={() => setDeleteConfirmId(rec.id)} className="p-1.5 bg-red-50 text-red-500 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
+                               </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             )}
             {filteredRecords.length > 0 && (
               <div className="px-4 py-3 border-t border-gray-50 bg-gray-50/40 text-xs text-gray-400 flex items-center justify-between">

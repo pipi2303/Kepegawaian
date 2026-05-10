@@ -2,7 +2,7 @@ import React, { useState, useRef, useMemo } from 'react';
 import {
   FileText, TrendingUp, TrendingDown, RefreshCw, AlertTriangle,
   UserMinus, ShieldOff, Printer, Eye, X, ChevronRight,
-  Download, Info, CheckCircle, Building, Calendar, Hash,
+  Download, Info, CheckCircle, Building, Calendar, Hash, QrCode,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import type { Pegawai } from '../types';
@@ -509,13 +509,28 @@ const PreviewPemberhentian = ({ form, pegawai, isHormat }: { form: SuratForm; pe
 
 // ─── Letter Footer ────────────────────────────────────────────────────────
 const LetterFooter = ({ form, isLetter }: { form: SuratForm; isLetter: boolean }) => (
-  <div className={`mt-8 ${isLetter ? 'flex justify-end' : 'text-right'}`}>
+  <div className={`mt-8 flex ${isLetter ? 'justify-end' : 'justify-end'}`}>
     <div className="w-72">
       <p className="text-sm">Ditetapkan di Bandar Lampung</p>
       <p className="text-sm">pada tanggal <span>{fmtDateLong(form.tanggalSurat)}</span></p>
       <p className="text-sm mt-2 font-semibold">DIREKTUR RUMAH SAKIT</p>
       <p className="text-sm">PROVINSI LAMPUNG,</p>
-      <div className="h-20" />
+      <div className="h-24 flex items-center justify-start py-2">
+        {/* E-Sign Simulation */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center justify-center opacity-5">
+             <QrCode className="w-20 h-20 text-blue-900" />
+          </div>
+          <div className="relative border border-blue-600/30 bg-blue-50/30 rounded px-3 py-2 flex items-center gap-3">
+             <QrCode className="w-8 h-8 text-blue-800" />
+             <div>
+               <p className="text-[8px] text-blue-800 font-semibold leading-tight uppercase tracking-wider">Ditandatangani secara elektronik</p>
+               <p className="text-[11px] text-blue-900 font-bold leading-tight mt-0.5">dr. IMAM GHOZALI, Sp.An., M.Kes</p>
+               <p className="text-[8px] text-blue-700 leading-tight mt-0.5">Sertifikat Elektronik BSrE - BSSN</p>
+             </div>
+          </div>
+        </div>
+      </div>
       <p className="text-sm font-bold underline">dr. IMAM GHOZALI, Sp.An., M.Kes.</p>
       <p className="text-sm">NIP. 19680415 199703 1 001</p>
     </div>
@@ -546,6 +561,7 @@ export default function SuratKepegawaian() {
     if (!win) return;
     win.document.write(`
       <!DOCTYPE html><html><head><title>Surat Kepegawaian - HCMS Application</title>
+      <script src="https://cdn.tailwindcss.com"></script>
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; color: #000; background: #fff; }
@@ -562,7 +578,7 @@ export default function SuratKepegawaian() {
       </body></html>
     `);
     win.document.close();
-    setTimeout(() => { win.print(); }, 500);
+    setTimeout(() => { win.print(); }, 1500);
     toast.success('Dokumen siap untuk dicetak');
   };
 
