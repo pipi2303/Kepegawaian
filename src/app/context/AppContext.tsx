@@ -380,6 +380,7 @@ export const appUsers: AppUser[] = [
   { id: 'U009', username: 'bari@gmail.com', password: 'Bar1', nama: 'Bari Saputra', role: 'admin', jabatan: 'Administrator Sistem', golongan: 'III/d' },
   { id: 'U010', username: 'dev@gmail.com', password: 'dev', nama: 'Developer', role: 'admin', jabatan: 'Administrator Sistem', golongan: 'III/d' },
   { id: 'U011', username: 'manj.rsudam@gmail.com', password: 'rsudam123', nama: 'Executive', role: 'Executive', jabatan: 'Direktur', golongan: '-', excludedModules: ['pengaturan'] },
+  { id: 'U012', username: 'igd@gmail.com', password: 'igd123', nama: 'IGD Admin', role: 'admin', jabatan: 'Administrator IGD', golongan: 'III/d' },
 ];
 
 // ─── State Types ──────────────────────────────────────────────────────────────
