@@ -370,16 +370,12 @@ const initialDiklat: DiklatRecord[] = [
 // ─── Mock Users ───────────────────────────────────────────────────────────────
 export const appUsers: AppUser[] = [
   { id: 'U001', username: 'admin', password: 'admin123', nama: 'dr. Imam Ghozali, Sp.An., M.Kes', role: 'admin', jabatan: 'Direktur Rumah Sakit', golongan: 'IV/b' },
-  { id: 'U002', username: 'direktur', password: 'dir123', nama: 'dr. Imam Ghozali, Sp.An., M.Kes', role: 'direktur', jabatan: 'Direktur Rumah Sakit', pegawaiId: 'P001', golongan: 'IV/b' },
-  { id: 'U003', username: 'kepala', password: 'kepala123', nama: 'dr. Asih Hendrastuti, M.Kes', role: 'kepala_unit', jabatan: 'Kepala Bidang Keperawatan', unitKerja: 'Bidang Keperawatan', pegawaiId: 'P012', golongan: 'IV/a' },
-  { id: 'U004', username: 'pegawai', password: 'peg123', nama: 'Ns. Septi Kurniasari, M.Kep, Sp.KMB', role: 'pegawai', jabatan: 'Subkoordinator Substansi Bidang Keperawatan', unitKerja: 'Bidang Keperawatan', pegawaiId: 'P013', golongan: 'IV/a' },
   { id: 'U005', username: 'Rivelino.hasugian@gmail.com', password: 'Rivelin0', nama: 'Rivelino Hasugian', role: 'admin', jabatan: 'Administrator Sistem', golongan: 'III/d' },
   { id: 'U006', username: 'pipi@gmail.com', password: 'estehmanis', nama: 'Pipi Suryani', role: 'pegawai', jabatan: 'Staf Administrasi', unitKerja: 'Bagian Umum', pegawaiId: 'P050', golongan: 'III/a' },
   { id: 'U007', username: 'andiko@gmail.com', password: 'Andik0', nama: 'Andiko Pratama', role: 'admin', jabatan: 'Administrator Sistem', golongan: 'III/d' },
   { id: 'U008', username: 'nikky@gmail.com', password: 'N1kky', nama: 'Nikky Permata', role: 'admin', jabatan: 'Administrator Sistem', golongan: 'III/d' },
   { id: 'U009', username: 'bari@gmail.com', password: 'Bar1', nama: 'Bari Saputra', role: 'admin', jabatan: 'Administrator Sistem', golongan: 'III/d' },
   { id: 'U010', username: 'dev@gmail.com', password: 'dev', nama: 'Developer', role: 'admin', jabatan: 'Administrator Sistem', golongan: 'III/d' },
-  { id: 'U011', username: 'manj.rsudam@gmail.com', password: 'rsudam123', nama: 'Executive', role: 'Executive', jabatan: 'Direktur', golongan: '-', excludedModules: ['pengaturan'] },
   { id: 'U012', username: 'igd@gmail.com', password: 'igd123', nama: 'IGD Admin', role: 'admin', jabatan: 'Administrator IGD', golongan: 'III/d' },
 ];
 
