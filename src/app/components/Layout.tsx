@@ -1,4 +1,4 @@
-import React, { memo, useState, Suspense, useEffect } from 'react';
+import React, { memo, useState, Suspense, useEffect, useMemo } from 'react';
 import { NavLink, Outlet, Navigate, useNavigate } from 'react-router';
 import {
   LayoutDashboard, Users, Clock, CalendarDays, Briefcase,
