@@ -833,7 +833,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
 
   const login = useCallback((username: string, password: string) => {
-    const user = appUsers.find(u => u.username === username && u.password === password);
+    const user = appUsers.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
     if (user) {
       localStorage.setItem('hr_app_user', JSON.stringify(user));
       dispatch({ type: 'LOGIN', user });
