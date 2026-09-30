@@ -1,0 +1,60 @@
+1. Tabel Master: Kamus KPI (m_kpi_dictionary)
+Tabel ini berfungsi sebagai "Bank Indikator" agar definisi KPI seragam di seluruh rumah sakit.
+
+SQL
+
+CREATE TABLE m_kpi_dictionary (
+    id SERIAL PRIMARY KEY,
+    kpi_name VARCHAR(255) NOT NULL, -- Contoh: "Waktu Tunggu Resep Rawat Jalan"
+    category ENUM('Medis', 'Keuangan', 'SDM', 'Umum', 'IT'),
+    unit_measurement VARCHAR(50), -- Contoh: "Menit", "Persen", "Rupiah"
+    calculation_formula TEXT, -- Penjelasan cara hitung (Logic)
+    is_automated BOOLEAN DEFAULT false, -- Apakah narik data otomatis dari SIMRS?
+    data_source_query TEXT -- Jika automated, simpan logic query-nya di sini
+);
+2. Tabel Mapping: SKP Tahunan (t_skp_header)
+Tempat menyimpan periode penilaian dan status persetujuan antara atasan dan bawahan.
+
+SQL
+
+CREATE TABLE t_skp_header (
+    id SERIAL PRIMARY KEY,
+    employee_id INT NOT NULL, -- Relasi ke Modul HR (m_karyawan)
+    supervisor_id INT NOT NULL, -- Atasan yang menilai
+    period_year YEAR NOT NULL,
+    status ENUM('Draft', 'Published', 'Approved', 'Reviewed', 'Final'),
+    final_score DECIMAL(5,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+3. Tabel Detail: Indikator SKP Karyawan (t_skp_detail)
+Di sinilah letak hubungan antara Performance Management (BSC/OKR) dengan SKP Karyawan.
+
+SQL
+
+CREATE TABLE t_skp_detail (
+    id SERIAL PRIMARY KEY,
+    skp_header_id INT REFERENCES t_skp_header(id),
+    kpi_id INT REFERENCES m_kpi_dictionary(id),
+    target_value DECIMAL(15,2), -- Target yang disepakati (misal: 95)
+    realization_value DECIMAL(15,2), -- Realisasi di lapangan (misal: 90)
+    weight DECIMAL(5,2), -- Bobot indikator ini (total harus 100%)
+    score DECIMAL(5,2), -- (Realization/Target) * Weight
+    linked_okr_id INT, -- Relasi ke Tabel OKR (Opsional, untuk tracking cascading)
+    notes TEXT
+);
+Fitur UI/UX yang Perlu Anda Bangun (Tailwind v4):
+Dashboard "My Performance":
+
+Gunakan Progress Bar untuk menunjukkan pencapaian Realisasi vs Target secara real-time.
+
+Beri indikator warna: Hijau (Tercapai), Kuning (Warning), Merah (Di bawah target).
+
+Approval Workflow:
+
+Buat tombol "Ajukan SKP" yang akan mengirim notifikasi ke atasan (bisa via WhatsApp/Email integrasi).
+
+Atasan bisa melakukan "Revisi" atau "Approve".
+
+Automatic Data Sync:
+
+Untuk bagian Keuangan atau Farmasi, buatkan cron job atau trigger yang menarik data transaksi dari modul SIMRS lainnya dan mengisi kolom realization_value secara otomatis setiap malam.
