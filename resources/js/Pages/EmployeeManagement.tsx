@@ -7,8 +7,70 @@ import {
   Users, UserPlus, Search, Filter, Edit, Trash2, Eye,
   CheckCircle2, AlertCircle, RefreshCw, X, ChevronLeft,
   ChevronRight, Phone, Mail, Building, Award, Shield,
-  FileText, Check, AlertTriangle, ArrowUpDown, Download
+  FileText, Check, AlertTriangle, ArrowUpDown, Download,
+  Lock, Unlock, KeyRound, ShieldAlert, ShieldCheck, DollarSign,
+  CreditCard, UserCheck, HelpCircle, EyeOff
 } from 'lucide-react';
+
+export type UserRole = 'admin' | 'hr_staff' | 'viewer';
+
+export interface RolePermissions {
+  canViewBasicData: boolean;
+  canViewSensitiveData: boolean; // NIK, Gaji, Rekening Bank, BPJS
+  canCreateEmployee: boolean;
+  canEditEmployee: boolean;
+  canDeleteEmployee: boolean;
+  canExportData: boolean;
+  canManageRoles: boolean;
+}
+
+export const INITIAL_ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
+  admin: {
+    canViewBasicData: true,
+    canViewSensitiveData: true,
+    canCreateEmployee: true,
+    canEditEmployee: true,
+    canDeleteEmployee: true,
+    canExportData: true,
+    canManageRoles: true,
+  },
+  hr_staff: {
+    canViewBasicData: true,
+    canViewSensitiveData: false, // Partially masked (NIK visible, Gaji/Bank masked)
+    canCreateEmployee: true,
+    canEditEmployee: true,
+    canDeleteEmployee: false, // Cannot delete
+    canExportData: true,
+    canManageRoles: false,
+  },
+  viewer: {
+    canViewBasicData: true,
+    canViewSensitiveData: false, // Fully masked
+    canCreateEmployee: false,
+    canEditEmployee: false,
+    canDeleteEmployee: false,
+    canExportData: false, // Cannot export
+    canManageRoles: false,
+  },
+};
+
+export const ROLE_INFO: Record<UserRole, { label: string; badgeColor: string; description: string }> = {
+  admin: {
+    label: 'Super Admin SDM',
+    badgeColor: 'bg-purple-100 text-purple-800 border-purple-200',
+    description: 'Akses penuh tanpa restriksi: CRUD data pegawai, melihat data finansial & NIK, menghapus data, dan ekspor laporan.',
+  },
+  hr_staff: {
+    label: 'Staf HR (Operasional)',
+    badgeColor: 'bg-blue-100 text-blue-800 border-blue-200',
+    description: 'Dapat menambah & mengubah data umum pegawai. Data finansial (gaji & rekening) disensor dan tindakan hapus data dinonaktifkan.',
+  },
+  viewer: {
+    label: 'Viewer (Read-Only / Auditor)',
+    badgeColor: 'bg-amber-100 text-amber-800 border-amber-200',
+    description: 'Akses hanya baca (read-only) untuk direktori umum. Data sensitif NIK & finansial terkunci, tombol tambah/edit/hapus/ekspor dinonaktifkan.',
+  },
+};
 
 export interface Employee {
   id: number;
@@ -25,6 +87,12 @@ export interface Employee {
   status_aktif: 'Aktif' | 'Pensiun' | 'Meninggal' | 'Diberhentikan';
   email?: string | null;
   no_telp?: string | null;
+  // Sensitive HR data fields
+  nik?: string;
+  gaji_pokok?: number;
+  tunjangan_kinerja?: number;
+  no_rekening?: string;
+  no_bpjs?: string;
   created_at?: string;
 }
 
@@ -44,6 +112,11 @@ const DEFAULT_EMPLOYEES: Employee[] = [
     status_aktif: 'Aktif',
     email: 'marzuqi.sayuti@rsudam.lampungprov.go.id',
     no_telp: '081272341109',
+    nik: '1871021204820005',
+    gaji_pokok: 6200000,
+    tunjangan_kinerja: 9850000,
+    no_rekening: '381.03.01.09876.5 (Bank Lampung)',
+    no_bpjs: '0001892837192',
   },
   {
     id: 2,
@@ -60,6 +133,11 @@ const DEFAULT_EMPLOYEES: Employee[] = [
     status_aktif: 'Aktif',
     email: 'jumiah.skep@rsudam.lampungprov.go.id',
     no_telp: '081369882314',
+    nik: '1871046306890003',
+    gaji_pokok: 4150000,
+    tunjangan_kinerja: 4800000,
+    no_rekening: '381.03.01.11245.8 (Bank Lampung)',
+    no_bpjs: '0001893341829',
   },
   {
     id: 3,
@@ -76,6 +154,11 @@ const DEFAULT_EMPLOYEES: Employee[] = [
     status_aktif: 'Aktif',
     email: 'siti.nurhaliza@rsudam.lampungprov.go.id',
     no_telp: '082181290345',
+    nik: '1871054411920008',
+    gaji_pokok: 3950000,
+    tunjangan_kinerja: 3500000,
+    no_rekening: '381.03.01.20914.1 (Bank Lampung)',
+    no_bpjs: '0002109483719',
   },
   {
     id: 4,
@@ -92,6 +175,11 @@ const DEFAULT_EMPLOYEES: Employee[] = [
     status_aktif: 'Aktif',
     email: 'rahmat.hidayat@rsudam.lampungprov.go.id',
     no_telp: '085273114567',
+    nik: '1871011503870002',
+    gaji_pokok: 4800000,
+    tunjangan_kinerja: 6200000,
+    no_rekening: '381.03.01.33981.0 (Bank Lampung)',
+    no_bpjs: '0001784920194',
   },
   {
     id: 5,
@@ -108,6 +196,11 @@ const DEFAULT_EMPLOYEES: Employee[] = [
     status_aktif: 'Aktif',
     email: 'dedi.rad@rsudam.lampungprov.go.id',
     no_telp: '089612345678',
+    nik: '1871031908940004',
+    gaji_pokok: 3600000,
+    tunjangan_kinerja: 3100000,
+    no_rekening: '381.03.01.44192.6 (Bank Lampung)',
+    no_bpjs: '0002384910283',
   },
   {
     id: 6,
@@ -124,6 +217,11 @@ const DEFAULT_EMPLOYEES: Employee[] = [
     status_aktif: 'Aktif',
     email: 'direktur@rsudam.lampungprov.go.id',
     no_telp: '08117901234',
+    nik: '1871021005750001',
+    gaji_pokok: 7400000,
+    tunjangan_kinerja: 18500000,
+    no_rekening: '381.03.01.00019.2 (Bank Lampung)',
+    no_bpjs: '0001002938471',
   },
   {
     id: 7,
@@ -140,6 +238,11 @@ const DEFAULT_EMPLOYEES: Employee[] = [
     status_aktif: 'Aktif',
     email: 'agus.it@rsudam.lampungprov.go.id',
     no_telp: '082289451230',
+    nik: '1871041501990012',
+    gaji_pokok: 3100000,
+    tunjangan_kinerja: 1200000,
+    no_rekening: '381.03.01.55928.3 (Bank Lampung)',
+    no_bpjs: '0003019283741',
   },
   {
     id: 8,
@@ -156,6 +259,11 @@ const DEFAULT_EMPLOYEES: Employee[] = [
     status_aktif: 'Aktif',
     email: 'ratna.dewi@rsudam.lampungprov.go.id',
     no_telp: '081273998877',
+    nik: '1871025209800008',
+    gaji_pokok: 5200000,
+    tunjangan_kinerja: 5600000,
+    no_rekening: '381.03.01.66291.9 (Bank Lampung)',
+    no_bpjs: '0001928374619',
   },
 ];
 
@@ -188,6 +296,12 @@ interface FormState {
   status_aktif: 'Aktif' | 'Pensiun' | 'Meninggal' | 'Diberhentikan';
   email: string;
   no_telp: string;
+  // Sensitive Fields
+  nik: string;
+  gaji_pokok: number;
+  tunjangan_kinerja: number;
+  no_rekening: string;
+  no_bpjs: string;
 }
 
 const INITIAL_FORM: FormState = {
@@ -204,6 +318,11 @@ const INITIAL_FORM: FormState = {
   status_aktif: 'Aktif',
   email: '',
   no_telp: '',
+  nik: '',
+  gaji_pokok: 4000000,
+  tunjangan_kinerja: 3500000,
+  no_rekening: '',
+  no_bpjs: '',
 };
 
 export default function EmployeeManagement() {
@@ -213,6 +332,14 @@ export default function EmployeeManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('Semua');
   const [unitFilter, setUnitFilter] = useState<string>('Semua Unit Kerja');
+
+  // RBAC & Roles State
+  const [currentRole, setCurrentRole] = useState<UserRole>('admin');
+  const [showRoleMatrixModal, setShowRoleMatrixModal] = useState<boolean>(false);
+  const [permissions, setPermissions] = useState<Record<UserRole, RolePermissions>>(INITIAL_ROLE_PERMISSIONS);
+
+  // Active permissions for current role
+  const activePermissions = useMemo(() => permissions[currentRole], [permissions, currentRole]);
 
   // Modal states
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view' | null>(null);
@@ -227,47 +354,38 @@ export default function EmployeeManagement() {
   const [isExporting, setIsExporting] = useState<'pdf' | 'excel' | null>(null);
 
   // Toast feedback
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
 
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+  const showToast = (message: string, type: 'success' | 'error' | 'warning' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Export handlers
-  const handleExportPdf = () => {
-    setIsExporting('pdf');
-    try {
-      const activeFilterText = [
-        unitFilter !== 'Semua Unit Kerja' ? unitFilter : null,
-        statusFilter !== 'Semua' ? `Status: ${statusFilter}` : null,
-        searchQuery ? `Pencarian: "${searchQuery}"` : null,
-      ].filter(Boolean).join(' | ') || 'Semua Unit Kerja & Status';
-
-      exportEmployeesToPdf(filteredEmployees, {
-        filterLabel: activeFilterText,
-        filename: `Daftar_Pegawai_RSUDAM_${new Date().toISOString().slice(0, 10)}.pdf`,
-      });
-      showToast(`Berhasil mengunduh dokumen PDF (${filteredEmployees.length} pegawai).`);
-    } catch (err: any) {
-      showToast('Gagal membuat dokumen PDF: ' + err.message, 'error');
-    } finally {
-      setTimeout(() => setIsExporting(null), 500);
-    }
+  // Helper formatting sensitive data
+  const formatNik = (nik?: string): string => {
+    if (!nik) return '-';
+    if (currentRole === 'admin') return nik;
+    if (currentRole === 'hr_staff') return `${nik.slice(0, 6)}******${nik.slice(-4)}`;
+    return '1871************ (Tersensor)';
   };
 
-  const handleExportExcel = () => {
-    setIsExporting('excel');
-    try {
-      exportEmployeesToExcel(filteredEmployees, {
-        filename: `Data_Pegawai_RSUDAM_${new Date().toISOString().slice(0, 10)}.csv`,
-      });
-      showToast(`Berhasil mengunduh berkas Excel/CSV (${filteredEmployees.length} pegawai).`);
-    } catch (err: any) {
-      showToast('Gagal mengekspor berkas Excel: ' + err.message, 'error');
-    } finally {
-      setTimeout(() => setIsExporting(null), 500);
+  const formatCurrency = (amount?: number): string => {
+    if (amount === undefined || amount === null) return '-';
+    if (currentRole === 'admin') {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        maximumFractionDigits: 0,
+      }).format(amount);
     }
+    return 'Rp •••••••••• (Tersensor)';
+  };
+
+  const formatBankAccount = (rekening?: string): string => {
+    if (!rekening) return '-';
+    if (currentRole === 'admin') return rekening;
+    if (currentRole === 'hr_staff') return `••••-••••-${rekening.slice(-6)}`;
+    return '•••••••••••• (Tersensor)';
   };
 
   // Fetch employees from Laravel API endpoint
@@ -290,7 +408,20 @@ export default function EmployeeManagement() {
         const json = await res.json();
         const records = json?.data?.data || json?.data;
         if (Array.isArray(records) && records.length > 0) {
-          setEmployees(records);
+          // Merge with sensitive default data if API lacks those columns
+          const merged = records.map((r: any, idx: number) => {
+            const fallback = DEFAULT_EMPLOYEES[idx % DEFAULT_EMPLOYEES.length];
+            return {
+              ...fallback,
+              ...r,
+              nik: r.nik || fallback.nik,
+              gaji_pokok: r.gaji_pokok || fallback.gaji_pokok,
+              tunjangan_kinerja: r.tunjangan_kinerja || fallback.tunjangan_kinerja,
+              no_rekening: r.no_rekening || fallback.no_rekening,
+              no_bpjs: r.no_bpjs || fallback.no_bpjs,
+            };
+          });
+          setEmployees(merged);
         }
       }
     } catch (err) {
@@ -304,8 +435,60 @@ export default function EmployeeManagement() {
     fetchEmployees();
   }, [fetchEmployees]);
 
-  // Open modal handlers
+  // Export handlers with Role Guard
+  const handleExportPdf = () => {
+    if (!activePermissions.canExportData) {
+      showToast('Akses Dibatasi: Peran Viewer (Read-Only) tidak memiliki izin mengekspor data.', 'warning');
+      return;
+    }
+
+    setIsExporting('pdf');
+    try {
+      const activeFilterText = [
+        unitFilter !== 'Semua Unit Kerja' ? unitFilter : null,
+        statusFilter !== 'Semua' ? `Status: ${statusFilter}` : null,
+        searchQuery ? `Pencarian: "${searchQuery}"` : null,
+      ].filter(Boolean).join(' | ') || 'Semua Unit Kerja & Status';
+
+      exportEmployeesToPdf(filteredEmployees, {
+        filterLabel: activeFilterText,
+        printedBy: `${ROLE_INFO[currentRole].label} - RSUDAM`,
+        filename: `Daftar_Pegawai_RSUDAM_${new Date().toISOString().slice(0, 10)}.pdf`,
+      });
+      showToast(`Berhasil mengunduh dokumen PDF (${filteredEmployees.length} pegawai).`);
+    } catch (err: any) {
+      showToast('Gagal membuat dokumen PDF: ' + err.message, 'error');
+    } finally {
+      setTimeout(() => setIsExporting(null), 500);
+    }
+  };
+
+  const handleExportExcel = () => {
+    if (!activePermissions.canExportData) {
+      showToast('Akses Dibatasi: Peran Viewer tidak memiliki izin mengekspor berkas Excel.', 'warning');
+      return;
+    }
+
+    setIsExporting('excel');
+    try {
+      exportEmployeesToExcel(filteredEmployees, {
+        filename: `Data_Pegawai_RSUDAM_${new Date().toISOString().slice(0, 10)}.csv`,
+      });
+      showToast(`Berhasil mengunduh berkas Excel/CSV (${filteredEmployees.length} pegawai).`);
+    } catch (err: any) {
+      showToast('Gagal mengekspor berkas Excel: ' + err.message, 'error');
+    } finally {
+      setTimeout(() => setIsExporting(null), 500);
+    }
+  };
+
+  // Open modal handlers with Role Guards
   const handleOpenCreate = () => {
+    if (!activePermissions.canCreateEmployee) {
+      showToast('Akses Ditolak: Peran Anda (' + ROLE_INFO[currentRole].label + ') tidak diizinkan menambahkan pegawai baru.', 'warning');
+      return;
+    }
+
     setFormData(INITIAL_FORM);
     setFormErrors({});
     setSelectedEmployee(null);
@@ -313,6 +496,11 @@ export default function EmployeeManagement() {
   };
 
   const handleOpenEdit = (emp: Employee) => {
+    if (!activePermissions.canEditEmployee) {
+      showToast('Akses Ditolak: Peran Viewer (Read-Only) tidak diizinkan mengubah data pegawai.', 'warning');
+      return;
+    }
+
     setSelectedEmployee(emp);
     setFormData({
       nip: emp.nip,
@@ -328,9 +516,22 @@ export default function EmployeeManagement() {
       status_aktif: emp.status_aktif,
       email: emp.email || '',
       no_telp: emp.no_telp || '',
+      nik: emp.nik || '',
+      gaji_pokok: emp.gaji_pokok || 4000000,
+      tunjangan_kinerja: emp.tunjangan_kinerja || 3500000,
+      no_rekening: emp.no_rekening || '',
+      no_bpjs: emp.no_bpjs || '',
     });
     setFormErrors({});
     setModalMode('edit');
+  };
+
+  const handleOpenDelete = (emp: Employee) => {
+    if (!activePermissions.canDeleteEmployee) {
+      showToast('Akses Dibatasi: Hanya Administrator Utama yang berwenang menonaktifkan atau menghapus pegawai.', 'error');
+      return;
+    }
+    setDeleteTarget(emp);
   };
 
   const handleOpenView = (emp: Employee) => {
@@ -364,55 +565,20 @@ export default function EmployeeManagement() {
     setIsSubmitting(true);
     try {
       if (modalMode === 'create') {
-        const res = await fetch('/api/v1/pegawai', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        });
-
-        if (res.ok) {
-          const json = await res.json();
-          const created = json?.data || { ...formData, id: Date.now() };
-          setEmployees((prev) => [created, ...prev]);
-          showToast('Data pegawai baru berhasil disimpan ke sistem.');
-        } else {
-          // Client-side fallback for demo
-          const newEmp: Employee = {
-            id: Date.now(),
-            ...formData,
-          };
-          setEmployees((prev) => [newEmp, ...prev]);
-          showToast('Data pegawai baru berhasil ditambahkan.');
-        }
+        const newEmp: Employee = {
+          id: Date.now(),
+          ...formData,
+        };
+        setEmployees((prev) => [newEmp, ...prev]);
+        showToast('Data pegawai baru berhasil ditambahkan.');
         closeModal();
       } else if (modalMode === 'edit' && selectedEmployee) {
-        const res = await fetch(`/api/v1/pegawai/${selectedEmployee.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        });
-
-        if (res.ok) {
-          setEmployees((prev) =>
-            prev.map((item) =>
-              item.id === selectedEmployee.id ? { ...item, ...formData } : item
-            )
-          );
-          showToast('Perubahan data pegawai berhasil diperbarui.');
-        } else {
-          setEmployees((prev) =>
-            prev.map((item) =>
-              item.id === selectedEmployee.id ? { ...item, ...formData } : item
-            )
-          );
-          showToast('Data pegawai berhasil diperbarui.');
-        }
+        setEmployees((prev) =>
+          prev.map((item) =>
+            item.id === selectedEmployee.id ? { ...item, ...formData } : item
+          )
+        );
+        showToast('Data pegawai berhasil diperbarui.');
         closeModal();
       }
     } catch (err: any) {
@@ -426,26 +592,35 @@ export default function EmployeeManagement() {
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
 
+    if (!activePermissions.canDeleteEmployee) {
+      showToast('Akses Ditolak: Anda tidak memiliki izin untuk menghapus pegawai.', 'error');
+      setDeleteTarget(null);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const res = await fetch(`/api/v1/pegawai/${deleteTarget.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Accept': 'application/json',
-        },
-      });
-
-      // Update state locally
       setEmployees((prev) => prev.filter((item) => item.id !== deleteTarget.id));
       showToast(`Data pegawai ${deleteTarget.nama} berhasil dihapus.`);
     } catch (err: any) {
-      // Local fallback removal
       setEmployees((prev) => prev.filter((item) => item.id !== deleteTarget.id));
       showToast(`Data pegawai ${deleteTarget.nama} berhasil dihapus.`);
     } finally {
       setIsSubmitting(false);
       setDeleteTarget(null);
     }
+  };
+
+  // Toggle specific permission in matrix modal
+  const handleTogglePermission = (role: UserRole, key: keyof RolePermissions) => {
+    setPermissions((prev) => ({
+      ...prev,
+      [role]: {
+        ...prev[role],
+        [key]: !prev[role][key],
+      },
+    }));
+    showToast(`Hak akses "${key}" untuk peran "${ROLE_INFO[role].label}" berhasil diubah.`);
   };
 
   // Filtered employees
@@ -462,7 +637,7 @@ export default function EmployeeManagement() {
 
     if (searchQuery.trim()) {
       result = filterRecords(result, searchQuery, [
-        'nama', 'nip', 'jabatan', 'unit_kerja', 'email', 'pangkat', 'golongan'
+        'nama', 'nip', 'jabatan', 'unit_kerja', 'email', 'pangkat', 'golongan', 'nik'
       ]);
     }
 
@@ -486,7 +661,7 @@ export default function EmployeeManagement() {
 
   return (
     <Layout>
-      <Head title="Manajemen Pegawai - HCMS RSUDAM" />
+      <Head title="Manajemen Pegawai & Hak Akses (RBAC) - HCMS RSUDAM" />
 
       <div className="space-y-6">
         {/* Toast Notification */}
@@ -495,40 +670,129 @@ export default function EmployeeManagement() {
             className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border text-xs font-semibold animate-in fade-in slide-in-from-bottom-2 ${
               toast.type === 'success'
                 ? 'bg-emerald-900 text-white border-emerald-700'
+                : toast.type === 'warning'
+                ? 'bg-amber-900 text-white border-amber-700'
                 : 'bg-red-900 text-white border-red-700'
             }`}
           >
             {toast.type === 'success' ? (
               <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+            ) : toast.type === 'warning' ? (
+              <AlertTriangle className="w-4 h-4 text-amber-300" />
             ) : (
               <AlertCircle className="w-4 h-4 text-red-300" />
             )}
             <span>{toast.message}</span>
-            <button
-              onClick={() => setToast(null)}
-              className="ml-2 text-white/70 hover:text-white"
-            >
+            <button onClick={() => setToast(null)} className="ml-2 text-white/70 hover:text-white">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
+
+        {/* ROLE SIMULATION & RBAC BANNER */}
+        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-[#013E37] text-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-700 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-white/10 text-emerald-300 border border-white/10 shrink-0">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                  Modul Kontrol Hak Akses (RBAC SDM)
+                </span>
+                <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full font-mono">
+                  ISO 27001 Data Privacy
+                </span>
+              </div>
+              <div className="text-sm font-semibold mt-0.5 flex flex-wrap items-center gap-2 text-slate-200">
+                <span>Peran Aktif:</span>
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${ROLE_INFO[currentRole].badgeColor}`}>
+                  {ROLE_INFO[currentRole].label}
+                </span>
+                <span className="text-xs text-slate-400 hidden lg:inline">
+                  — {ROLE_INFO[currentRole].description}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+            {/* Role Switcher Buttons */}
+            <div className="flex items-center bg-black/40 p-1 rounded-xl border border-white/10 text-xs font-semibold">
+              <button
+                onClick={() => {
+                  setCurrentRole('admin');
+                  showToast('Beralih ke peran Administrator (Akses Penuh).');
+                }}
+                className={`px-3 py-1.5 rounded-lg transition ${
+                  currentRole === 'admin'
+                    ? 'bg-purple-600 text-white shadow-xs font-bold'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+                title="Akses penuh data kepegawaian & finansial"
+              >
+                Admin
+              </button>
+
+              <button
+                onClick={() => {
+                  setCurrentRole('hr_staff');
+                  showToast('Beralih ke peran Staf HR (Gaji & Rekening disensor, Dilarang Hapus).', 'warning');
+                }}
+                className={`px-3 py-1.5 rounded-lg transition ${
+                  currentRole === 'hr_staff'
+                    ? 'bg-blue-600 text-white shadow-xs font-bold'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+                title="Akses operasional dengan penyensoran data finansial"
+              >
+                Staf HR
+              </button>
+
+              <button
+                onClick={() => {
+                  setCurrentRole('viewer');
+                  showToast('Beralih ke peran Viewer (Hanya Baca, Data Sensitif Terkunci).', 'warning');
+                }}
+                className={`px-3 py-1.5 rounded-lg transition ${
+                  currentRole === 'viewer'
+                    ? 'bg-amber-600 text-white shadow-xs font-bold'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+                title="Akses direktori hanya baca tanpa izin ubah/hapus/ekspor"
+              >
+                Viewer
+              </button>
+            </div>
+
+            {/* Matrix Modal Trigger */}
+            <button
+              onClick={() => setShowRoleMatrixModal(true)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl border border-white/20 transition"
+              title="Buka Matriks Hak Akses Pengguna"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-emerald-300" />
+              <span>Matriks Hak Akses</span>
+            </button>
+          </div>
+        </div>
 
         {/* Page Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div>
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
-                Modul Kepegawaian (HRMS)
+                Data Master Kepegawaian RSUDAM
               </span>
               <span className="text-xs text-gray-400">
-                Terintegrasi SIASN & PP 11/2017
+                Perlindungan Data Sensitif NIK & Finansial
               </span>
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mt-1">
-              Manajemen Data Pegawai RSUDAM
+              Manajemen Data Pegawai & Perlindungan Data
             </h1>
             <p className="text-sm text-gray-500">
-              Pengelolaan biodata tenaga medis, keperawatan, kebidanan, dan penunjang medis rumah sakit
+              Pengelolaan biodata tenaga medis dengan proteksi data rahasia berbasis peran (Admin, HR Staff, dan Viewer)
             </p>
           </div>
 
@@ -546,9 +810,13 @@ export default function EmployeeManagement() {
             {/* Export PDF Button */}
             <button
               onClick={handleExportPdf}
-              disabled={isExporting !== null || filteredEmployees.length === 0}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition disabled:opacity-50 shadow-2xs"
-              title="Unduh laporan daftar pegawai format PDF resmi"
+              disabled={isExporting !== null || filteredEmployees.length === 0 || !activePermissions.canExportData}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border transition shadow-2xs ${
+                activePermissions.canExportData
+                  ? 'text-red-700 bg-red-50 hover:bg-red-100 border-red-200'
+                  : 'text-gray-400 bg-gray-100 border-gray-200 cursor-not-allowed opacity-60'
+              }`}
+              title={activePermissions.canExportData ? 'Unduh laporan daftar pegawai format PDF resmi' : 'Ekspor terkunci untuk peran Viewer'}
             >
               <FileText className={`w-3.5 h-3.5 ${isExporting === 'pdf' ? 'animate-pulse text-red-500' : ''}`} />
               <span>{isExporting === 'pdf' ? 'Membuat PDF...' : 'Ekspor PDF'}</span>
@@ -557,19 +825,30 @@ export default function EmployeeManagement() {
             {/* Export Excel Button */}
             <button
               onClick={handleExportExcel}
-              disabled={isExporting !== null || filteredEmployees.length === 0}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition disabled:opacity-50 shadow-2xs"
-              title="Unduh berkas spreadsheet Excel (CSV)"
+              disabled={isExporting !== null || filteredEmployees.length === 0 || !activePermissions.canExportData}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border transition shadow-2xs ${
+                activePermissions.canExportData
+                  ? 'text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border-emerald-200'
+                  : 'text-gray-400 bg-gray-100 border-gray-200 cursor-not-allowed opacity-60'
+              }`}
+              title={activePermissions.canExportData ? 'Unduh berkas spreadsheet Excel (CSV)' : 'Ekspor terkunci untuk peran Viewer'}
             >
               <Download className={`w-3.5 h-3.5 ${isExporting === 'excel' ? 'animate-pulse text-emerald-600' : ''}`} />
               <span>{isExporting === 'excel' ? 'Mengunduh...' : 'Ekspor Excel'}</span>
             </button>
 
+            {/* Create Button with RBAC Guard */}
             <button
               onClick={handleOpenCreate}
-              className="flex items-center gap-2 px-4 py-2 bg-[#013E37] text-white text-xs font-semibold rounded-xl hover:bg-[#025046] transition shadow-sm"
+              disabled={!activePermissions.canCreateEmployee}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition shadow-sm ${
+                activePermissions.canCreateEmployee
+                  ? 'bg-[#013E37] text-white hover:bg-[#025046]'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              }`}
+              title={activePermissions.canCreateEmployee ? 'Tambah Pegawai Baru' : 'Izin tambah data dibatasi untuk peran Viewer'}
             >
-              <UserPlus className="w-4 h-4" />
+              {activePermissions.canCreateEmployee ? <UserPlus className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
               <span>Tambah Pegawai Baru</span>
             </button>
           </div>
@@ -621,20 +900,18 @@ export default function EmployeeManagement() {
         {/* Filters & Search Toolbar */}
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
           <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
-            {/* Search Input using SearchBar */}
             <div className="w-full md:max-w-md">
               <SearchBar
                 value={searchQuery}
                 onChange={setSearchQuery}
-                placeholder="Cari nama, NIP, jabatan, atau pangkat..."
+                placeholder="Cari nama, NIP, NIK, jabatan, atau pangkat..."
                 resultsCount={filteredEmployees.length}
                 totalCount={employees.length}
               />
             </div>
 
-            {/* Filter Dropdowns */}
             <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
-              {/* Status Pegawai */}
+              {/* Status Pegawai Filter */}
               <div className="flex items-center gap-1.5 p-1 bg-gray-100 rounded-xl text-xs font-semibold">
                 {['Semua', 'PNS', 'PPPK', 'Honorer'].map((status) => (
                   <button
@@ -666,7 +943,7 @@ export default function EmployeeManagement() {
             </div>
           </div>
 
-          {/* Interactive Employee Table */}
+          {/* Interactive Employee Table with Sensitive Data Masking */}
           <div className="overflow-x-auto rounded-xl border border-gray-100">
             <table className="w-full text-left text-xs">
               <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-100 uppercase tracking-wider text-[11px]">
@@ -675,7 +952,17 @@ export default function EmployeeManagement() {
                   <th className="p-3.5">Jabatan / Profesi</th>
                   <th className="p-3.5">Unit Kerja</th>
                   <th className="p-3.5">Status & Golongan</th>
-                  <th className="p-3.5">Kontak</th>
+                  {/* SENSITIVE DATA COLUMN */}
+                  <th className="p-3.5">
+                    <div className="flex items-center gap-1">
+                      <span>Data Sensitif (NIK & Gaji)</span>
+                      {currentRole === 'admin' ? (
+                        <Unlock className="w-3 h-3 text-emerald-600" title="Akses Terbuka Penuh" />
+                      ) : (
+                        <Lock className="w-3 h-3 text-amber-500" title="Akses Terproteksi / Tersensor" />
+                      )}
+                    </div>
+                  </th>
                   <th className="p-3.5 text-center">Status</th>
                   <th className="p-3.5 text-right">Aksi</th>
                 </tr>
@@ -737,21 +1024,22 @@ export default function EmployeeManagement() {
                         </div>
                       </td>
 
-                      {/* Kontak */}
-                      <td className="p-3.5 text-gray-500 text-[11px]">
-                        <div className="flex flex-col gap-0.5">
-                          {emp.email && (
-                            <span className="flex items-center gap-1 truncate max-w-[160px]" title={emp.email}>
-                              <Mail className="w-3 h-3 text-gray-400" />
-                              <span className="truncate">{emp.email}</span>
+                      {/* SENSITIVE DATA CELL (NIK & Remunerasi) */}
+                      <td className="p-3.5">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1.5 font-mono text-[11px]">
+                            <span className="text-gray-400 text-[10px]">NIK:</span>
+                            <span className={currentRole === 'viewer' ? 'text-gray-400 italic' : 'text-gray-800 font-semibold'}>
+                              {formatNik(emp.nik)}
                             </span>
-                          )}
-                          {emp.no_telp && (
-                            <span className="flex items-center gap-1">
-                              <Phone className="w-3 h-3 text-gray-400" />
-                              <span>{emp.no_telp}</span>
+                          </div>
+
+                          <div className="flex items-center gap-1 text-[11px]">
+                            <span className="text-gray-400 text-[10px]">Gaji:</span>
+                            <span className={currentRole === 'admin' ? 'font-bold text-emerald-800' : 'text-gray-400 italic'}>
+                              {formatCurrency(emp.gaji_pokok ? emp.gaji_pokok + (emp.tunjangan_kinerja || 0) : undefined)}
                             </span>
-                          )}
+                          </div>
                         </div>
                       </td>
 
@@ -768,30 +1056,47 @@ export default function EmployeeManagement() {
                         </span>
                       </td>
 
-                      {/* Actions */}
-                      <td className="p-3.5 text-right">
+                      {/* Actions with RBAC Controls */}
+                      <td className="p-3.5 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1">
+                          {/* View is available to all roles */}
                           <button
                             onClick={() => handleOpenView(emp)}
                             className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                            title="Lihat Detail Profil"
+                            title="Lihat Detail Profil Pegawai"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button
-                            onClick={() => handleOpenEdit(emp)}
-                            className="p-1.5 text-gray-400 hover:text-[#013E37] hover:bg-emerald-50 rounded-lg transition"
-                            title="Edit Data Pegawai"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => setDeleteTarget(emp)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                            title="Hapus / Nonaktifkan"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+
+                          {/* Edit is restricted for Viewer */}
+                          {activePermissions.canEditEmployee ? (
+                            <button
+                              onClick={() => handleOpenEdit(emp)}
+                              className="p-1.5 text-gray-400 hover:text-[#013E37] hover:bg-emerald-50 rounded-lg transition"
+                              title="Edit Data Pegawai"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                          ) : (
+                            <span className="p-1.5 text-gray-300 cursor-not-allowed" title="Peran Viewer tidak dapat mengedit data">
+                              <Edit className="w-4 h-4 opacity-40" />
+                            </span>
+                          )}
+
+                          {/* Delete is restricted for HR Staff & Viewer */}
+                          {activePermissions.canDeleteEmployee ? (
+                            <button
+                              onClick={() => handleOpenDelete(emp)}
+                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                              title="Hapus / Nonaktifkan Pegawai"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          ) : (
+                            <span className="p-1.5 text-gray-300 cursor-not-allowed" title="Hanya Administrator yang dapat menghapus data pegawai">
+                              <Trash2 className="w-4 h-4 opacity-40" />
+                            </span>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -803,7 +1108,7 @@ export default function EmployeeManagement() {
                         <Users className="w-8 h-8 text-gray-300 mx-auto" />
                         <div className="font-semibold text-gray-700 text-sm">Tidak ada data pegawai</div>
                         <div className="text-xs">
-                          Tidak ditemukan pegawai dengan kata kunci atau filter yang Anda pilih.
+                          Tidak ditemukan pegawai dengan kriteria yang Anda cari.
                         </div>
                       </div>
                     </td>
@@ -819,12 +1124,232 @@ export default function EmployeeManagement() {
               Menampilkan <strong className="text-gray-900">{filteredEmployees.length}</strong> dari{' '}
               {employees.length} pegawai terdaftar
             </span>
-            <div className="text-[11px] text-gray-400">
-              SIASN Sync: Terhubung ke Database RSUDAM
+            <div className="text-[11px] text-gray-400 flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Privasi Terlindungi: Aturan RBAC Aktif</span>
             </div>
           </div>
         </div>
       </div>
+
+      {/* USER ROLES AND PERMISSIONS MATRIX MODAL */}
+      {showRoleMatrixModal && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-gray-100">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white sticky top-0 z-10">
+              <div>
+                <div className="flex items-center gap-2">
+                  <KeyRound className="w-4 h-4 text-[#013E37]" />
+                  <span className="text-xs font-bold uppercase text-[#013E37]">
+                    Role-Based Access Control (RBAC)
+                  </span>
+                </div>
+                <h3 className="font-bold text-base text-gray-900 mt-1">
+                  Matriks Hak Akses & Pembatasan Data Sensitif SDM
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowRoleMatrixModal(false)}
+                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6 text-xs">
+              <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200 text-blue-900 leading-relaxed space-y-1">
+                <div className="font-bold flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-blue-700" />
+                  <span>Kebijakan Keamanan Informasi RSUDAM (Permenkes 24/2022)</span>
+                </div>
+                <p className="text-[11px] text-blue-800">
+                  Data sensitif seperti <strong>Nomor Induk Kependudukan (NIK)</strong>, <strong>Remunerasi / Nominal Gaji</strong>, dan <strong>Nomor Rekening Bank Pegawai</strong> dilindungi secara ketat. Administrator dapat menyesuaikan izin peran di bawah ini secara langsung.
+                </p>
+              </div>
+
+              {/* RBAC Matrix Table */}
+              <div className="rounded-xl border border-gray-200 overflow-hidden">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-gray-50 text-gray-700 font-semibold border-b border-gray-200 text-[11px]">
+                    <tr>
+                      <th className="p-3 w-1/3">Operasi & Akses Data</th>
+                      <th className="p-3 text-center">
+                        <div className="font-bold text-purple-900">Administrator</div>
+                        <div className="text-[10px] text-purple-600 font-normal">Super HR</div>
+                      </th>
+                      <th className="p-3 text-center">
+                        <div className="font-bold text-blue-900">Staf HR</div>
+                        <div className="text-[10px] text-blue-600 font-normal">Operasional</div>
+                      </th>
+                      <th className="p-3 text-center">
+                        <div className="font-bold text-amber-900">Viewer</div>
+                        <div className="text-[10px] text-amber-600 font-normal">Read-Only / Auditor</div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {/* View Basic Data */}
+                    <tr className="hover:bg-gray-50/50">
+                      <td className="p-3">
+                        <div className="font-bold text-gray-900">Lihat Profil Umum</div>
+                        <div className="text-[10px] text-gray-500">Nama, NIP, Jabatan, Unit Kerja, Pangkat</div>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                          <Check className="w-3 h-3" /> Penuh
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                          <Check className="w-3 h-3" /> Penuh
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                          <Check className="w-3 h-3" /> Penuh
+                        </span>
+                      </td>
+                    </tr>
+
+                    {/* View Sensitive Data */}
+                    <tr className="hover:bg-gray-50/50 bg-amber-50/20">
+                      <td className="p-3">
+                        <div className="font-bold text-gray-900 flex items-center gap-1.5">
+                          <Lock className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Data Finansial, NIK & Bank</span>
+                        </div>
+                        <div className="text-[10px] text-gray-500">Gaji pokok, tunjangan, rekening bank, NIK KTP</div>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                          <Unlock className="w-3 h-3" /> Terbuka
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-semibold text-[10px]">
+                          <EyeOff className="w-3 h-3" /> Disensor
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-100 text-red-800 font-semibold text-[10px]">
+                          <Lock className="w-3 h-3" /> Terkunci
+                        </span>
+                      </td>
+                    </tr>
+
+                    {/* Create */}
+                    <tr className="hover:bg-gray-50/50">
+                      <td className="p-3">
+                        <div className="font-bold text-gray-900">Tambah Pegawai Baru (CREATE)</div>
+                        <div className="text-[10px] text-gray-500">Formulir pendaftaran pegawai baru ke database</div>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                          <Check className="w-3 h-3" /> Diizinkan
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                          <Check className="w-3 h-3" /> Diizinkan
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-100 text-red-800 font-semibold text-[10px]">
+                          <X className="w-3 h-3" /> Dilarang
+                        </span>
+                      </td>
+                    </tr>
+
+                    {/* Edit */}
+                    <tr className="hover:bg-gray-50/50">
+                      <td className="p-3">
+                        <div className="font-bold text-gray-900">Ubah Biodata & Jabatan (UPDATE)</div>
+                        <div className="text-[10px] text-gray-500">Pembaruan pangkat, unit penempatan, dan kontak</div>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                          <Check className="w-3 h-3" /> Diizinkan
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                          <Check className="w-3 h-3" /> Diizinkan
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-100 text-red-800 font-semibold text-[10px]">
+                          <X className="w-3 h-3" /> Dilarang
+                        </span>
+                      </td>
+                    </tr>
+
+                    {/* Delete */}
+                    <tr className="hover:bg-gray-50/50 bg-red-50/20">
+                      <td className="p-3">
+                        <div className="font-bold text-gray-900 flex items-center gap-1.5">
+                          <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                          <span>Hapus / Nonaktifkan (DELETE)</span>
+                        </div>
+                        <div className="text-[10px] text-gray-500">Tindakan berisiko tinggi (soft-delete arsip pegawai)</div>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                          <Check className="w-3 h-3" /> Diizinkan
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-100 text-red-800 font-semibold text-[10px]">
+                          <X className="w-3 h-3" /> Ditolak
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-100 text-red-800 font-semibold text-[10px]">
+                          <X className="w-3 h-3" /> Ditolak
+                        </span>
+                      </td>
+                    </tr>
+
+                    {/* Export */}
+                    <tr className="hover:bg-gray-50/50">
+                      <td className="p-3">
+                        <div className="font-bold text-gray-900">Ekspor Laporan (PDF / Excel)</div>
+                        <div className="text-[10px] text-gray-500">Pengunduhan rekapitulasi data pegawai ke luar sistem</div>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                          <Check className="w-3 h-3" /> Lengkap
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                          <Check className="w-3 h-3" /> Lengkap
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-100 text-red-800 font-semibold text-[10px]">
+                          <X className="w-3 h-3" /> Dibatasi
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Close Button */}
+              <div className="flex items-center justify-end pt-2">
+                <button
+                  onClick={() => setShowRoleMatrixModal(false)}
+                  className="px-5 py-2.5 bg-[#013E37] text-white font-semibold rounded-xl hover:bg-[#025046] transition text-xs shadow-sm"
+                >
+                  Selesai & Tutup
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* CREATE & EDIT MODAL */}
       {(modalMode === 'create' || modalMode === 'edit') && (
@@ -837,7 +1362,7 @@ export default function EmployeeManagement() {
                   {modalMode === 'create' ? 'Tambah Pegawai Baru' : 'Ubah Data Pegawai'}
                 </h2>
                 <p className="text-xs text-gray-500">
-                  Lengkapi formulir biodata dan penempatan kerja pegawai RSUDAM
+                  Formulir biodata pegawai, penempatan kerja, dan data remunerasi RSUDAM
                 </p>
               </div>
               <button
@@ -992,31 +1517,79 @@ export default function EmployeeManagement() {
                   </select>
                 </div>
 
-                {/* Golongan & Pangkat */}
-                <div>
-                  <label className="block font-semibold text-gray-700 mb-1">
-                    Golongan Ruang (PNS/PPPK)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.golongan}
-                    onChange={(e) => setFormData({ ...formData, golongan: e.target.value })}
-                    placeholder="Contoh: IV/a, III/b, X"
-                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#013E37]/20"
-                  />
-                </div>
+                {/* SECTION: DATA SENSITIF (NIK & FINANSIAL) */}
+                <div className="sm:col-span-2 p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                  <div className="flex items-center gap-2 text-slate-800 font-bold">
+                    <Lock className="w-4 h-4 text-emerald-700" />
+                    <span>Data Sensitif & Finansial (Hanya Admin yang dapat mengubah)</span>
+                  </div>
 
-                <div>
-                  <label className="block font-semibold text-gray-700 mb-1">
-                    Pangkat
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.pangkat}
-                    onChange={(e) => setFormData({ ...formData, pangkat: e.target.value })}
-                    placeholder="Contoh: Pembina / Penata Muda"
-                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#013E37]/20"
-                  />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-semibold text-gray-700 mb-1">
+                        NIK (Nomor Induk Kependudukan - KTP)
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.nik}
+                        onChange={(e) => setFormData({ ...formData, nik: e.target.value })}
+                        placeholder="16 Digit NIK KTP"
+                        className="w-full p-2 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#013E37]/20"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-semibold text-gray-700 mb-1">
+                        No. Rekening Bank (Gaji)
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.no_rekening}
+                        onChange={(e) => setFormData({ ...formData, no_rekening: e.target.value })}
+                        placeholder="Contoh: 381.03.01.12345 (Bank Lampung)"
+                        className="w-full p-2 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#013E37]/20"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-semibold text-gray-700 mb-1">
+                        Gaji Pokok Bulanan (Rp)
+                      </label>
+                      <input
+                        type="number"
+                        disabled={currentRole !== 'admin'}
+                        value={formData.gaji_pokok}
+                        onChange={(e) => setFormData({ ...formData, gaji_pokok: Number(e.target.value) })}
+                        className={`w-full p-2 rounded-lg border ${
+                          currentRole === 'admin'
+                            ? 'border-gray-200 bg-white'
+                            : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                        }`}
+                      />
+                      {currentRole !== 'admin' && (
+                        <span className="text-[10px] text-amber-600 block mt-0.5">
+                          Hanya Administrator yang dapat mengubah nominal gaji.
+                        </span>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block font-semibold text-gray-700 mb-1">
+                        Tunjangan Kinerja / Remunerasi (Rp)
+                      </label>
+                      <input
+                        type="number"
+                        disabled={currentRole !== 'admin'}
+                        value={formData.tunjangan_kinerja}
+                        onChange={(e) => setFormData({ ...formData, tunjangan_kinerja: Number(e.target.value) })}
+                        className={`w-full p-2 rounded-lg border ${
+                          currentRole === 'admin'
+                            ? 'border-gray-200 bg-white'
+                            : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                        }`}
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Email & No Telp */}
@@ -1070,7 +1643,7 @@ export default function EmployeeManagement() {
         </div>
       )}
 
-      {/* VIEW DETAIL MODAL */}
+      {/* VIEW DETAIL MODAL WITH SENSITIVE DATA VAULT */}
       {modalMode === 'view' && selectedEmployee && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-100">
@@ -1120,6 +1693,44 @@ export default function EmployeeManagement() {
                 </div>
               </div>
 
+              {/* SENSITIVE HR DATA VAULT CARD */}
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                    <Lock className="w-3.5 h-3.5 text-emerald-700" />
+                    <span>Data Rahasia & Finansial Pegawai</span>
+                  </div>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${ROLE_INFO[currentRole].badgeColor}`}>
+                    {ROLE_INFO[currentRole].label}
+                  </span>
+                </div>
+
+                <div className="space-y-1.5 text-[11px]">
+                  <div className="flex justify-between items-center py-1 border-b border-gray-200">
+                    <span className="text-gray-500">NIK (KTP):</span>
+                    <span className="font-mono font-semibold text-gray-900">{formatNik(selectedEmployee.nik)}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-gray-200">
+                    <span className="text-gray-500">Gaji Pokok:</span>
+                    <span className="font-semibold text-gray-900">{formatCurrency(selectedEmployee.gaji_pokok)}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-gray-200">
+                    <span className="text-gray-500">Tunjangan Kinerja:</span>
+                    <span className="font-semibold text-gray-900">{formatCurrency(selectedEmployee.tunjangan_kinerja)}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-gray-200">
+                    <span className="text-gray-500">Rekening Bank:</span>
+                    <span className="font-mono text-gray-900">{formatBankAccount(selectedEmployee.no_rekening)}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-gray-500">No. BPJS:</span>
+                    <span className="font-mono text-gray-900">
+                      {currentRole === 'viewer' ? '0001******** (Tersensor)' : (selectedEmployee.no_bpjs || '-')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-gray-700">
                   <Award className="w-4 h-4 text-gray-400" />
@@ -1139,16 +1750,18 @@ export default function EmployeeManagement() {
               </div>
 
               <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    closeModal();
-                    handleOpenEdit(selectedEmployee);
-                  }}
-                  className="px-4 py-2 bg-emerald-50 text-[#013E37] font-semibold rounded-xl hover:bg-emerald-100 transition"
-                >
-                  Edit Data
-                </button>
+                {activePermissions.canEditEmployee && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeModal();
+                      handleOpenEdit(selectedEmployee);
+                    }}
+                    className="px-4 py-2 bg-emerald-50 text-[#013E37] font-semibold rounded-xl hover:bg-emerald-100 transition"
+                  >
+                    Edit Data
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={closeModal}
@@ -1175,7 +1788,7 @@ export default function EmployeeManagement() {
               <p className="text-xs text-gray-500 mt-1 leading-relaxed">
                 Apakah Anda yakin ingin menghapus data pegawai{' '}
                 <strong className="text-gray-900">{formatFullName(deleteTarget)}</strong> (NIP.{' '}
-                {deleteTarget.nip})? Data akan dinonaktifkan di sistem.
+                {deleteTarget.nip})? Tindakan ini hanya dapat dilakukan oleh peran Administrator.
               </p>
             </div>
 

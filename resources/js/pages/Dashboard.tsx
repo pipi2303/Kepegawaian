@@ -1,11 +1,15 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import Layout from '../components/Layout';
 import SearchBar, { filterRecords, SearchCategory } from '../components/SearchBar';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import {
   Users, CheckCircle2, AlertTriangle, Calendar, ShieldAlert,
   Clock, ArrowUpRight, Activity, RefreshCw, ChevronRight,
-  TrendingUp, UserCheck, Stethoscope, Briefcase, BarChart3, PieChart as PieChartIcon
+  TrendingUp, UserCheck, Stethoscope, Briefcase, BarChart3,
+  PieChart as PieChartIcon, Download, FileText, FileSpreadsheet,
+  ChevronDown, X
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -367,6 +371,11 @@ export default function Dashboard({ metrics: initialMetrics }: DashboardProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
 
+  // Export & Download Report states
+  const [isExporting, setIsExporting] = useState<'pdf' | 'csv' | null>(null);
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
   // Real-time filtered duty staff using filterRecords utility
   const filteredStaff = useMemo(() => {
     let list = initialDutyStaff;
@@ -375,6 +384,141 @@ export default function Dashboard({ metrics: initialMetrics }: DashboardProps) {
     }
     return filterRecords(list, searchQuery, ['nama', 'nip', 'jabatan', 'unit', 'status', 'shift']);
   }, [initialDutyStaff, searchQuery, selectedCategory]);
+
+  const getFilterLabel = () => {
+    const parts = [];
+    if (selectedCategory) parts.push(`Kategori: ${selectedCategory}`);
+    if (searchQuery) parts.push(`Pencarian: "${searchQuery}"`);
+    return parts.length > 0 ? parts.join(' | ') : 'Semua Profesi & Ruangan';
+  };
+
+  const handleDownloadPdf = () => {
+    setIsExporting('pdf');
+    setShowDownloadMenu(false);
+    try {
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const printDate =
+        new Date().toLocaleDateString('id-ID', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        }) +
+        ', ' +
+        new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) +
+        ' WIB';
+
+      // Hospital Header Banner
+      doc.setFillColor(1, 62, 55); // #013E37
+      doc.rect(14, 10, 269, 3, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.setTextColor(1, 62, 55);
+      doc.text('RSUD Dr. H. ABDUL MOELOEK PROVINSI LAMPUNG', 14, 20);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(100, 116, 139);
+      doc.text('Laporan Eksekutif: Jadwal Dinas Jaga & Status Presensi Pegawai Nakes', 14, 25);
+
+      // Metadata
+      doc.setFontSize(8.5);
+      doc.setTextColor(71, 85, 105);
+      doc.text(`Kriteria Filter: ${getFilterLabel()}`, 14, 32);
+      doc.text(`Total Pegawai Terfilter: ${filteredStaff.length} Orang`, 14, 37);
+      doc.text(`Waktu Cetak: ${printDate} | Sistem: HCMS RSUDAM`, 170, 37);
+
+      const rows = filteredStaff.map((s, idx) => [
+        (idx + 1).toString(),
+        s.nip,
+        s.nama,
+        s.jabatan,
+        s.unit,
+        s.kategori,
+        s.shift,
+        s.status,
+      ]);
+
+      autoTable(doc, {
+        startY: 42,
+        head: [['No', 'NIP', 'Nama Pegawai & Gelar', 'Jabatan / Profesi', 'Unit Kerja', 'Kategori', 'Jadwal Shift', 'Status Presensi']],
+        body: rows,
+        theme: 'grid',
+        headStyles: { fillColor: [1, 62, 55], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
+        bodyStyles: { fontSize: 8, cellPadding: 2 },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 10 },
+          1: { cellWidth: 38 },
+          2: { cellWidth: 50, fontStyle: 'bold' },
+          3: { cellWidth: 48 },
+          4: { cellWidth: 42 },
+          5: { halign: 'center', cellWidth: 26 },
+          6: { cellWidth: 30 },
+          7: { cellWidth: 25 },
+        },
+        didDrawPage: (data) => {
+          const pageNumber = doc.getNumberOfPages();
+          doc.setFontSize(8);
+          doc.setTextColor(148, 163, 184);
+          doc.text(
+            `Dokumen Laporan Dashboard Pegawai RSUD Dr. H. Abdul Moeloek — Halaman ${data.pageNumber} dari ${pageNumber}`,
+            14,
+            doc.internal.pageSize.height - 8
+          );
+        },
+      });
+
+      doc.save(`Laporan_Pegawai_Dashboard_${new Date().toISOString().slice(0, 10)}.pdf`);
+      setToastMessage(`Laporan format PDF berhasil diunduh (${filteredStaff.length} pegawai).`);
+      setTimeout(() => setToastMessage(null), 4000);
+    } catch (err: any) {
+      setToastMessage(`Gagal membuat PDF: ${err.message}`);
+      setTimeout(() => setToastMessage(null), 4000);
+    } finally {
+      setIsExporting(null);
+    }
+  };
+
+  const handleDownloadCsv = () => {
+    setIsExporting('csv');
+    setShowDownloadMenu(false);
+    try {
+      const headers = ['No', 'NIP', 'Nama Pegawai', 'Jabatan', 'Unit Kerja', 'Kategori Profesi', 'Jadwal Shift', 'Status Presensi'];
+      const escapeCsv = (val: string | number) => `"${String(val).replace(/"/g, '""')}"`;
+
+      const rows = filteredStaff.map((s, idx) => [
+        idx + 1,
+        `'${s.nip}`,
+        escapeCsv(s.nama),
+        escapeCsv(s.jabatan),
+        escapeCsv(s.unit),
+        escapeCsv(s.kategori),
+        escapeCsv(s.shift),
+        escapeCsv(s.status),
+      ]);
+
+      const csvContent =
+        '\uFEFF' + [headers.map(escapeCsv).join(';'), ...rows.map((r) => r.join(';'))].join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Laporan_Pegawai_Dashboard_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      setToastMessage(`Laporan format CSV/Excel berhasil diunduh (${filteredStaff.length} pegawai).`);
+      setTimeout(() => setToastMessage(null), 4000);
+    } catch (err: any) {
+      setToastMessage(`Gagal membuat CSV: ${err.message}`);
+      setTimeout(() => setToastMessage(null), 4000);
+    } finally {
+      setIsExporting(null);
+    }
+  };
 
   return (
     <Layout>
@@ -398,7 +542,7 @@ export default function Dashboard({ metrics: initialMetrics }: DashboardProps) {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               onClick={fetchSummary}
               disabled={loading}
@@ -409,9 +553,62 @@ export default function Dashboard({ metrics: initialMetrics }: DashboardProps) {
               <span>{loading ? 'Menyinkronkan...' : 'Sinkronisasi Data'}</span>
             </button>
 
+            {/* Download Report Dropdown Button */}
+            <div className="relative">
+              <button
+                onClick={() => setShowDownloadMenu(!showDownloadMenu)}
+                disabled={filteredStaff.length === 0 || isExporting !== null}
+                className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-white bg-[#013E37] hover:bg-[#025046] rounded-xl transition shadow-sm disabled:opacity-50"
+                title="Download Report data pegawai terfilter format PDF atau CSV"
+              >
+                <Download className={`w-3.5 h-3.5 ${isExporting ? 'animate-bounce text-emerald-300' : 'text-emerald-300'}`} />
+                <span>{isExporting ? 'Memproses...' : 'Download Report'}</span>
+                <ChevronDown className={`w-3.5 h-3.5 text-white/70 transition-transform ${showDownloadMenu ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showDownloadMenu && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 text-xs">
+                  <div className="px-4 py-2 border-b border-gray-100">
+                    <div className="font-bold text-gray-900">Download Report Pegawai</div>
+                    <div className="text-[11px] text-gray-400 mt-0.5">
+                      {filteredStaff.length} Pegawai Terfilter ({getFilterLabel()})
+                    </div>
+                  </div>
+
+                  <div className="py-1">
+                    <button
+                      onClick={handleDownloadPdf}
+                      className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-2.5 text-gray-700 transition"
+                    >
+                      <div className="p-1.5 rounded-lg bg-red-50 text-red-600">
+                        <FileText className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-gray-900">Dokumen PDF (.pdf)</div>
+                        <div className="text-[10px] text-gray-400">Laporan resmi ber-kop surat RSUDAM</div>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={handleDownloadCsv}
+                      className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-2.5 text-gray-700 transition"
+                    >
+                      <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700">
+                        <FileSpreadsheet className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-gray-900">Spreadsheet CSV (.csv)</div>
+                        <div className="text-[10px] text-gray-400">Kompatibel Microsoft Excel & Google Sheets</div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <Link
               href="/cuti"
-              className="px-4 py-2 bg-[#013E37] text-white text-xs font-semibold rounded-xl hover:bg-[#025046] transition flex items-center gap-1.5 shadow-sm"
+              className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shadow-2xs"
             >
               <span>Approval Cuti</span>
               {data.cuti_pending > 0 && (
@@ -536,9 +733,33 @@ export default function Dashboard({ metrics: initialMetrics }: DashboardProps) {
                 Gunakan pencarian real-time untuk memfilter dokter, perawat, atau staf nakes jaga hari ini
               </p>
             </div>
-            <span className="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-full border border-emerald-200">
-              Shift Aktif Hari Ini
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-full border border-emerald-200">
+                Shift Aktif Hari Ini
+              </span>
+
+              {/* Direct Quick Download Report Buttons */}
+              <div className="flex items-center gap-1.5 bg-gray-100 p-1 rounded-xl">
+                <button
+                  onClick={handleDownloadPdf}
+                  disabled={filteredStaff.length === 0 || isExporting !== null}
+                  className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-red-700 bg-white hover:bg-red-50 rounded-lg transition shadow-2xs border border-gray-200 disabled:opacity-50"
+                  title="Unduh laporan data terfilter ke format PDF"
+                >
+                  <FileText className="w-3 h-3 text-red-600" />
+                  <span>Download PDF</span>
+                </button>
+                <button
+                  onClick={handleDownloadCsv}
+                  disabled={filteredStaff.length === 0 || isExporting !== null}
+                  className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-emerald-800 bg-white hover:bg-emerald-50 rounded-lg transition shadow-2xs border border-gray-200 disabled:opacity-50"
+                  title="Unduh laporan data terfilter ke format CSV"
+                >
+                  <Download className="w-3 h-3 text-emerald-700" />
+                  <span>Download CSV</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Reusable SearchBar Component */}
@@ -695,6 +916,17 @@ export default function Dashboard({ metrics: initialMetrics }: DashboardProps) {
             </div>
           </div>
         </div>
+
+        {/* Floating Toast Feedback for Report Download */}
+        {toastMessage && (
+          <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border bg-emerald-900 text-white border-emerald-700 text-xs font-semibold animate-in fade-in slide-in-from-bottom-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+            <span>{toastMessage}</span>
+            <button onClick={() => setToastMessage(null)} className="ml-2 text-white/70 hover:text-white">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </div>
     </Layout>
   );

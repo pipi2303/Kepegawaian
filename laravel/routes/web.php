@@ -55,4 +55,12 @@ Route::middleware('auth')->group(function () {
 
     // 6. System Activity & Audit Trail Log
     Route::get('activity-log', fn() => \Inertia\Inertia::render('ActivityLog'))->name('activity-log');
+
+    // 7. Pengaturan Sistem & Database Backup
+    Route::get('settings', fn() => \Inertia\Inertia::render('AdminSettings'))->name('settings');
+
+    // 8. KPI (Key Performance Indicator) & Performance Management
+    Route::get('performance', fn() => \Inertia\Inertia::render('KpiTracking'))->name('performance');
+    Route::get('kpi', fn() => \Inertia\Inertia::render('KpiTracking'))->name('kpi');
+    Route::get('skp', fn() => \Inertia\Inertia::render('KpiTracking'))->name('skp');
 });

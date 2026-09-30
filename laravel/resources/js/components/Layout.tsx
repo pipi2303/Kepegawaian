@@ -91,6 +91,7 @@ const menuItems: MenuSection[] = [
       { path: '/surat-kepegawaian', label: 'Surat Kepegawaian', icon: Mail, roles: ['admin', 'direktur'] },
       { path: '/laporan', label: 'Laporan & Statistik', icon: FileBarChart2, roles: ['admin', 'direktur'] },
       { path: '/activity-log', label: 'Log Aktivitas Sistem', icon: ShieldCheck, roles: ['admin', 'direktur'] },
+      { path: '/settings', label: 'Pengaturan & Backup DB', icon: Settings, roles: ['admin', 'direktur'] },
     ],
   },
 ];
@@ -387,6 +388,13 @@ export default function Layout({ children }: LayoutProps) {
                     >
                       <CalendarDays className="w-4 h-4 text-gray-400" />
                       <span>Sisa Cuti ({pegawai.sisa_cuti_tahunan || 12} Hari)</span>
+                    </Link>
+                    <Link
+                      href="/settings"
+                      className="px-4 py-2.5 hover:bg-gray-50 flex items-center gap-2.5 text-gray-700 transition"
+                    >
+                      <Settings className="w-4 h-4 text-gray-400" />
+                      <span>Pengaturan & Database</span>
                     </Link>
                   </div>
 

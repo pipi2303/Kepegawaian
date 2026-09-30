@@ -94,9 +94,19 @@ class CutiService
                 // Semua level menyetujui -> Status Final Disetujui
                 $cuti->update([
                     'status' => 'Disetujui',
-                    'disetujui_oleh' => $approver->nama_lengkap,
+                    'disetujui_oleh' => $approver->nama_lengkap ?? $approver->nama,
                     'tanggal_disetujui' => now()->toDateString(),
                 ]);
+
+                // Otomatis kurangi sisa cuti tahunan jika jenisnya Cuti Tahunan
+                if ($cuti->jenis_cuti === 'Cuti Tahunan') {
+                    $pegawaiTarget = $cuti->pegawai;
+                    if ($pegawaiTarget) {
+                        $currentBalance = $pegawaiTarget->sisa_cuti_tahunan ?? 12;
+                        $newBalance = max(0, $currentBalance - (int)$cuti->jumlah_hari);
+                        $pegawaiTarget->update(['sisa_cuti_tahunan' => $newBalance]);
+                    }
+                }
             }
 
             return $cuti->fresh(['approvals', 'pegawai']);
