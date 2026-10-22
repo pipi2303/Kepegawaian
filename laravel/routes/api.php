@@ -7,6 +7,10 @@ use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\CutiController;
 use App\Http\Controllers\AbsensiController;
 use App\Http\Controllers\CredentialingController;
+use App\Http\Controllers\ImportPegawaiController;
+use App\Http\Controllers\PayrollController;
+use App\Http\Controllers\PengaturanController;
+use App\Http\Controllers\LicenseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -173,6 +177,26 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
 
     // 8. AI Chat proxy — Gemini dipanggil server-side, API key tidak pernah ke client
     Route::post('ai/chat', [\App\Http\Controllers\AiChatController::class, 'chat']);
+
+    // 9. Import Wizard Pegawai (Excel/CSV)
+    Route::get('import/pegawai/template', [ImportPegawaiController::class, 'template']);
+    Route::post('import/pegawai', [ImportPegawaiController::class, 'store']);
+    Route::get('import/pegawai/history', [ImportPegawaiController::class, 'history']);
+
+    // 10. Konfigurasi Rumah Sakit
+    Route::get('pengaturan', [PengaturanController::class, 'index']);
+    Route::put('pengaturan', [PengaturanController::class, 'update']);
+
+    // 11. Payroll / Slip Gaji
+    Route::get('payroll', [PayrollController::class, 'index']);
+    Route::post('payroll/generate', [PayrollController::class, 'store']);
+    Route::post('payroll/bulk-generate', [PayrollController::class, 'bulkGenerate']);
+    Route::get('payroll/{gaji}', [PayrollController::class, 'show']);
+    Route::post('payroll/{gaji}/approve', [PayrollController::class, 'approve']);
+    Route::post('payroll/{gaji}/bayar', [PayrollController::class, 'bayar']);
+
+    // 12. License Info
+    Route::get('license/info', [LicenseController::class, 'info']);
 
     // 7. KPI — dari t_skp_header (PermenPAN-RB No. 6/2022)
     Route::get('kpi/summary', function () {

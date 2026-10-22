@@ -38,6 +38,8 @@ class RoleAndPermissionSeeder extends Seeder
             'skp.view-own', 'skp.view-all', 'skp.review-atasan', 'skp.approve',
             // Komite RS
             'komite.view', 'komite.manage',
+            // Sistem & Backup
+            'backup.manage', 'pengaturan.manage',
         ];
 
         foreach ($permissions as $permission) {
