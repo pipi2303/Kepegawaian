@@ -10,7 +10,9 @@ use App\Http\Controllers\CredentialingController;
 use App\Http\Controllers\ImportPegawaiController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\PengaturanController;
+use App\Http\Controllers\ExportController;
 use App\Http\Controllers\LicenseController;
+use App\Http\Controllers\SlipGajiPdfController;
 
 /*
 |--------------------------------------------------------------------------
@@ -197,6 +199,35 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
 
     // 12. License Info
     Route::get('license/info', [LicenseController::class, 'info']);
+
+    // 13. Export Excel
+    Route::get('export/pegawai', [ExportController::class, 'pegawai']);
+    Route::get('export/absensi', [ExportController::class, 'absensi']);
+    Route::get('export/cuti', [ExportController::class, 'cuti']);
+
+    // 14. PDF Slip Gaji
+    Route::get('payroll/{gaji}/pdf', [SlipGajiPdfController::class, 'download']);
+
+    // 15. Auth — current user info (dipakai frontend untuk restore session)
+    Route::get('auth/me', function () {
+        $user = auth()->user();
+        return response()->json([
+            'status' => 'success',
+            'data'   => [
+                'id'                => $user->id,
+                'nip'               => $user->nip,
+                'nama'              => $user->nama_lengkap,
+                'email'             => $user->email,
+                'jabatan'           => $user->jabatan,
+                'unit_kerja'        => $user->unit_kerja,
+                'golongan'          => $user->golongan,
+                'foto'              => $user->foto,
+                'sisa_cuti_tahunan' => $user->sisa_cuti_tahunan,
+                'roles'             => $user->getRoleNames(),
+                'permissions'       => $user->getAllPermissions()->pluck('name'),
+            ],
+        ]);
+    });
 
     // 7. KPI — dari t_skp_header (PermenPAN-RB No. 6/2022)
     Route::get('kpi/summary', function () {

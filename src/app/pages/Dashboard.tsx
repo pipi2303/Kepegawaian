@@ -13,6 +13,7 @@ import {
   Filter, Minus, CheckCircle2, AlertTriangle,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import { useDashboardSummary, useNotifications } from '../hooks';
 import { chartKehadiran, chartUnitKerja } from '../data/mockData';
 import RechartsWrapper from '../components/RechartsWrapper';
 import { C, CHART_COLORS } from '../components/colors';
@@ -60,6 +61,9 @@ export default function Dashboard() {
     mutasi, penghargaan, cpd, grievance,
   } = useAppContext();
 
+
+  // Real API summary — overlays mock-computed stats when backend is live
+  const { data: apiSummary } = useDashboardSummary();
 
   const [activeTab, setActiveTab] = useState<'ringkasan' | 'kehadiran' | 'sdm' | 'kinerja'>('ringkasan');
   const [activityFeed, setActivityFeed] = useState<'aktivitas' | 'pengingat'>('aktivitas');
@@ -301,6 +305,10 @@ export default function Dashboard() {
     };
   }, [pegawai, cuti, absensi, skp, kenaikanPangkat, disiplin, diklat, str, sip, insidenK3RS, kontrak,
       slipGaji, jadwalShift, bpjs, mcu, vaksinasi, mutasi, penghargaan, cpd, grievance]);
+
+  // Merge API summary over mock-computed stats (API wins when backend is live)
+  // ponytail: shallow spread — add per-field mapping if API shape diverges from mock stats
+  const mergedStats = apiSummary ? { ...stats, ...apiSummary } : stats;
 
   // ─── Chart Data ─────────────────────────────────────────────────────────────
   const chartStatusPegawai = useMemo(() => [

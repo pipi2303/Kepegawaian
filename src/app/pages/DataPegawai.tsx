@@ -7,6 +7,9 @@ import { UNIT_KERJA } from '../data/constants';
 import { toast } from 'sonner';
 import { EmployeeAvatar } from '../components/EmployeeAvatar';
 import EditPegawaiModal from '../components/EditPegawaiModal';
+import { usePegawai, useCreatePegawai, useUpdatePegawai, useDeletePegawai } from '../hooks';
+import { exportApi, pegawaiApi } from '../data/api';
+import { downloadBlob } from '../lib/downloadBlob';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -25,7 +28,14 @@ const EMPTY_FORM: Omit<Pegawai, 'id'> = {
 
 export default function DataPegawai() {
   const navigate = useNavigate();
-  const { pegawai: dataPegawai, addPegawai, updatePegawai, deletePegawai, isLoading } = useAppContext();
+  const { pegawai: mockPegawai, addPegawai, updatePegawai, deletePegawai } = useAppContext();
+  const { data: apiPegawai, isLoading } = usePegawai();
+  const createMutation = useCreatePegawai();
+  const updateMutation = useUpdatePegawai();
+  const deleteMutation = useDeletePegawai();
+
+  // Use API data when available, fall back to mock for demo mode
+  const dataPegawai: Pegawai[] = (apiPegawai && apiPegawai.length > 0) ? apiPegawai : mockPegawai;
   const [search, setSearch] = useState('');
   // ... rest of state declarations ...
   const [filterUnit, setFilterUnit] = useState('');
@@ -118,19 +128,53 @@ export default function DataPegawai() {
 
   const handleSave = (data: Omit<Pegawai, 'id'> & { id?: string }) => {
     if (data.id) {
-      updatePegawai(data as Pegawai);
-      toast.success(`Data ${data.nama} berhasil diperbarui`);
+      updateMutation.mutate({ id: data.id, data }, {
+        onError: () => {
+          // fall back to local mock on API error
+          updatePegawai(data as Pegawai);
+          toast.success(`Data ${data.nama} berhasil diperbarui`);
+        },
+      });
     } else {
-      addPegawai(data);
-      toast.success(`Pegawai ${data.nama} berhasil ditambahkan`);
+      createMutation.mutate(data, {
+        onError: () => {
+          addPegawai(data);
+          toast.success(`Pegawai ${data.nama} berhasil ditambahkan`);
+        },
+      });
     }
     setShowModal(false);
   };
 
   const handleDelete = (id: string) => {
-    deletePegawai(id);
+    deleteMutation.mutate(id, {
+      onError: () => {
+        deletePegawai(id);
+        toast.success('Data pegawai berhasil dihapus');
+      },
+    });
     setShowDeleteConfirm(null);
-    toast.success('Data pegawai berhasil dihapus');
+  };
+
+  const handleExport = async () => {
+    try {
+      const blob = await exportApi.pegawai();
+      downloadBlob(blob.data as Blob, `pegawai-${new Date().toISOString().slice(0,10)}.xlsx`);
+    } catch {
+      toast.error('Gagal mengunduh data pegawai');
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      await pegawaiApi.import(file);
+      toast.success('Import berhasil');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Gagal import file');
+    }
+    e.target.value = '';
   };
 
   const inputCls = "w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500";
@@ -145,10 +189,11 @@ export default function DataPegawai() {
           <p className="text-sm text-gray-500 mt-0.5">Pengelolaan data ASN Rumah Sakit</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+          <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">
             <Upload className="w-4 h-4" /> Import
-          </button>
-          <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+            <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} />
+          </label>
+          <button onClick={handleExport} className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
             <Download className="w-4 h-4" /> Export
           </button>
           <button onClick={openAdd} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors">

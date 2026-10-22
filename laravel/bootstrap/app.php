@@ -18,7 +18,15 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withCommands([
         \App\Console\Commands\GenerateLicense::class,
+        \App\Console\Commands\CekLisensiEkspiryNakes::class,
+        \App\Console\Commands\GenerateSlipGajiBulanan::class,
+        \App\Console\Commands\BackupDatabase::class,
     ])
+    ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
+        $schedule->command('hcms:cek-lisensi-nakes')->dailyAt('07:00');
+        $schedule->command('hcms:backup-db')->dailyAt('02:00');
+        $schedule->command('hcms:generate-slip-gaji')->monthlyOn(25, '06:00');
+    })
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();

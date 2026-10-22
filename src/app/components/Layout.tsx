@@ -9,6 +9,7 @@ import {
   FileSignature, Award, ArrowRightLeft, Users2, Scale, Network, Gauge,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import { useNotifications } from '../hooks';
 import { toast } from 'sonner';
 import GlobalSearch from './GlobalSearch';
 import AskIntramedika from './AskIntramedika';
@@ -231,6 +232,9 @@ function Layout() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { isLoggedIn, currentUser, logout } = useAppContext();
+  const { data: apiNotifData } = useNotifications();
+  // Use API notifications when available, fall back to static mock
+  const liveNotifications: typeof notifications = apiNotifData?.data ?? notifications;
   const navigate = useNavigate();
 
   // Ctrl+K / Cmd+K opens global search
@@ -326,7 +330,9 @@ function Layout() {
                 onClick={() => { setNotifOpen(!notifOpen); setProfileOpen(false); }}
               >
                 <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                {liveNotifications.length > 0 && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                )}
               </button>
               {notifOpen && (
                 <div className="absolute right-0 top-12 w-80 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
@@ -334,7 +340,7 @@ function Layout() {
                     <p className="font-semibold text-gray-800 text-sm">Notifikasi</p>
                   </div>
                   <div className="max-h-72 overflow-y-auto">
-                    {notifications.map((n) => (
+                    {liveNotifications.map((n) => (
                       <div key={n.id} className="flex gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50">
                         <div className={`w-2 h-2 mt-1.5 rounded-full flex-shrink-0 ${
                           n.type === 'cuti' ? 'bg-orange-400' : n.type === 'pangkat' ? 'bg-green-400' : n.type === 'skp' ? 'bg-purple-400' : 'bg-blue-400'

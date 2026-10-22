@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Hospital, Eye, EyeOff, LogIn, Shield, Users, User, Lock } from 'lucide-react';
-import { useAppContext, appUsers } from '../context/AppContext';
-import { toast } from 'sonner';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAppContext();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
@@ -17,33 +14,31 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setLoading(true);
-    await new Promise(r => setTimeout(r, 600));
-    const success = login(username, password);
-    setLoading(false);
-    if (success) {
-      toast.success('Login berhasil! Selamat datang di HCMS Application');
-      navigate('/');
-    } else {
-      setError('Username atau password salah. Silakan coba kembali.');
+    try {
+      await fetch('/sanctum/csrf-cookie', { credentials: 'include' });
+      const csrfToken = document.cookie.match(/XSRF-TOKEN=([^;]+)/)?.[1] ?? '';
+      const res = await fetch('/login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-XSRF-TOKEN': decodeURIComponent(csrfToken),
+        },
+        body: JSON.stringify({ email: username, password }),
+      });
+      if (res.ok || res.redirected) {
+        navigate('/');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 429) setError('Terlalu banyak percobaan. Coba lagi dalam 1 menit.');
+        else setError(data.errors?.email?.[0] || data.message || 'Login gagal.');
+      }
+    } catch {
+      setError('Tidak dapat terhubung ke server.');
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const quickLogin = (uname: string, pass: string) => {
-    setUsername(uname);
-    setPassword(pass);
-  };
-
-  const roleColor = {
-    admin: 'bg-red-100 text-red-700 border-red-200',
-    direktur: 'bg-purple-100 text-purple-700 border-purple-200',
-    kepala_unit: 'bg-blue-100 text-blue-700 border-blue-200',
-    pegawai: 'bg-green-100 text-green-700 border-green-200',
-  };
-  const roleLabel = {
-    admin: 'Admin',
-    direktur: 'Direktur',
-    kepala_unit: 'Kepala Unit',
-    pegawai: 'Pegawai',
   };
 
   return (

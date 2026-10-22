@@ -2,9 +2,12 @@
 
 namespace App\Services;
 
+use App\Mail\CutiDisetujui;
+use App\Mail\CutiDitolak;
 use App\Models\Pegawai;
 use App\Models\Cuti;
 use App\Models\CutiApproval;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 
@@ -109,7 +112,14 @@ class CutiService
                 }
             }
 
-            return $cuti->fresh(['approvals', 'pegawai']);
+            $fresh = $cuti->fresh(['approvals', 'pegawai']);
+
+            if ($fresh->status === 'Disetujui' && $fresh->pegawai?->email) {
+                Mail::to($fresh->pegawai->email)
+                    ->queue(new CutiDisetujui($fresh, $approver));
+            }
+
+            return $fresh;
         });
     }
 
@@ -139,7 +149,14 @@ class CutiService
                 'catatan' => $alasan,
             ]);
 
-            return $cuti->fresh(['approvals', 'pegawai']);
+            $fresh = $cuti->fresh(['approvals', 'pegawai']);
+
+            if ($fresh->pegawai?->email) {
+                Mail::to($fresh->pegawai->email)
+                    ->queue(new CutiDitolak($fresh, $approver, $alasan));
+            }
+
+            return $fresh;
         });
     }
 }

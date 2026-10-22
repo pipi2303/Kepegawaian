@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             PegawaiCsvSeeder::class,
             PegawaiDetailSeeder::class,
             JadwalShiftDanAbsensiSeeder::class,
+            PengaturanSeeder::class,
         ]);
     }
 }
