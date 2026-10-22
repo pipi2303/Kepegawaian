@@ -1,288 +1,384 @@
 import React, { useState, useMemo } from 'react';
-import { DollarSign, Search, Plus, Eye, X, Printer, CheckCircle, Clock, CreditCard, TrendingUp, Download } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import {
+  DollarSign, Search, Eye, CheckCircle, Clock, CreditCard,
+  ChevronLeft, ChevronRight, FileDown, RefreshCw, X,
+} from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import type { SlipGaji } from '../types';
+import { usePayroll, useGeneratePayroll } from '../hooks';
+import { payrollApi } from '../data/api';
+import { downloadBlob } from '../lib/downloadBlob';
 import { toast } from 'sonner';
-import { GAJI_POKOK, TUNJANGAN_FUNGSIONAL, TUNJANGAN_STRUKTURAL } from '../data/mockDataRS';
 
-const BULAN_NAMES = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-const statusConfig = {
-  'Draft': { bg: 'bg-gray-100', color: 'text-gray-600', icon: Clock },
-  'Disetujui': { bg: 'bg-blue-50', color: 'text-blue-700', icon: CheckCircle },
-  'Dibayar': { bg: 'bg-green-50', color: 'text-green-700', icon: CreditCard },
+const BULAN = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+const fmtRp = (n: number) => 'Rp ' + n.toLocaleString('id-ID');
+
+const STATUS_CFG: Record<string, { bg: string; text: string; label: string; icon: typeof Clock }> = {
+  Draft:        { bg: 'bg-gray-100',  text: 'text-gray-600',  label: 'Draft',       icon: Clock },
+  Approved:     { bg: 'bg-blue-50',   text: 'text-blue-700',  label: 'Approved',    icon: CheckCircle },
+  Dibayarkan:   { bg: 'bg-green-50',  text: 'text-green-700', label: 'Dibayarkan',  icon: CreditCard },
 };
-const fmt = (n: number) => new Intl.NumberFormat('id-ID').format(n);
 
-export default function Penggajian() {
-  const { slipGaji, pegawai, addSlipGaji, updateSlipGaji, deleteSlipGaji } = useAppContext();
-  const [search, setSearch] = useState('');
-  const [filterBulan, setFilterBulan] = useState<string>('3');
-  const [filterTahun, setFilterTahun] = useState<string>('2026');
-  const [filterStatus, setFilterStatus] = useState('');
-  const [detailSlip, setDetailSlip] = useState<SlipGaji | null>(null);
-  const [showGenerateModal, setShowGenerateModal] = useState(false);
-  const [genForm, setGenForm] = useState({ bulan: 3, tahun: 2026 });
+// ── Generate single-slip modal ────────────────────────────────────────────────
+function GenerateModal({ pegawaiId, bulan, tahun, onClose }: {
+  pegawaiId: number; bulan: number; tahun: number; onClose: () => void;
+}) {
+  const [tukin, setTukin] = useState('0');
+  const genMut = useGeneratePayroll();
 
-  const getFullName = (id: string) => { const p = pegawai.find(x => x.id === id); if (!p) return '—'; return `${p.gelarDepan ? p.gelarDepan + ' ' : ''}${p.nama}${p.gelarBelakang ? ', ' + p.gelarBelakang : ''}`; };
-  const getPegawai = (id: string) => pegawai.find(x => x.id === id);
-
-  const filtered = useMemo(() => slipGaji.filter(s => {
-    const nm = getFullName(s.pegawaiId).toLowerCase();
-    const ok = !search || nm.includes(search.toLowerCase());
-    const okB = !filterBulan || String(s.bulan) === filterBulan;
-    const okT = !filterTahun || String(s.tahun) === filterTahun;
-    const okS = !filterStatus || s.status === filterStatus;
-    return ok && okB && okT && okS;
-  }), [slipGaji, search, filterBulan, filterTahun, filterStatus, pegawai]);
-
-  const totalNetto = filtered.reduce((a, s) => a + s.totalNetto, 0);
-  const totalBruto = filtered.reduce((a, s) => a + s.totalBruto, 0);
-
-  const handleApprove = (slip: SlipGaji) => {
-    if (slip.status === 'Draft') {
-      updateSlipGaji({ ...slip, status: 'Disetujui' });
-      toast.success('Slip gaji disetujui');
-    } else if (slip.status === 'Disetujui') {
-      updateSlipGaji({ ...slip, status: 'Dibayar', tanggalDibayar: new Date().toISOString().split('T')[0] });
-      toast.success('Gaji berhasil ditandai sebagai dibayar');
-    }
-  };
-
-  const generateSlipAll = () => {
-    const existingIds = new Set(slipGaji.filter(s => s.bulan === genForm.bulan && s.tahun === genForm.tahun).map(s => s.pegawaiId));
-    let count = 0;
-    pegawai.filter(p => !existingIds.has(p.id) && p.statusAktif === 'Aktif').forEach(p => {
-      const gp = GAJI_POKOK[p.golongan] || 2500000;
-      const tf = TUNJANGAN_FUNGSIONAL[p.jabatanFungsional] || 300000;
-      const tj = p.eselon && p.eselon !== '-' && p.eselon !== 'Non-Eselon' ? (TUNJANGAN_STRUKTURAL[p.eselon] || 0) : 0;
-      const kawin = p.statusPerkawinan === 'Kawin';
-      const tistri = kawin ? Math.round(gp * 0.10) : 0;
-      const tanak = Math.round(gp * 0.02); // asumsi 1 anak
-      const tberas = 80000 * (1 + (kawin ? 1 : 0) + 1);
-      const tukin = Math.round(gp * 0.45);
-      const bruto = gp + tj + tf + tberas + tanak + tistri + tukin;
-      const potBPJSKes = Math.round(gp * 0.01);
-      const potBPJSTK = Math.round(gp * 0.02);
-      const potTaspen = Math.round(gp * 0.0475);
-      const potPph = Math.round(bruto * 0.025);
-      const totalPot = potBPJSKes + potBPJSTK + potTaspen + potPph;
-      addSlipGaji({ pegawaiId: p.id, bulan: genForm.bulan, tahun: genForm.tahun, gajiPokok: gp, tunjanganJabatan: tj, tunjanganFungsional: tf, tunjanganBeras: tberas, tunjanganAnak: tanak, tunjanganIstri: tistri, tunjanganKinerja: tukin, tambahanLain: [], potonganBPJSKes: potBPJSKes, potonganBPJSTK: potBPJSTK, potonganPPh21: potPph, potonganTaspen: potTaspen, potonganLain: [], totalBruto: bruto, totalPotongan: totalPot, totalNetto: bruto - totalPot, status: 'Draft' } as any);
-      count++;
-    });
-    toast.success(`${count} slip gaji berhasil digenerate untuk ${BULAN_NAMES[genForm.bulan]} ${genForm.tahun}`);
-    setShowGenerateModal(false);
+  const submit = () => {
+    genMut.mutate(
+      { pegawai_id: pegawaiId, bulan, tahun, tunjangan_kinerja: parseFloat(tukin) || 0 },
+      { onSuccess: () => onClose() },
+    );
   };
 
   return (
-    <div className="p-4 lg:p-6 space-y-5">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-xl font-semibold text-gray-900">Penggajian & Tunjangan</h1>
-          <p className="text-sm text-gray-500 mt-0.5">PP No. 15/2019 (Gaji PNS) · PP No. 49/2018 (Gaji PPPK) · Peraturan Tukin</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold text-gray-800">Generate Slip Gaji</h2>
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg"><X className="w-4 h-4 text-gray-500" /></button>
         </div>
-        <button onClick={() => setShowGenerateModal(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg">
-          <Plus className="w-4 h-4" /> Generate Slip Gaji
-        </button>
+        <p className="text-xs text-gray-500 mb-4">Periode: {BULAN[bulan]} {tahun}</p>
+        <label className="text-xs font-medium text-gray-700 block mb-1">Tunjangan Kinerja (opsional)</label>
+        <input
+          type="number" min="0" value={tukin}
+          onChange={e => setTukin(e.target.value)}
+          className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 mb-5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="0"
+        />
+        <div className="flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Batal</button>
+          <button onClick={submit} disabled={genMut.isPending}
+            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+            {genMut.isPending ? 'Memproses...' : 'Generate'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Expand row detail ─────────────────────────────────────────────────────────
+function ExpandedDetail({ slip }: { slip: any }) {
+  const penerimaan: any[] = slip.details?.filter((d: any) => d.tipe === 'penerimaan') ?? [];
+  const potongan: any[]   = slip.details?.filter((d: any) => d.tipe === 'potongan')   ?? [];
+
+  return (
+    <tr>
+      <td colSpan={7} className="bg-gray-50 border-b border-gray-100 px-6 py-4">
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <p className="text-xs font-semibold text-green-700 mb-2 uppercase tracking-wide">Penerimaan</p>
+            {penerimaan.length === 0
+              ? <p className="text-xs text-gray-400">—</p>
+              : penerimaan.map((d: any, i: number) => (
+                <div key={i} className="flex justify-between text-xs text-gray-700 py-0.5">
+                  <span>{d.nama_komponen}</span>
+                  <span>{fmtRp(d.jumlah)}</span>
+                </div>
+              ))}
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-red-600 mb-2 uppercase tracking-wide">Potongan</p>
+            {potongan.length === 0
+              ? <p className="text-xs text-gray-400">—</p>
+              : potongan.map((d: any, i: number) => (
+                <div key={i} className="flex justify-between text-xs text-gray-700 py-0.5">
+                  <span>{d.nama_komponen}</span>
+                  <span className="text-red-600">-{fmtRp(d.jumlah)}</span>
+                </div>
+              ))}
+          </div>
+        </div>
+        <div className="mt-3 pt-3 border-t border-gray-200 flex gap-6 text-xs">
+          <span className="text-gray-500">Total Bruto: <strong className="text-gray-800">{fmtRp(slip.total_bruto ?? 0)}</strong></span>
+          <span className="text-gray-500">Total Potongan: <strong className="text-red-600">-{fmtRp(slip.total_potongan ?? 0)}</strong></span>
+          <span className="text-gray-500">NETTO: <strong className="text-gray-900 text-sm">{fmtRp(slip.total_netto ?? 0)}</strong></span>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
+export default function Penggajian() {
+  const { currentUser } = useAppContext();
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'direktur';
+
+  const now = new Date();
+  const [bulan, setBulan]             = useState(now.getMonth() + 1);
+  const [tahun, setTahun]             = useState(now.getFullYear());
+  const [expanded, setExpanded]       = useState<number | null>(null);
+  const [search, setSearch]           = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [page, setPage]               = useState(1);
+  const [generateFor, setGenerateFor] = useState<number | null>(null); // pegawai_id
+
+  const { data, isLoading, refetch } = usePayroll({
+    bulan, tahun, search: search || undefined,
+    status_pembayaran: statusFilter || undefined,
+    page,
+  });
+
+  // data may be array or paginated object
+  const rows: any[]  = Array.isArray(data) ? data : (data?.data ?? []);
+  const meta: any    = Array.isArray(data) ? null : data?.meta;
+  const totalPages   = meta?.last_page ?? 1;
+
+  // Summary from current page
+  const summary = useMemo(() => rows.reduce((acc: any, r: any) => ({
+    count:    acc.count + 1,
+    bruto:    acc.bruto    + (r.total_bruto    ?? 0),
+    potongan: acc.potongan + (r.total_potongan ?? 0),
+    netto:    acc.netto    + (r.total_netto    ?? 0),
+  }), { count: 0, bruto: 0, potongan: 0, netto: 0 }), [rows]);
+
+  const bulkGenMut = useMutation({
+    mutationFn: () => payrollApi.bulkGenerate(bulan, tahun),
+    onSuccess: (res: any) => {
+      toast.success(`${res.data?.generated ?? 0} slip gaji berhasil digenerate`);
+      refetch();
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Backend tidak tersedia'),
+  });
+
+  const approveMut = useMutation({
+    mutationFn: (id: number) => payrollApi.approve(id),
+    onSuccess: () => { toast.success('Slip gaji disetujui'); refetch(); },
+    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Gagal menyetujui'),
+  });
+
+  const bayarMut = useMutation({
+    mutationFn: (id: number) => payrollApi.bayar(id),
+    onSuccess: () => { toast.success('Ditandai sebagai dibayarkan'); refetch(); },
+    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Gagal menandai'),
+  });
+
+  const handlePdf = async (id: number) => {
+    try {
+      const res = await payrollApi.downloadPdf(id);
+      downloadBlob(res.data as Blob, `slip-gaji-${id}.pdf`);
+    } catch {
+      toast.error('Gagal mengunduh PDF');
+    }
+  };
+
+  const toggleExpand = (id: number) => setExpanded(prev => prev === id ? null : id);
+
+  return (
+    <div className="p-4 lg:p-6 space-y-5">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+            <DollarSign className="w-5 h-5 text-green-700" />
+          </div>
+          <div>
+            <h1 className="text-lg font-semibold text-gray-900">Penggajian & Slip Gaji</h1>
+            <p className="text-xs text-gray-400">Manajemen penggajian pegawai rumah sakit</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Period selectors */}
+          <select value={bulan} onChange={e => { setBulan(+e.target.value); setPage(1); }}
+            className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            {Array.from({ length: 12 }, (_, i) => (
+              <option key={i + 1} value={i + 1}>{BULAN[i + 1]}</option>
+            ))}
+          </select>
+          <input type="number" value={tahun} onChange={e => { setTahun(+e.target.value); setPage(1); }}
+            className="w-24 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+
+          {isAdmin && (
+            <button onClick={() => bulkGenMut.mutate()} disabled={bulkGenMut.isPending}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50">
+              <RefreshCw className={`w-4 h-4 ${bulkGenMut.isPending ? 'animate-spin' : ''}`} />
+              Generate Semua
+            </button>
+          )}
+
+          <button disabled title="Segera hadir"
+            className="flex items-center gap-2 px-3 py-2 border border-gray-200 text-sm text-gray-400 rounded-lg cursor-not-allowed">
+            <FileDown className="w-4 h-4" /> Export Excel
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: 'Total Bruto (Filter)', value: `Rp ${(totalBruto / 1e6).toFixed(1)}jt`, sub: `${filtered.length} pegawai`, color: 'text-blue-600' },
-          { label: 'Total Netto (Filter)', value: `Rp ${(totalNetto / 1e6).toFixed(1)}jt`, sub: 'Setelah potongan', color: 'text-green-600' },
-          { label: 'Slip Belum Dibayar', value: slipGaji.filter(s => s.status !== 'Dibayar').length, sub: 'Draft & Disetujui', color: 'text-yellow-600' },
-          { label: 'Slip Telah Dibayar', value: slipGaji.filter(s => s.status === 'Dibayar').length, sub: 'Bulan ini', color: 'text-green-600' },
-        ].map((s, i) => (
-          <div key={i} className="bg-white rounded-xl border border-gray-200 p-4">
-            <p className="text-xs text-gray-500">{s.label}</p>
-            <p className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</p>
-            <p className="text-xs text-gray-400 mt-0.5">{s.sub}</p>
+          { label: 'Total Pegawai Digaji', value: summary.count,    fmt: (n: number) => n.toString(), color: 'text-blue-700',  bg: 'bg-blue-50' },
+          { label: 'Total Bruto',          value: summary.bruto,    fmt: fmtRp,                      color: 'text-gray-800',  bg: 'bg-white'   },
+          { label: 'Total Potongan',        value: summary.potongan, fmt: fmtRp,                      color: 'text-red-600',   bg: 'bg-red-50'  },
+          { label: 'Total Netto',           value: summary.netto,    fmt: fmtRp,                      color: 'text-green-700', bg: 'bg-green-50' },
+        ].map(c => (
+          <div key={c.label} className={`${c.bg} rounded-xl border border-gray-100 p-4`}>
+            <p className="text-xs text-gray-500 mb-1">{c.label}</p>
+            <p className={`font-bold text-lg leading-tight ${c.color}`}>{c.fmt(c.value)}</p>
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="p-4 border-b border-gray-50 flex flex-wrap gap-3">
+      {/* Table card */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        {/* Filters */}
+        <div className="p-4 border-b border-gray-100 flex flex-wrap gap-3">
           <div className="relative flex-1 min-w-[180px]">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari nama pegawai..." className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
+              placeholder="Cari nama / NIP..."
+              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
-          <select value={filterBulan} onChange={e => setFilterBulan(e.target.value)} className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">Semua Bulan</option>
-            {Array.from({ length: 12 }, (_, i) => <option key={i + 1} value={String(i + 1)}>{BULAN_NAMES[i + 1]}</option>)}
-          </select>
-          <select value={filterTahun} onChange={e => setFilterTahun(e.target.value)} className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            {['2024', '2025', '2026'].map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
+            className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="">Semua Status</option>
-            {['Draft', 'Disetujui', 'Dibayar'].map(s => <option key={s} value={s}>{s}</option>)}
+            <option value="Draft">Draft</option>
+            <option value="Approved">Approved</option>
+            <option value="Dibayarkan">Dibayarkan</option>
           </select>
         </div>
 
+        {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead><tr className="bg-gray-50 border-b border-gray-100">
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Pegawai</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Periode</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 hidden md:table-cell">Gaji Pokok</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 hidden lg:table-cell">Tunjangan</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 hidden lg:table-cell">Potongan</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500">Gaji Bersih</th>
-              <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">Status</th>
-              <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">Aksi</th>
-            </tr></thead>
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-100">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Pegawai</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden lg:table-cell">Jabatan / Unit</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">Gaji Pokok</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Netto</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Aksi</th>
+              </tr>
+            </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.length === 0 ? <tr><td colSpan={8} className="py-10 text-center text-gray-400">Tidak ada data slip gaji</td></tr>
-                : filtered.map(s => {
-                  const sc = statusConfig[s.status];
-                  const Icon = sc.icon;
-                  const tunjTotal = s.tunjanganJabatan + s.tunjanganFungsional + s.tunjanganBeras + s.tunjanganAnak + s.tunjanganIstri + s.tunjanganKinerja;
-                  return (
-                    <tr key={s.id} className="hover:bg-gray-50/60 cursor-pointer" onClick={() => setDetailSlip(s)}>
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i}>
+                    {Array.from({ length: 6 }).map((_, j) => (
+                      <td key={j} className="px-4 py-4"><div className="h-4 bg-gray-100 animate-pulse rounded" /></td>
+                    ))}
+                  </tr>
+                ))
+              ) : rows.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-gray-400 text-sm">
+                    <DollarSign className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                    <p>Belum ada slip gaji untuk periode ini.</p>
+                    {isAdmin && <p className="text-xs mt-1">Klik "Generate Semua" untuk membuat slip gaji.</p>}
+                  </td>
+                </tr>
+              ) : rows.map((r: any) => {
+                const cfg = STATUS_CFG[r.status_pembayaran] ?? STATUS_CFG.Draft;
+                const Icon = cfg.icon;
+                const isExpanded = expanded === r.id;
+                return (
+                  <React.Fragment key={r.id}>
+                    <tr className="hover:bg-blue-50/30 transition-colors">
                       <td className="px-4 py-3.5">
-                        <p className="font-medium text-sm text-gray-800">{getFullName(s.pegawaiId)}</p>
-                        <p className="text-xs text-gray-400">{getPegawai(s.pegawaiId)?.golongan} · {getPegawai(s.pegawaiId)?.unitKerja}</p>
+                        <p className="font-medium text-gray-800 leading-tight">{r.pegawai?.nama ?? '—'}</p>
+                        <p className="text-xs text-gray-400 font-mono mt-0.5">{r.pegawai?.nip ?? ''}</p>
                       </td>
-                      <td className="px-4 py-3.5 text-xs text-gray-700">{BULAN_NAMES[s.bulan]} {s.tahun}</td>
-                      <td className="px-4 py-3.5 hidden md:table-cell text-right text-xs text-gray-700">Rp {fmt(s.gajiPokok)}</td>
-                      <td className="px-4 py-3.5 hidden lg:table-cell text-right text-xs text-green-700">+Rp {fmt(tunjTotal)}</td>
-                      <td className="px-4 py-3.5 hidden lg:table-cell text-right text-xs text-red-600">-Rp {fmt(s.totalPotongan)}</td>
-                      <td className="px-4 py-3.5 text-right font-semibold text-gray-800 text-sm">Rp {fmt(s.totalNetto)}</td>
-                      <td className="px-4 py-3.5 text-center"><span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${sc.bg} ${sc.color}`}><Icon className="w-3 h-3" />{s.status}</span></td>
-                      <td className="px-4 py-3.5 text-center" onClick={e => e.stopPropagation()}>
+                      <td className="px-4 py-3.5 hidden lg:table-cell">
+                        <p className="text-sm text-gray-700 leading-tight">{r.pegawai?.jabatan ?? '—'}</p>
+                        <p className="text-xs text-gray-400">{r.pegawai?.unit_kerja ?? ''}</p>
+                      </td>
+                      <td className="px-4 py-3.5 hidden md:table-cell text-right text-xs text-gray-700">
+                        {fmtRp(r.gaji_pokok ?? 0)}
+                      </td>
+                      <td className="px-4 py-3.5 text-right font-semibold text-gray-800">
+                        {fmtRp(r.total_netto ?? 0)}
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
+                        <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${cfg.bg} ${cfg.text}`}>
+                          <Icon className="w-3 h-3" />{cfg.label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
                         <div className="flex items-center justify-center gap-1">
-                          <button onClick={() => setDetailSlip(s)} className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-600"><Eye className="w-3.5 h-3.5" /></button>
-                          {s.status !== 'Dibayar' && <button onClick={() => handleApprove(s)} className="p-1.5 hover:bg-green-50 rounded-lg text-green-600"><CheckCircle className="w-3.5 h-3.5" /></button>}
+                          {/* Detail expand */}
+                          <button onClick={() => toggleExpand(r.id)}
+                            title="Detail" className={`p-1.5 rounded-lg transition-colors ${isExpanded ? 'bg-blue-100 text-blue-700' : 'text-blue-600 hover:bg-blue-50'}`}>
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+                          {/* Approve — admin only, Draft only */}
+                          {isAdmin && r.status_pembayaran === 'Draft' && (
+                            <button onClick={() => approveMut.mutate(r.id)} disabled={approveMut.isPending}
+                              title="Setujui" className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-40">
+                              <CheckCircle className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          {/* Bayar — Approved only */}
+                          {r.status_pembayaran === 'Approved' && (
+                            <button onClick={() => bayarMut.mutate(r.id)} disabled={bayarMut.isPending}
+                              title="Tandai Dibayar" className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-40">
+                              <CreditCard className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          {/* PDF download */}
+                          <button onClick={() => handlePdf(r.id)}
+                            title="Download PDF" className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">
+                            <FileDown className="w-3.5 h-3.5" />
+                          </button>
+                          {/* Generate / Regenerate per row */}
+                          {isAdmin && (
+                            <button onClick={() => setGenerateFor(r.pegawai?.id ?? r.pegawai_id)}
+                              title="Regenerate" className="p-1.5 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors">
+                              <RefreshCw className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
-                  );
-                })}
+                    {isExpanded && <ExpandedDetail slip={r} />}
+                  </React.Fragment>
+                );
+              })}
             </tbody>
-            {filtered.length > 0 && (
-              <tfoot><tr className="bg-gray-50 border-t-2 border-gray-200">
-                <td colSpan={5} className="px-4 py-3 text-sm font-semibold text-gray-700">TOTAL ({filtered.length} pegawai)</td>
-                <td className="px-4 py-3 text-right font-bold text-gray-900">Rp {fmt(totalNetto)}</td>
-                <td colSpan={2}></td>
-              </tr></tfoot>
-            )}
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="px-5 py-3.5 border-t border-gray-100 flex items-center justify-between">
+            <p className="text-xs text-gray-500">Halaman {page} dari {totalPages}</p>
+            <div className="flex items-center gap-1">
+              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-40 transition-colors">
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                const pg = page <= 3 ? i + 1 : page - 2 + i;
+                if (pg < 1 || pg > totalPages) return null;
+                return (
+                  <button key={pg} onClick={() => setPage(pg)}
+                    className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors ${page === pg ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
+                    {pg}
+                  </button>
+                );
+              })}
+              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-40 transition-colors">
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Slip Detail Modal */}
-      {detailSlip && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setDetailSlip(null)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <div>
-                <p className="font-semibold text-gray-800">Slip Gaji — {BULAN_NAMES[detailSlip.bulan]} {detailSlip.tahun}</p>
-                <p className="text-xs text-gray-400">{getFullName(detailSlip.pegawaiId)}</p>
-              </div>
-              <button onClick={() => setDetailSlip(null)} className="p-1.5 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5 text-gray-500" /></button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="bg-blue-50 rounded-xl p-4">
-                <p className="text-xs text-blue-600 font-medium">RUMAH SAKIT</p>
-                <p className="font-semibold text-gray-800 mt-1">{getFullName(detailSlip.pegawaiId)}</p>
-                <p className="text-xs text-gray-500">{getPegawai(detailSlip.pegawaiId)?.jabatan} · {getPegawai(detailSlip.pegawaiId)?.golongan}</p>
-                <p className="text-xs text-gray-500">{getPegawai(detailSlip.pegawaiId)?.nip}</p>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-gray-500">PENGHASILAN</p>
-                {[
-                  ['Gaji Pokok', detailSlip.gajiPokok],
-                  ['Tunjangan Jabatan Struktural', detailSlip.tunjanganJabatan],
-                  ['Tunjangan Fungsional', detailSlip.tunjanganFungsional],
-                  ['Tunjangan Istri/Suami', detailSlip.tunjanganIstri],
-                  ['Tunjangan Anak', detailSlip.tunjanganAnak],
-                  ['Tunjangan Beras', detailSlip.tunjanganBeras],
-                  ['Tunjangan Kinerja (Tukin)', detailSlip.tunjanganKinerja],
-                  ...(detailSlip.tambahanLain || []).map((t: any) => [t.nama, t.jumlah]),
-                ].filter(([, v]) => (v as number) > 0).map(([label, val], i) => (
-                  <div key={i} className="flex justify-between text-sm">
-                    <span className="text-gray-600">{label as string}</span>
-                    <span className="text-gray-800">Rp {fmt(val as number)}</span>
-                  </div>
-                ))}
-                <div className="flex justify-between text-sm font-semibold border-t border-gray-100 pt-2">
-                  <span className="text-gray-700">Total Bruto</span>
-                  <span className="text-gray-900">Rp {fmt(detailSlip.totalBruto)}</span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-gray-500">POTONGAN</p>
-                {[
-                  ['Iuran Taspen (4,75%)', detailSlip.potonganTaspen],
-                  ['BPJS Kesehatan (1%)', detailSlip.potonganBPJSKes],
-                  ['BPJS Ketenagakerjaan JHT (2%)', detailSlip.potonganBPJSTK],
-                  ['PPh Pasal 21', detailSlip.potonganPPh21],
-                  ...(detailSlip.potonganLain || []).map((p: any) => [p.nama, p.jumlah]),
-                ].filter(([, v]) => (v as number) > 0).map(([label, val], i) => (
-                  <div key={i} className="flex justify-between text-sm">
-                    <span className="text-gray-600">{label as string}</span>
-                    <span className="text-red-600">-Rp {fmt(val as number)}</span>
-                  </div>
-                ))}
-                <div className="flex justify-between text-sm font-semibold border-t border-gray-100 pt-2">
-                  <span className="text-gray-700">Total Potongan</span>
-                  <span className="text-red-600">-Rp {fmt(detailSlip.totalPotongan)}</span>
-                </div>
-              </div>
-
-              <div className="p-4 bg-green-50 rounded-xl border border-green-200">
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-gray-800">GAJI BERSIH (NETTO)</span>
-                  <span className="text-xl font-bold text-green-700">Rp {fmt(detailSlip.totalNetto)}</span>
-                </div>
-                {detailSlip.tanggalDibayar && <p className="text-xs text-gray-500 mt-1">Dibayarkan: {new Date(detailSlip.tanggalDibayar).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className={`text-xs px-3 py-1 rounded-full font-medium ${statusConfig[detailSlip.status].bg} ${statusConfig[detailSlip.status].color}`}>{detailSlip.status}</span>
-                {detailSlip.status !== 'Dibayar' && (
-                  <button onClick={() => { handleApprove(detailSlip); setDetailSlip({ ...detailSlip, status: detailSlip.status === 'Draft' ? 'Disetujui' : 'Dibayar' }); }} className="text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                    {detailSlip.status === 'Draft' ? 'Setujui' : 'Tandai Dibayar'}
-                  </button>
-                )}
-              </div>
-            </div>
-            <div className="px-6 py-4 border-t border-gray-100 flex justify-end"><button onClick={() => setDetailSlip(null)} className="px-4 py-2 text-sm bg-gray-800 text-white rounded-lg">Tutup</button></div>
-          </div>
-        </div>
-      )}
-
-      {/* Generate Modal */}
-      {showGenerateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowGenerateModal(false)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-            <h2 className="font-semibold text-gray-800 mb-4">Generate Slip Gaji</h2>
-            <p className="text-sm text-gray-500 mb-4">Buat slip gaji untuk seluruh pegawai aktif pada periode yang dipilih.</p>
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div><label className="text-xs font-medium text-gray-700 block mb-1.5">Bulan</label>
-                <select value={genForm.bulan} onChange={e => setGenForm(f => ({ ...f, bulan: parseInt(e.target.value) }))} className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  {Array.from({ length: 12 }, (_, i) => <option key={i + 1} value={i + 1}>{BULAN_NAMES[i + 1]}</option>)}
-                </select>
-              </div>
-              <div><label className="text-xs font-medium text-gray-700 block mb-1.5">Tahun</label>
-                <select value={genForm.tahun} onChange={e => setGenForm(f => ({ ...f, tahun: parseInt(e.target.value) }))} className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="p-3 bg-blue-50 rounded-lg mb-4">
-              <p className="text-xs text-blue-700">Akan digenerate untuk pegawai yang belum memiliki slip gaji di periode ini. Basis gaji menggunakan PP No. 15/2019.</p>
-            </div>
-            <div className="flex justify-end gap-3">
-              <button onClick={() => setShowGenerateModal(false)} className="px-4 py-2 text-sm border border-gray-200 rounded-lg">Batal</button>
-              <button onClick={generateSlipAll} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg">Generate</button>
-            </div>
-          </div>
-        </div>
+      {/* Generate single modal */}
+      {generateFor !== null && (
+        <GenerateModal
+          pegawaiId={generateFor}
+          bulan={bulan}
+          tahun={tahun}
+          onClose={() => { setGenerateFor(null); refetch(); }}
+        />
       )}
     </div>
   );

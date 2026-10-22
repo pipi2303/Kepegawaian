@@ -37,9 +37,13 @@ const PerformanceManagement = lazy(() => import('./pages/PerformanceManagement')
 const MyProfile              = lazy(() => import('./pages/MyProfile'));
 const MyCuti                 = lazy(() => import('./pages/MyCuti'));
 const MyPayroll              = lazy(() => import('./pages/MyPayroll'));
+const ActivityLog            = lazy(() => import('./pages/ActivityLog'));
+const AdminSettings          = lazy(() => import('./pages/AdminSettings'));
+const ImportPegawai          = lazy(() => import('./pages/ImportPegawai'));
+const Integrasi              = lazy(() => import('./pages/Integrasi'));
 
 // ─── Router Singleton ─────────────────────────────────────────────────────────
-const ROUTER_KEY = '__hrAppRouter_v8';
+const ROUTER_KEY = '__hrAppRouter_v9';
 type RouterType = ReturnType<typeof createHashRouter>;
 
 function buildRouter(): RouterType {
@@ -124,6 +128,24 @@ function buildRouter(): RouterType {
               path: 'performance',              
               element: <ProtectedRoute roles={['admin', 'direktur']}><PerformanceManagement /></ProtectedRoute>
             },
+            // Admin pages
+            {
+              path: 'activity-log',
+              element: <ProtectedRoute roles={['admin', 'direktur']}><ActivityLog /></ProtectedRoute>
+            },
+            {
+              path: 'settings',
+              element: <ProtectedRoute roles={['admin']}><AdminSettings /></ProtectedRoute>
+            },
+            // Import & Integrasi
+            {
+              path: 'import',
+              element: <ProtectedRoute roles={['admin']}><ImportPegawai /></ProtectedRoute>
+            },
+            {
+              path: 'integrasi',
+              element: <ProtectedRoute roles={['admin']}><Integrasi /></ProtectedRoute>
+            },
             // Self-service portal
             { path: 'my/profile',               Component: MyProfile },
             { path: 'my/cuti',                  Component: MyCuti },
@@ -138,7 +160,7 @@ function buildRouter(): RouterType {
 }
 
 // Bersihkan cache router versi lama
-(['__hrAppRouter_v3', '__hrAppRouter_v4', '__hrAppRouter_v5', '__hrAppRouter_v6', '__hrAppRouter_v7'] as string[]).forEach(key => {
+(['__hrAppRouter_v3', '__hrAppRouter_v4', '__hrAppRouter_v5', '__hrAppRouter_v6', '__hrAppRouter_v7', '__hrAppRouter_v8'] as string[]).forEach(key => {
   delete (globalThis as Record<string, unknown>)[key];
 });
 
