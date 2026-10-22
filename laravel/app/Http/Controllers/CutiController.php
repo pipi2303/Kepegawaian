@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Cuti;
 use App\Models\Pegawai;
 use App\Services\CutiService;
@@ -23,10 +24,17 @@ class CutiController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $user  = $request->user();
         $query = Cuti::with(['pegawai:id,nip,nama,jabatan,unit_kerja', 'approvals']);
 
-        if ($pegawaiId = $request->input('pegawai_id')) {
-            $query->where('pegawai_id', $pegawaiId);
+        // view-own: filter ke data sendiri; view-all: semua
+        if ($user->can('cuti.view-all')) {
+            if ($pegawaiId = $request->input('pegawai_id')) {
+                $query->where('pegawai_id', $pegawaiId);
+            }
+        } else {
+            $this->authorize('cuti.view-own');
+            $query->where('pegawai_id', $user->id);
         }
 
         if ($status = $request->input('status')) {
@@ -49,6 +57,15 @@ class CutiController extends Controller
         $pegawai = Pegawai::findOrFail($request->input('pegawai_id'));
         $cuti = $this->cutiService->ajukanCuti($pegawai, $request->validated());
 
+        ActivityLog::record(
+            action: 'CREATE',
+            targetType: 'Cuti',
+            targetId: $cuti->id,
+            targetLabel: $pegawai->nama . ' — ' . $cuti->jenis_cuti . ' (' . $cuti->jumlah_hari . ' hari)',
+            description: 'Pengajuan cuti baru oleh ' . $pegawai->nama . '.',
+            request: $request,
+        );
+
         return response()->json([
             'status' => 'success',
             'message' => 'Pengajuan cuti berhasil dikirim dan menunggu persetujuan.',
@@ -61,13 +78,25 @@ class CutiController extends Controller
      */
     public function approve(Request $request, Cuti $cuti): JsonResponse
     {
-        $request->validate([
-            'approver_pegawai_id' => 'required|exists:m_pegawai,id',
-            'catatan' => 'nullable|string|max:500',
-        ]);
+        // Approver = user yang login; tidak bisa dimanipulasi via request body
+        $approver = $request->user();
+        $this->authorize('cuti.approve-unit');
 
-        $approver = Pegawai::findOrFail($request->input('approver_pegawai_id'));
-        $result = $this->cutiService->approve($cuti, $approver, $request->input('catatan'));
+        $request->validate(['catatan' => 'nullable|string|max:500']);
+
+        $oldStatus = $cuti->status;
+        $result    = $this->cutiService->approve($cuti, $approver, $request->input('catatan'));
+
+        ActivityLog::record(
+            action: 'APPROVE',
+            targetType: 'Cuti',
+            targetId: $cuti->id,
+            targetLabel: ($cuti->pegawai->nama ?? '-') . ' — ' . $cuti->jenis_cuti,
+            description: 'Persetujuan cuti oleh ' . $approver->nama . '.',
+            changes: ['status' => ['old' => $oldStatus, 'new' => $cuti->status]],
+            request: $request,
+            pegawaiId: $approver->id,
+        );
 
         return response()->json([
             'status' => 'success',
@@ -81,13 +110,25 @@ class CutiController extends Controller
      */
     public function reject(Request $request, Cuti $cuti): JsonResponse
     {
-        $request->validate([
-            'approver_pegawai_id' => 'required|exists:m_pegawai,id',
-            'alasan' => 'required|string|max:500',
-        ]);
+        $approver = $request->user();
+        $this->authorize('cuti.approve-unit');
 
-        $approver = Pegawai::findOrFail($request->input('approver_pegawai_id'));
-        $result = $this->cutiService->reject($cuti, $approver, $request->input('alasan'));
+        $request->validate(['alasan' => 'required|string|max:500']);
+
+        $oldStatus = $cuti->status;
+        $result    = $this->cutiService->reject($cuti, $approver, $request->input('alasan'));
+
+        ActivityLog::record(
+            action: 'REJECT',
+            severity: 'warning',
+            targetType: 'Cuti',
+            targetId: $cuti->id,
+            targetLabel: ($cuti->pegawai->nama ?? '-') . ' — ' . $cuti->jenis_cuti,
+            description: 'Penolakan cuti oleh ' . $approver->nama . '. Alasan: ' . $request->input('alasan'),
+            changes: ['status' => ['old' => $oldStatus, 'new' => 'Ditolak']],
+            request: $request,
+            pegawaiId: $approver->id,
+        );
 
         return response()->json([
             'status' => 'success',

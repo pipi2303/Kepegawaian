@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Pegawai;
 use App\Http\Requests\StorePegawaiRequest;
 use Illuminate\Http\Request;
@@ -14,6 +15,8 @@ class PegawaiController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('pegawai.view');
+
         $query = Pegawai::query();
 
         if ($search = $request->input('search')) {
@@ -36,7 +39,7 @@ class PegawaiController extends Controller
             $query->where('status_aktif', $aktif);
         }
 
-        $perPage = (int) $request->input('per_page', 15);
+        $perPage = min((int) $request->input('per_page', 15), 100);
         $pegawais = $query->latest('id')->paginate($perPage);
 
         return response()->json([
@@ -50,6 +53,8 @@ class PegawaiController extends Controller
      */
     public function show(Pegawai $pegawai): JsonResponse
     {
+        $this->authorize('pegawai.view');
+
         $pegawai->load([
             'keluarga',
             'dokumen',
@@ -78,6 +83,16 @@ class PegawaiController extends Controller
     {
         $pegawai = Pegawai::create($request->validated());
 
+        ActivityLog::record(
+            action: 'CREATE',
+            targetType: 'Pegawai',
+            targetId: $pegawai->id,
+            targetLabel: $pegawai->nama . ' (NIP. ' . $pegawai->nip . ')',
+            description: 'Penambahan data pegawai baru.',
+            changes: collect($request->validated())->mapWithKeys(fn($v, $k) => [$k => ['old' => null, 'new' => $v]])->toArray(),
+            request: $request,
+        );
+
         return response()->json([
             'status' => 'success',
             'message' => 'Data pegawai berhasil disimpan.',
@@ -90,7 +105,25 @@ class PegawaiController extends Controller
      */
     public function update(StorePegawaiRequest $request, Pegawai $pegawai): JsonResponse
     {
+        $old = $pegawai->only(array_keys($request->validated()));
         $pegawai->update($request->validated());
+
+        $changes = [];
+        foreach ($request->validated() as $field => $newVal) {
+            if ($old[$field] != $newVal) {
+                $changes[$field] = ['old' => $old[$field], 'new' => $newVal];
+            }
+        }
+
+        ActivityLog::record(
+            action: 'UPDATE',
+            targetType: 'Pegawai',
+            targetId: $pegawai->id,
+            targetLabel: $pegawai->nama . ' (NIP. ' . $pegawai->nip . ')',
+            description: 'Pembaruan data pegawai.',
+            changes: $changes ?: null,
+            request: $request,
+        );
 
         return response()->json([
             'status' => 'success',
@@ -102,9 +135,23 @@ class PegawaiController extends Controller
     /**
      * Hapus pegawai (Soft Delete)
      */
-    public function destroy(Pegawai $pegawai): JsonResponse
+    public function destroy(Request $request, Pegawai $pegawai): JsonResponse
     {
+        $this->authorize('pegawai.delete');
+
+        $label = $pegawai->nama . ' (NIP. ' . $pegawai->nip . ')';
         $pegawai->delete();
+
+        ActivityLog::record(
+            action: 'DELETE',
+            severity: 'critical',
+            targetType: 'Pegawai',
+            targetId: $pegawai->id,
+            targetLabel: $label,
+            description: 'Penonaktifan / soft-delete data pegawai.',
+            changes: ['status_aktif' => ['old' => $pegawai->status_aktif, 'new' => 'Diberhentikan']],
+            request: $request,
+        );
 
         return response()->json([
             'status' => 'success',

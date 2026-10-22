@@ -11,7 +11,8 @@ class StorePegawaiRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $permission = $this->route('pegawai') ? 'pegawai.edit' : 'pegawai.create';
+        return $this->user()?->can($permission) ?? false;
     }
 
     /**

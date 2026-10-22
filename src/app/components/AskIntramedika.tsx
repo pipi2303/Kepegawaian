@@ -8,7 +8,6 @@ import {
   Info, ChevronRight, Trash2,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // ─── Storage key ──────────────────────────────────────────────────────────────
 const CHAT_STORAGE_KEY = 'intramedika_chat_v2';
@@ -526,41 +525,22 @@ export default function AskIntramedika() {
         return;
       }
 
-      // Coba akses Gemini AI
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-      if (apiKey) {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        
-        const systemPrompt = `Anda adalah Ask INTRAMEDIKA, asisten digital cerdas terintegrasi di Sistem Informasi Manajemen Sumber Daya Manusia (HCMS) sebuah Rumah Sakit.
-Anda sedang berbicara secara eksklusif dengan:
-- Nama: ${userCtx.nama}
-- Jabatan: ${userCtx.jabatan}
-- Unit Kerja: ${userCtx.unitKerja}
+      // Panggil AI via backend proxy — API key tidak pernah expose ke client
+      const aiRes = await fetch('/api/v1/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          context: { str_status: userCtx.strStatus?.status },
+        }),
+      });
 
-Data Real-Time Pegawai Ini:
-- Sisa Cuti Tahunan: ${userCtx.sisaCutiTahunan} hari (Telah dipakai: ${userCtx.cutiDiambil} hari)
-- Rekap Kehadiran (Bulan Ini): Hadir ${userCtx.totalAbsensiMaret.hadir}x, Terlambat ${userCtx.totalAbsensiMaret.terlambat}x, Alpha ${userCtx.totalAbsensiMaret.alpha}x.
-- Status STR: ${userCtx.strStatus?.status ?? 'Tidak Terdaftar'} (${userCtx.strStatus?.expired ?? '-'})
-- Status SIP: ${userCtx.sipStatus?.status ?? 'Tidak Terdaftar'} (${userCtx.sipStatus?.expired ?? '-'})
-- SKP Terakhir: ${userCtx.skpTerakhir ? `${userCtx.skpTerakhir.nilai}% (${userCtx.skpTerakhir.kategori})` : 'Belum dinilai'}
-
-Tugas Anda:
-1. Jawab pertanyaan user berdasarkan data real-time di atas jika relevan.
-2. Berikan jawaban yang ringkas, ramah, dan profesional. Gunakan bahasa Indonesia. Gunakan list atau poin-poin agar mudah dibaca.
-3. Jangan pernah memberikan jawaban fiktif jika user menanyakan informasi spesifik yang tidak ada di prompt ini; berikan arahan untuk menghubungi Subbag Kepegawaian (Ext. 101).`;
-
-        const result = await model.generateContent([
-          { text: systemPrompt },
-          { text: `Pertanyaan dari user: ${text}` }
-        ]);
-        const response = await result.response;
-        const responseText = response.text();
-
+      if (aiRes.ok) {
+        const { reply } = await aiRes.json();
         setMessages(prev => [...prev, {
           id: `a-${Date.now()}`,
           role: 'assistant',
-          content: responseText,
+          content: reply,
           timestamp: new Date().toISOString(),
           feedback: null,
         }]);

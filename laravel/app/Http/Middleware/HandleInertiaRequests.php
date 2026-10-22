@@ -37,28 +37,24 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $user = $request->user();
-        $pegawai = $user ? $user->pegawai : null;
+        // Pegawai IS the auth model — no separate user/pegawai split
+        $pegawai = $request->user();
 
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $user ? [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'roles' => $user->getRoleNames(),
-                    'permissions' => $user->getAllPermissions()->pluck('name'),
-                ] : null,
-                'pegawai' => $pegawai ? [
-                    'id' => $pegawai->id,
-                    'nip' => $pegawai->nip,
-                    'nama' => $pegawai->nama_lengkap,
-                    'jabatan' => $pegawai->jabatan,
-                    'unit_kerja' => $pegawai->unit_kerja,
-                    'golongan' => $pegawai->golongan,
+                'user' => $pegawai ? [
+                    'id'          => $pegawai->id,
+                    'nip'         => $pegawai->nip,
+                    'nama'        => $pegawai->nama_lengkap,
+                    'email'       => $pegawai->email,
+                    'jabatan'     => $pegawai->jabatan,
+                    'unit_kerja'  => $pegawai->unit_kerja,
+                    'golongan'    => $pegawai->golongan,
+                    'foto'        => $pegawai->foto,
                     'sisa_cuti_tahunan' => $pegawai->sisa_cuti_tahunan,
-                    'foto' => $pegawai->foto,
+                    'roles'       => $pegawai->getRoleNames(),
+                    'permissions' => $pegawai->getAllPermissions()->pluck('name'),
                 ] : null,
             ],
             'alerts' => [
