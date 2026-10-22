@@ -63,6 +63,8 @@ class CutiService
                 'status' => 'Pending',
             ]);
 
+            event(new \App\Events\CutiDiajukan($cuti));
+
             return $cuti->load('approvals');
         });
     }
@@ -119,6 +121,10 @@ class CutiService
                     ->queue(new CutiDisetujui($fresh, $approver));
             }
 
+            if ($fresh->status === 'Disetujui') {
+                event(new \App\Events\CutiStatusChanged($fresh, 'Disetujui', $catatan ?? ''));
+            }
+
             return $fresh;
         });
     }
@@ -155,6 +161,8 @@ class CutiService
                 Mail::to($fresh->pegawai->email)
                     ->queue(new CutiDitolak($fresh, $approver, $alasan));
             }
+
+            event(new \App\Events\CutiStatusChanged($fresh, 'Ditolak', $alasan));
 
             return $fresh;
         });

@@ -122,6 +122,30 @@ export const licenseApi = {
   info: () => http.get('/license/info').then(r => r.data),
 };
 
+// SELF-SERVICE (portal pegawai)
+export const selfApi = {
+  me: () => http.get('/self/me').then(r => r.data.data),
+  updateProfile: (data: { no_telp?: string; alamat?: string; email?: string }) =>
+    http.put('/self/me', data).then(r => r.data),
+  getCuti: (params?: Record<string, any>) =>
+    http.get('/self/cuti', { params }).then(r => r.data.data),
+  submitCuti: (data: any) => http.post('/self/cuti', data).then(r => r.data),
+  sisaCuti: () => http.get('/self/cuti/sisa').then(r => r.data),
+  jadwal: () => http.get('/self/jadwal').then(r => r.data.data),
+  payroll: (params?: Record<string, any>) =>
+    http.get('/self/payroll', { params }).then(r => r.data.data),
+  downloadSlip: (id: number) =>
+    http.get(`/self/payroll/${id}/pdf`, { responseType: 'blob' }),
+  uploadStr: (file: File) => {
+    const fd = new FormData(); fd.append('file', file);
+    return http.post('/self/str-renewal', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+  uploadSip: (file: File) => {
+    const fd = new FormData(); fd.append('file', file);
+    return http.post('/self/sip-renewal', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+};
+
 // AI CHAT
 export const aiApi = {
   chat: (message: string, context?: Record<string, any>) =>

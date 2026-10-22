@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useQuery } from '@tanstack/react-query';
+import http from '../lib/http';
 import {
   Users, Clock, CalendarDays, TrendingUp, Target, AlertCircle,
   ShieldAlert, GraduationCap, ChevronRight,
@@ -64,6 +66,25 @@ export default function Dashboard() {
 
   // Real API summary — overlays mock-computed stats when backend is live
   const { data: apiSummary } = useDashboardSummary();
+
+  // Enhanced dashboard metrics
+  const { data: trendAbsensi } = useQuery({
+    queryKey: ['trend-absensi'],
+    queryFn: () => http.get('/dashboard/trend-absensi').then(r => r.data.data),
+    staleTime: 300_000,
+  });
+
+  const { data: kontrakExpiring } = useQuery({
+    queryKey: ['kontrak-expiring'],
+    queryFn: () => http.get('/dashboard/kontrak-expiring').then(r => r.data),
+    staleTime: 300_000,
+  });
+
+  const { data: strByUnit } = useQuery({
+    queryKey: ['str-by-unit'],
+    queryFn: () => http.get('/dashboard/str-by-unit').then(r => r.data.data),
+    staleTime: 300_000,
+  });
 
   const [activeTab, setActiveTab] = useState<'ringkasan' | 'kehadiran' | 'sdm' | 'kinerja'>('ringkasan');
   const [activityFeed, setActivityFeed] = useState<'aktivitas' | 'pengingat'>('aktivitas');
@@ -830,7 +851,7 @@ export default function Dashboard() {
               </div>
               <RechartsWrapper
                 type="line"
-                data={chartKehadiran}
+                data={trendAbsensi ?? chartKehadiran}
                 xKey="bulan"
                 lines={[
                   { dataKey: 'hadir', stroke: '#10b981', name: 'Hadir' },
@@ -909,6 +930,93 @@ export default function Dashboard() {
                 height={200}
                 radius={[6, 6, 0, 0]}
               />
+            </div>
+          </div>
+
+          {/* Enhanced Metrics Row: Kontrak Expiring + STR/SIP by Unit */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {/* Card 1: Kontrak Akan Berakhir */}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                <div className="flex items-center gap-2">
+                  <FileSignature className="w-4 h-4 text-orange-500" />
+                  <span className="text-sm font-semibold text-gray-800">Kontrak Akan Berakhir</span>
+                  {kontrakExpiring?.total > 0 && (
+                    <span className="min-w-[20px] h-5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold flex items-center justify-center px-1.5">
+                      {kontrakExpiring.total}
+                    </span>
+                  )}
+                </div>
+                <button onClick={() => navigate('/kontrak')} className="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                  Lihat Semua <ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+              {kontrakExpiring?.total === 0 || !kontrakExpiring ? (
+                <div className="px-4 py-6 text-center text-xs text-gray-400">
+                  {kontrakExpiring ? 'Tidak ada kontrak yang berakhir dalam 30 hari' : 'Memuat data...'}
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-50">
+                  {kontrakExpiring.data.slice(0, 3).map((k: any, i: number) => (
+                    <div key={i} className="px-4 py-3 flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${k.hari_tersisa <= 7 ? 'bg-red-50' : 'bg-orange-50'}`}>
+                        <span className={`text-[10px] font-bold ${k.hari_tersisa <= 7 ? 'text-red-600' : 'text-orange-600'}`}>{k.hari_tersisa}h</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-gray-800 truncate">{k.nama}</p>
+                        <p className="text-[10px] text-gray-400 truncate">{k.unit_kerja}</p>
+                      </div>
+                      <span className="text-[10px] text-gray-500 flex-shrink-0">{k.tanggal_selesai}</span>
+                    </div>
+                  ))}
+                  {kontrakExpiring.total > 3 && (
+                    <div className="px-4 py-2 text-center">
+                      <button onClick={() => navigate('/kontrak')} className="text-xs text-blue-600 hover:underline">
+                        +{kontrakExpiring.total - 3} kontrak lainnya
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Card 2: Rekredensialing STR/SIP per Unit */}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-cyan-600" />
+                  <span className="text-sm font-semibold text-gray-800">Rekredensialing STR/SIP</span>
+                  <span className="text-[10px] text-gray-400">Kadaluarsa ≤ 90 hari</span>
+                </div>
+                <button onClick={() => navigate('/credentialing')} className="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                  Detail <ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+              {!strByUnit || strByUnit.length === 0 ? (
+                <div className="px-4 py-6 text-center text-xs text-gray-400">
+                  {strByUnit ? 'Tidak ada STR/SIP kritis dalam 90 hari' : 'Memuat data...'}
+                </div>
+              ) : (
+                <div className="p-4 space-y-2">
+                  {strByUnit.map((item: any, i: number) => {
+                    const max = strByUnit[0]?.jumlah || 1;
+                    return (
+                      <div key={i}>
+                        <div className="flex justify-between text-xs text-gray-600 mb-1">
+                          <span className="truncate flex-1 pr-2">{item.unit_kerja || 'Unit lainnya'}</span>
+                          <span className="font-semibold text-cyan-700 flex-shrink-0">{item.jumlah}</span>
+                        </div>
+                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-cyan-500"
+                            style={{ width: `${Math.round((item.jumlah / max) * 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 

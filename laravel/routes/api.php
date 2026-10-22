@@ -12,6 +12,7 @@ use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\LicenseController;
+use App\Http\Controllers\IntegrationController;
 use App\Http\Controllers\SlipGajiPdfController;
 
 /*
@@ -229,6 +230,14 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         ]);
     });
 
+    // 17. Laporan & Compliance
+    Route::prefix('laporan')->group(function () {
+        Route::get('kepatuhan-kars', [\App\Http\Controllers\LaporanController::class, 'kepatuhanKARS']);
+        Route::get('absensi-tahunan', [\App\Http\Controllers\LaporanController::class, 'absensiTahunan']);
+        Route::get('turnover', [\App\Http\Controllers\LaporanController::class, 'turnoverPegawai']);
+        Route::get('rekap-payroll', [\App\Http\Controllers\LaporanController::class, 'rekapPayroll']);
+    });
+
     // 7. KPI — dari t_skp_header (PermenPAN-RB No. 6/2022)
     Route::get('kpi/summary', function () {
         $tahun = now()->year;
@@ -279,6 +288,15 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
                 'performa_unit'    => $perUnit,
             ],
         ]);
+    });
+
+    // 16. Government Integrations
+    Route::prefix('integration')->group(function () {
+        Route::get('status', [IntegrationController::class, 'status']);
+        Route::post('satusehat/sync', [IntegrationController::class, 'satusehatSync']);
+        Route::get('satusehat/practitioner', [IntegrationController::class, 'satusehatPractitioner']);
+        Route::post('siasn/sync', [IntegrationController::class, 'siasnSync']);
+        Route::get('logs', [IntegrationController::class, 'integrationLogs']);
     });
 });
 

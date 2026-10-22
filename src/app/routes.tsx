@@ -34,6 +34,9 @@ const Mutasi             = lazy(() => import('./pages/Mutasi'));
 const KomiteRS           = lazy(() => import('./pages/KomiteRS'));
 const HubunganIndustrial = lazy(() => import('./pages/HubunganIndustrial'));
 const PerformanceManagement = lazy(() => import('./pages/PerformanceManagement'));
+const MyProfile              = lazy(() => import('./pages/MyProfile'));
+const MyCuti                 = lazy(() => import('./pages/MyCuti'));
+const MyPayroll              = lazy(() => import('./pages/MyPayroll'));
 
 // ─── Router Singleton ─────────────────────────────────────────────────────────
 const ROUTER_KEY = '__hrAppRouter_v8';
@@ -121,6 +124,10 @@ function buildRouter(): RouterType {
               path: 'performance',              
               element: <ProtectedRoute roles={['admin', 'direktur']}><PerformanceManagement /></ProtectedRoute>
             },
+            // Self-service portal
+            { path: 'my/profile',               Component: MyProfile },
+            { path: 'my/cuti',                  Component: MyCuti },
+            { path: 'my/payroll',               Component: MyPayroll },
             { path: '*',                        Component: NotFound },
           ],
         },

@@ -7,10 +7,13 @@ import {
   Hospital, UserCircle, ChevronLeft, ShieldAlert, GraduationCap, Mail,
   ShieldCheck, HeartPulse, DollarSign, CalendarClock, Heart,
   FileSignature, Award, ArrowRightLeft, Users2, Scale, Network, Gauge,
+  ReceiptText,
 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAppContext } from '../context/AppContext';
 import { useNotifications } from '../hooks';
 import { toast } from 'sonner';
+import echo from '../lib/echo';
 import GlobalSearch from './GlobalSearch';
 import AskIntramedika from './AskIntramedika';
 import { C } from './colors';
@@ -99,6 +102,14 @@ const menuItems: MenuSection[] = [
     items: [
       { path: '/surat-kepegawaian', label: 'Surat Kepegawaian', icon: Mail, roles: ['admin', 'direktur'] },
       { path: '/laporan', label: 'Laporan & Statistik', icon: FileBarChart2, roles: ['admin', 'direktur'] },
+    ],
+  },
+  {
+    section: 'PROFIL SAYA',
+    items: [
+      { path: '/my/profile', label: 'Profil & Data Diri', icon: UserCircle },
+      { path: '/my/cuti', label: 'Cuti Saya', icon: CalendarDays },
+      { path: '/my/payroll', label: 'Slip Gaji Saya', icon: ReceiptText },
     ],
   },
 ];
@@ -236,6 +247,19 @@ function Layout() {
   // Use API notifications when available, fall back to static mock
   const liveNotifications: typeof notifications = apiNotifData?.data ?? notifications;
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Real-time cuti status notifications via Soketi/Pusher
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    const channel = echo.private(`pegawai.${currentUser.id}`)
+      .listen('.cuti.status_changed', (data: any) => {
+        toast(data.title, { description: data.message });
+        queryClient.invalidateQueries({ queryKey: ['cuti'] });
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      });
+    return () => { echo.leave(`pegawai.${currentUser.id}`); };
+  }, [currentUser?.id, queryClient]);
 
   // Ctrl+K / Cmd+K opens global search
   useEffect(() => {
@@ -376,7 +400,7 @@ function Layout() {
                     <p className="text-xs text-gray-500">{roleLabel[currentUser?.role || '']} · {currentUser?.golongan}</p>
                   </div>
                   <div className="py-1">
-                    <button className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                    <button onClick={() => { setProfileOpen(false); navigate('/my/profile'); }} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
                       <UserCircle className="w-4 h-4" /> Profil Saya
                     </button>
                     {!currentUser?.excludedModules?.includes('pengaturan') && (
