@@ -7,7 +7,7 @@ import {
   Hospital, UserCircle, ChevronLeft, ShieldAlert, GraduationCap, Mail,
   ShieldCheck, HeartPulse, DollarSign, CalendarClock, Heart,
   FileSignature, Award, ArrowRightLeft, Users2, Scale, Network, Gauge,
-  ReceiptText,
+  ReceiptText, Star, UserPlus, Activity,
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAppContext } from '../context/AppContext';
@@ -63,6 +63,7 @@ const menuItems: MenuSection[] = [
     items: [
       { path: '/riwayat-jabatan', label: 'Riwayat Jabatan', icon: Briefcase },
       { path: '/kenaikan-pangkat', label: 'Kenaikan Pangkat', icon: TrendingUp, roles: ['admin'] },
+      { path: '/angka-kredit', label: 'Angka Kredit JFT', icon: Star },
     ],
   },
   {
@@ -86,8 +87,11 @@ const menuItems: MenuSection[] = [
     roles: ['admin', 'direktur'],
     items: [
       { path: '/penggajian', label: 'Penggajian & Tunjangan', icon: DollarSign },
-      { path: '/bpjs', label: 'BPJS Kesehatan & BPJS Ketenagakerjaan', icon: Heart },
+      { path: '/tpp', label: 'TPP', icon: ReceiptText },
+      { path: '/rbk', label: 'RBK', icon: Activity },
+      { path: '/bpjs', label: 'BPJS Kesehatan & Ketenagakerjaan', icon: Heart },
       { path: '/kontrak', label: 'Kontrak Kerja', icon: FileSignature },
+      { path: '/rekrutmen', label: 'Rekrutmen PPPK/Honorer', icon: UserPlus, roles: ['admin', 'direktur'] },
     ],
   },
   {
