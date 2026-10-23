@@ -27,7 +27,7 @@ WORKDIR /var/www/html
 COPY laravel/ .
 
 # Install dependencies only (no artisan commands — need .env at runtime)
-RUN COMPOSER_AUDIT_ABANDONED=report composer install \
+RUN composer install \
     --no-dev --optimize-autoloader --no-interaction \
     && chown -R www-data:www-data storage bootstrap/cache
 

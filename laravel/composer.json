@@ -61,7 +61,7 @@
         },
         "audit": {
             "abandoned": "report",
-            "blocked": "report"
+            "blocked": false
         }
     },
     "minimum-stability": "stable",
