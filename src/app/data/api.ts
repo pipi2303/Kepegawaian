@@ -80,6 +80,10 @@ export const credentialingApi = {
     http.get('/credentialing', { params }).then(r => r.data.data),
   create: (data: any) =>
     http.post('/credentialing', data).then(r => r.data.data),
+  rekomendasi: (id: number | string, data: any) =>
+    http.post(`/credentialing/${id}/rekomendasi`, data).then(r => r.data),
+  issueSPK: (id: number | string, nomor_spk: string) =>
+    http.post(`/credentialing/${id}/issue-spk`, { nomor_spk }).then(r => r.data),
   licenseAlerts: () =>
     http.get('/credentialing/license-alerts').then(r => r.data.data),
 };

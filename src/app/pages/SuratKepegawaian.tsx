@@ -4,10 +4,11 @@ import {
   UserMinus, ShieldOff, Printer, Eye, X, ChevronRight,
   Download, Info, CheckCircle, Building, Calendar, Hash, QrCode,
 } from 'lucide-react';
-import { useAppContext } from '../context/AppContext';
 import type { Pegawai } from '../types';
 import { toast } from 'sonner';
 import { suratApi, cutiApi } from '../data/api';
+import http from '../lib/http';
+import { useQuery } from '@tanstack/react-query';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 type TemplateSurat =
@@ -599,7 +600,7 @@ function PdfGeneratorSection({ pegawaiList }: { pegawaiList: Pegawai[] }) {
     } finally { setLoading(null); }
   };
 
-  const pppkList = pegawaiList.filter(p => ['PPPK', 'Honorer'].includes(p.statusPegawai ?? ''));
+  const pppkList = pegawaiList.filter(p => ['PPPK', 'Honorer'].includes((p as any).status_pegawai ?? p.statusPegawai ?? ''));
 
   return (
     <div className="mt-8 space-y-4">
@@ -714,7 +715,20 @@ function PdfGeneratorSection({ pegawaiList }: { pegawaiList: Pegawai[] }) {
 
 // ─── Main Page ────────────────────────────────────────────────────────────
 export default function SuratKepegawaian() {
-  const { pegawai } = useAppContext();
+  const { data: pegawaiRaw } = useQuery({
+    queryKey: ['pegawai-surat'],
+    queryFn: () => http.get('/pegawai', { params: { per_page: 200 } }).then(r => r.data.data?.data ?? r.data.data ?? []),
+    staleTime: 300_000,
+  });
+  // Normalise snake_case API fields to camelCase expected by type + preview components
+  const pegawai: Pegawai[] = (pegawaiRaw ?? []).map((p: any) => ({
+    ...p,
+    unitKerja: p.unitKerja ?? p.unit_kerja,
+    gelarDepan: p.gelarDepan ?? p.gelar_depan,
+    gelarBelakang: p.gelarBelakang ?? p.gelar_belakang,
+    statusAktif: p.statusAktif ?? p.status_aktif,
+    statusPegawai: p.statusPegawai ?? p.status_pegawai,
+  }));
   const [selected, setSelected] = useState<TemplateSurat>('promosi');
   const [form, setForm] = useState<SuratForm>({ ...EMPTY_FORM });
   const [view, setView] = useState<'form' | 'preview'>('form');

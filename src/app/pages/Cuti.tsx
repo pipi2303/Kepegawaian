@@ -1,9 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { CalendarDays, Plus, Check, X, Clock, Info, Search, Download, Eye, Edit2, Trash2, CheckCircle, XCircle, ChevronRight, FileText, AlertCircle, BookOpen, Heart, Users } from 'lucide-react';
+import { CalendarDays, Plus, Check, X, Clock, Info, Search, Download, Eye, Edit2, CheckCircle, XCircle, ChevronRight, FileText, AlertCircle } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppContext } from '../context/AppContext';
-import type { CutiRecord } from '../types';
+
 import { JENIS_CUTI } from '../data/constants';
 import { toast } from 'sonner';
+import http from '../lib/http';
 
 const statusConfig: Record<string, { color: string; bg: string; label: string }> = {
   'Pending': { color: 'text-yellow-700', bg: 'bg-yellow-100', label: 'Menunggu Persetujuan' },
@@ -29,56 +31,120 @@ const hitungHariKerja = (mulai: string, selesai: string) => {
 };
 
 export default function Cuti() {
-  const { cuti, pegawai, currentUser, addCuti, updateCuti, deleteCuti, approveCuti, rejectCuti } = useAppContext();
+  const { currentUser } = useAppContext();
+  const qc = useQueryClient();
+
   const [activeTab, setActiveTab] = useState<'pengajuan' | 'riwayat' | 'saldo'>('pengajuan');
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
-  const [showRejectModal, setShowRejectModal] = useState<{ id: string; level: number } | null>(null);
+  const [showRejectModal, setShowRejectModal] = useState<{ id: string | number; level: number } | null>(null);
   const [rejectCatatan, setRejectCatatan] = useState('');
-  const [selectedCuti, setSelectedCuti] = useState<CutiRecord | null>(null);
-  const [editData, setEditData] = useState<CutiRecord | null>(null);
+  const [selectedCuti, setSelectedCuti] = useState<any>(null);
+  const [editData, setEditData] = useState<any>(null);
   const [filterStatus, setFilterStatus] = useState('');
   const [filterJenis, setFilterJenis] = useState('');
   const [search, setSearch] = useState('');
   const [form, setForm] = useState({ ...EMPTY_FORM });
 
-  const getPegawai = (id: string) => pegawai.find(p => p.id === id);
+  // ── Queries ──────────────────────────────────────────────────────────────────
+
+  const { data: cutiData, isLoading: cutiLoading } = useQuery({
+    queryKey: ['cuti', filterStatus, filterJenis, search],
+    queryFn: () => http.get('/cuti', { params: { status: filterStatus || undefined, jenis_cuti: filterJenis || undefined, search: search || undefined } }).then(r => r.data.data),
+    staleTime: 30000,
+  });
+
+  const { data: sisaCuti } = useQuery({
+    queryKey: ['sisa-cuti'],
+    queryFn: () => http.get('/self/cuti/sisa').then(r => r.data),
+    staleTime: 60000,
+  });
+
+  const { data: pegawaiData } = useQuery({
+    queryKey: ['pegawai'],
+    queryFn: () => http.get('/pegawai').then(r => r.data.data?.data ?? r.data.data ?? []),
+    staleTime: 300000,
+  });
+
+  const pegawai: any[] = pegawaiData ?? [];
+  const cutiList: any[] = cutiData?.data ?? cutiData ?? [];
+
+  // ── Mutations ─────────────────────────────────────────────────────────────────
+
+  const submitMutation = useMutation({
+    mutationFn: (d: any) => http.post('/cuti', d).then(r => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['cuti'] });
+      toast.success('Permohonan cuti berhasil diajukan');
+      setShowModal(false);
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'Gagal mengajukan cuti'),
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: ({ id, catatan }: { id: string | number; catatan?: string }) =>
+      http.post(`/cuti/${id}/approve`, { catatan }).then(r => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['cuti'] });
+      toast.success('Cuti disetujui');
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'Gagal menyetujui cuti'),
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: ({ id, alasan }: { id: string | number; alasan: string }) =>
+      http.post(`/cuti/${id}/reject`, { alasan }).then(r => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['cuti'] });
+      toast.warning('Cuti ditolak');
+      setShowRejectModal(null);
+      setRejectCatatan('');
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'Gagal menolak cuti'),
+  });
+
+  // ── Helpers ───────────────────────────────────────────────────────────────────
+
+  const getPegawai = (id: string) => pegawai.find(p => p.id === id || p.id === Number(id));
   const getFullName = (id: string) => {
     const p = getPegawai(id);
     if (!p) return '-';
     return `${p.gelarDepan || ''} ${p.nama}${p.gelarBelakang ? ', ' + p.gelarBelakang : ''}`.trim();
   };
 
-  const pendingCuti = cuti.filter(c => c.status === 'Pending');
-  const allCuti = useMemo(() => cuti.filter(c => {
+  const pendingCuti = cutiList.filter(c => c.status === 'Pending');
+
+  const allCuti = useMemo(() => cutiList.filter(c => {
     const matchStatus = !filterStatus || c.status === filterStatus;
-    const matchJenis = !filterJenis || c.jenisCuti === filterJenis;
-    const matchSearch = !search || getFullName(c.pegawaiId).toLowerCase().includes(search.toLowerCase());
+    const matchJenis = !filterJenis || c.jenisCuti === filterJenis || c.jenis_cuti === filterJenis;
+    const name = getFullName(c.pegawaiId || c.pegawai_id);
+    const matchSearch = !search || name.toLowerCase().includes(search.toLowerCase());
     return matchStatus && matchJenis && matchSearch;
-  }), [cuti, filterStatus, filterJenis, search, pegawai]);
+  }), [cutiList, filterStatus, filterJenis, search, pegawai]);
 
   const canApproveLevel1 = currentUser?.role === 'kepala_unit' || currentUser?.role === 'admin';
   const canApproveLevel2 = currentUser?.role === 'direktur' || currentUser?.role === 'admin';
 
-  const handleApprove = (id: string, level: number) => {
-    approveCuti(id, level, currentUser?.nama || 'Pejabat');
-    toast.success(`Cuti berhasil disetujui (Level ${level})`);
+  const handleApprove = (id: string | number, level: number) => {
+    approveMutation.mutate({ id });
   };
 
   const handleReject = () => {
     if (!showRejectModal) return;
-    rejectCuti(showRejectModal.id, showRejectModal.level, currentUser?.nama || 'Pejabat', rejectCatatan);
-    toast.error('Cuti ditolak');
-    setShowRejectModal(null);
-    setRejectCatatan('');
+    rejectMutation.mutate({ id: showRejectModal.id, alasan: rejectCatatan });
   };
 
-  const openDetail = (c: CutiRecord) => { setSelectedCuti(c); setShowDetailModal(true); };
+  const openDetail = (c: any) => { setSelectedCuti(c); setShowDetailModal(true); };
 
-  const openEdit = (c: CutiRecord) => {
+  const openEdit = (c: any) => {
     setEditData(c);
-    setForm({ pegawaiId: c.pegawaiId, jenisCuti: c.jenisCuti, tanggalMulai: c.tanggalMulai, tanggalSelesai: c.tanggalSelesai, alasan: c.alasan });
+    setForm({
+      pegawaiId: c.pegawaiId || c.pegawai_id || '',
+      jenisCuti: c.jenisCuti || c.jenis_cuti || '',
+      tanggalMulai: c.tanggalMulai || c.tanggal_mulai || '',
+      tanggalSelesai: c.tanggalSelesai || c.tanggal_selesai || '',
+      alasan: c.alasan || '',
+    });
     setShowModal(true);
   };
 
@@ -90,24 +156,19 @@ export default function Cuti() {
       return;
     }
     const jumlahHari = hitungHariKerja(form.tanggalMulai, form.tanggalSelesai);
-    if (editData) {
-      updateCuti({ ...editData, ...form, jumlahHari });
-      toast.success('Data cuti berhasil diperbarui');
-    } else {
-      addCuti({ ...form, jumlahHari, status: 'Pending', tanggalPengajuan: new Date().toISOString().split('T')[0] });
-      toast.success('Pengajuan cuti berhasil dikirim');
-    }
-    setShowModal(false);
+    submitMutation.mutate({
+      pegawai_id: form.pegawaiId,
+      jenis_cuti: form.jenisCuti,
+      tanggal_mulai: form.tanggalMulai,
+      tanggal_selesai: form.tanggalSelesai,
+      alasan: form.alasan,
+      jumlah_hari: jumlahHari,
+    });
   };
 
-  const handleDelete = (id: string) => {
-    deleteCuti(id);
-    setShowDeleteConfirm(null);
-    toast.success('Data cuti berhasil dihapus');
-  };
+  const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
 
-  const fmtDate = (d: string) => new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-
+  // Normalise field names that may differ between API and old mock
   return (
     <div className="p-4 lg:p-6">
       {/* Header */}
@@ -129,10 +190,10 @@ export default function Cuti() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
         {[
-          { label: 'Pending', value: cuti.filter(c => c.status === 'Pending').length, c: 'text-yellow-600 bg-yellow-50 border-yellow-100' },
-          { label: 'Disetujui', value: cuti.filter(c => c.status === 'Disetujui').length, c: 'text-green-600 bg-green-50 border-green-100' },
-          { label: 'Ditolak', value: cuti.filter(c => c.status === 'Ditolak').length, c: 'text-red-600 bg-red-50 border-red-100' },
-          { label: 'Total Pengajuan', value: cuti.length, c: 'text-blue-600 bg-blue-50 border-blue-100' },
+          { label: 'Pending', value: cutiList.filter(c => c.status === 'Pending').length, c: 'text-yellow-600 bg-yellow-50 border-yellow-100' },
+          { label: 'Disetujui', value: cutiList.filter(c => c.status === 'Disetujui').length, c: 'text-green-600 bg-green-50 border-green-100' },
+          { label: 'Ditolak', value: cutiList.filter(c => c.status === 'Ditolak').length, c: 'text-red-600 bg-red-50 border-red-100' },
+          { label: 'Total Pengajuan', value: cutiList.length, c: 'text-blue-600 bg-blue-50 border-blue-100' },
         ].map(s => (
           <div key={s.label} className={`rounded-xl p-4 border ${s.c.split(' ').slice(1).join(' ')}`}>
             <p className="text-xs text-gray-500">{s.label}</p>
@@ -166,7 +227,9 @@ export default function Cuti() {
         {/* ─── Tab: Pengajuan Pending ─── */}
         {activeTab === 'pengajuan' && (
           <div className="p-5">
-            {pendingCuti.length === 0 ? (
+            {cutiLoading ? (
+              <div className="text-center py-12 text-gray-400 text-sm">Memuat data...</div>
+            ) : pendingCuti.length === 0 ? (
               <div className="text-center py-12 text-gray-400">
                 <CalendarDays className="w-12 h-12 mx-auto mb-3 opacity-30" />
                 <p className="text-sm">Tidak ada pengajuan cuti yang menunggu persetujuan</p>
@@ -174,19 +237,21 @@ export default function Cuti() {
             ) : (
               <div className="space-y-4">
                 {pendingCuti.map(c => {
-                  const p = getPegawai(c.pegawaiId);
-                  const levels = c.approvalLevels || [];
+                  const pegId = c.pegawaiId || c.pegawai_id;
+                  const p = getPegawai(pegId);
+                  const levels = c.approvalLevels || c.approval_levels || [];
+                  const currentLevel = c.currentLevel ?? c.current_level ?? 1;
                   return (
                     <div key={c.id} className="border border-gray-200 rounded-xl overflow-hidden cursor-pointer" onClick={() => openDetail(c)}>
                       <div className="flex items-start gap-4 p-5">
                         <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-semibold flex-shrink-0">
-                          {p?.nama.charAt(0)}
+                          {(p?.nama || '?').charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
                             <div>
-                              <p className="font-medium text-gray-800">{getFullName(c.pegawaiId)}</p>
-                              <p className="text-xs text-gray-500 mt-0.5">{p?.jabatan} · {p?.unitKerja}</p>
+                              <p className="font-medium text-gray-800">{getFullName(pegId)}</p>
+                              <p className="text-xs text-gray-500 mt-0.5">{p?.jabatan} · {p?.unitKerja || p?.unit_kerja}</p>
                             </div>
                             <span className="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-medium whitespace-nowrap self-start">
                               Menunggu Persetujuan
@@ -194,33 +259,35 @@ export default function Cuti() {
                           </div>
 
                           <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
-                            <div><p className="text-xs text-gray-400">Jenis Cuti</p><p className="text-sm font-medium text-gray-700 mt-0.5">{c.jenisCuti}</p></div>
-                            <div><p className="text-xs text-gray-400">Tanggal</p><p className="text-sm font-medium text-gray-700 mt-0.5">{fmtDate(c.tanggalMulai)} — {fmtDate(c.tanggalSelesai)}</p></div>
-                            <div><p className="text-xs text-gray-400">Jumlah Hari</p><p className="text-sm font-semibold text-blue-600 mt-0.5">{c.jumlahHari} hari kerja</p></div>
-                            <div><p className="text-xs text-gray-400">Diajukan</p><p className="text-sm text-gray-700 mt-0.5">{fmtDate(c.tanggalPengajuan)}</p></div>
+                            <div><p className="text-xs text-gray-400">Jenis Cuti</p><p className="text-sm font-medium text-gray-700 mt-0.5">{c.jenisCuti || c.jenis_cuti}</p></div>
+                            <div><p className="text-xs text-gray-400">Tanggal</p><p className="text-sm font-medium text-gray-700 mt-0.5">{fmtDate(c.tanggalMulai || c.tanggal_mulai)} — {fmtDate(c.tanggalSelesai || c.tanggal_selesai)}</p></div>
+                            <div><p className="text-xs text-gray-400">Jumlah Hari</p><p className="text-sm font-semibold text-blue-600 mt-0.5">{c.jumlahHari || c.jumlah_hari} hari kerja</p></div>
+                            <div><p className="text-xs text-gray-400">Diajukan</p><p className="text-sm text-gray-700 mt-0.5">{fmtDate(c.tanggalPengajuan || c.tanggal_pengajuan)}</p></div>
                           </div>
 
                           {/* Approval Timeline */}
-                          <div className="mt-4 flex items-center gap-2">
-                            {levels.map((lvl, idx) => {
-                              const isActive = lvl.level === c.currentLevel;
-                              return (
-                                <div key={lvl.level} className="contents">
-                                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs ${
-                                    lvl.status === 'Disetujui' ? 'bg-green-100 text-green-700' :
-                                    lvl.status === 'Ditolak' ? 'bg-red-100 text-red-700' :
-                                    isActive ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'
-                                  }`}>
-                                    {lvl.status === 'Disetujui' ? <CheckCircle className="w-3 h-3" /> :
-                                     lvl.status === 'Ditolak' ? <XCircle className="w-3 h-3" /> :
-                                     <Clock className="w-3 h-3" />}
-                                    {lvl.jabatan}
+                          {levels.length > 0 && (
+                            <div className="mt-4 flex items-center gap-2">
+                              {levels.map((lvl: any, idx: number) => {
+                                const isActive = lvl.level === currentLevel;
+                                return (
+                                  <div key={lvl.level} className="contents">
+                                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs ${
+                                      lvl.status === 'Disetujui' ? 'bg-green-100 text-green-700' :
+                                      lvl.status === 'Ditolak' ? 'bg-red-100 text-red-700' :
+                                      isActive ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'
+                                    }`}>
+                                      {lvl.status === 'Disetujui' ? <CheckCircle className="w-3 h-3" /> :
+                                       lvl.status === 'Ditolak' ? <XCircle className="w-3 h-3" /> :
+                                       <Clock className="w-3 h-3" />}
+                                      {lvl.jabatan}
+                                    </div>
+                                    {idx < levels.length - 1 && <ChevronRight className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />}
                                   </div>
-                                  {idx < levels.length - 1 && <ChevronRight className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />}
-                                </div>
-                              );
-                            })}
-                          </div>
+                                );
+                              })}
+                            </div>
+                          )}
 
                           <div className="mt-3 p-3 bg-gray-50 rounded-lg">
                             <p className="text-xs text-gray-400">Alasan</p>
@@ -229,8 +296,7 @@ export default function Cuti() {
 
                           {/* Action Buttons */}
                           <div className="flex flex-wrap items-center gap-2 mt-4" onClick={e => e.stopPropagation()}>
-                            {/* Level 1 */}
-                            {canApproveLevel1 && levels.find(l => l.level === 1)?.status === 'Pending' && c.currentLevel === 1 && (
+                            {canApproveLevel1 && (levels.length === 0 || levels.find((l: any) => l.level === 1)?.status === 'Pending') && currentLevel === 1 && (
                               <div className="contents">
                                 <button onClick={() => handleApprove(c.id, 1)} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition-colors">
                                   <Check className="w-4 h-4" /> Setujui (Kepala Unit)
@@ -240,8 +306,7 @@ export default function Cuti() {
                                 </button>
                               </div>
                             )}
-                            {/* Level 2 */}
-                            {canApproveLevel2 && levels.find(l => l.level === 1)?.status === 'Disetujui' && levels.find(l => l.level === 2)?.status === 'Pending' && (
+                            {canApproveLevel2 && levels.find((l: any) => l.level === 1)?.status === 'Disetujui' && levels.find((l: any) => l.level === 2)?.status === 'Pending' && (
                               <div className="contents">
                                 <button onClick={() => handleApprove(c.id, 2)} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition-colors">
                                   <Check className="w-4 h-4" /> Setujui (Direktur)
@@ -305,22 +370,25 @@ export default function Cuti() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {allCuti.length === 0 ? (
+                  {cutiLoading ? (
+                    <tr><td colSpan={6} className="py-10 text-center text-gray-400 text-sm">Memuat data...</td></tr>
+                  ) : allCuti.length === 0 ? (
                     <tr><td colSpan={6} className="py-10 text-center text-gray-400 text-sm">Tidak ada data cuti</td></tr>
                   ) : allCuti.map(c => {
-                    const sc = statusConfig[c.status];
+                    const sc = statusConfig[c.status] || statusConfig['Pending'];
+                    const pegId = c.pegawaiId || c.pegawai_id;
                     return (
                       <tr key={c.id} className="hover:bg-gray-50/60 transition-colors cursor-pointer" onClick={() => openDetail(c)}>
                         <td className="px-4 py-3.5">
-                          <p className="text-sm font-medium text-gray-800">{getFullName(c.pegawaiId)}</p>
-                          <p className="text-xs text-gray-400">{getPegawai(c.pegawaiId)?.unitKerja}</p>
+                          <p className="text-sm font-medium text-gray-800">{getFullName(pegId)}</p>
+                          <p className="text-xs text-gray-400">{getPegawai(pegId)?.unitKerja || getPegawai(pegId)?.unit_kerja}</p>
                         </td>
-                        <td className="px-4 py-3.5 text-gray-700 text-sm">{c.jenisCuti}</td>
+                        <td className="px-4 py-3.5 text-gray-700 text-sm">{c.jenisCuti || c.jenis_cuti}</td>
                         <td className="px-4 py-3.5 hidden md:table-cell">
-                          <p className="text-xs text-gray-600">{fmtDate(c.tanggalMulai)}</p>
-                          <p className="text-xs text-gray-400">s.d. {fmtDate(c.tanggalSelesai)}</p>
+                          <p className="text-xs text-gray-600">{fmtDate(c.tanggalMulai || c.tanggal_mulai)}</p>
+                          <p className="text-xs text-gray-400">s.d. {fmtDate(c.tanggalSelesai || c.tanggal_selesai)}</p>
                         </td>
-                        <td className="px-4 py-3.5 text-center font-medium text-gray-700">{c.jumlahHari}</td>
+                        <td className="px-4 py-3.5 text-center font-medium text-gray-700">{c.jumlahHari || c.jumlah_hari}</td>
                         <td className="px-4 py-3.5 text-center">
                           <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${sc.bg} ${sc.color}`}>{c.status}</span>
                         </td>
@@ -328,7 +396,6 @@ export default function Cuti() {
                           <div className="flex items-center justify-center gap-1">
                             <button onClick={() => openDetail(c)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" title="Detail"><Eye className="w-4 h-4" /></button>
                             <button onClick={() => openEdit(c)} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg" title="Edit"><Edit2 className="w-4 h-4" /></button>
-                            <button onClick={() => setShowDeleteConfirm(c.id)} className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg" title="Hapus"><Trash2 className="w-4 h-4" /></button>
                           </div>
                         </td>
                       </tr>
@@ -340,37 +407,39 @@ export default function Cuti() {
 
             {/* Mobile Card View */}
             <div className="md:hidden divide-y divide-gray-100">
-              {allCuti.length === 0 ? (
+              {cutiLoading ? (
+                <div className="py-10 text-center text-gray-400 text-sm">Memuat data...</div>
+              ) : allCuti.length === 0 ? (
                 <div className="py-10 text-center text-gray-400 text-sm">Tidak ada data cuti</div>
               ) : allCuti.map(c => {
-                const sc = statusConfig[c.status];
+                const sc = statusConfig[c.status] || statusConfig['Pending'];
+                const pegId = c.pegawaiId || c.pegawai_id;
                 return (
                   <div key={c.id} className="p-4 hover:bg-gray-50 transition-colors cursor-pointer space-y-3" onClick={() => openDetail(c)}>
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm font-medium text-gray-800">{getFullName(c.pegawaiId)}</p>
-                        <p className="text-xs text-gray-400">{getPegawai(c.pegawaiId)?.unitKerja}</p>
+                        <p className="text-sm font-medium text-gray-800">{getFullName(pegId)}</p>
+                        <p className="text-xs text-gray-400">{getPegawai(pegId)?.unitKerja || getPegawai(pegId)?.unit_kerja}</p>
                       </div>
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${sc.bg} ${sc.color}`}>{c.status}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
                       <div>
                         <p className="text-[10px] text-gray-400 uppercase tracking-wide">Jenis Cuti</p>
-                        <p className="text-sm font-semibold text-gray-700">{c.jenisCuti}</p>
+                        <p className="text-sm font-semibold text-gray-700">{c.jenisCuti || c.jenis_cuti}</p>
                       </div>
                       <div>
                         <p className="text-[10px] text-gray-400 uppercase tracking-wide">Durasi</p>
-                        <p className="text-sm font-semibold text-blue-600">{c.jumlahHari} Hari</p>
+                        <p className="text-sm font-semibold text-blue-600">{c.jumlahHari || c.jumlah_hari} Hari</p>
                       </div>
                       <div className="col-span-2">
                         <p className="text-[10px] text-gray-400 uppercase tracking-wide">Periode</p>
-                        <p className="text-xs font-medium text-gray-600">{fmtDate(c.tanggalMulai)} s.d. {fmtDate(c.tanggalSelesai)}</p>
+                        <p className="text-xs font-medium text-gray-600">{fmtDate(c.tanggalMulai || c.tanggal_mulai)} s.d. {fmtDate(c.tanggalSelesai || c.tanggal_selesai)}</p>
                       </div>
                     </div>
                     <div className="flex items-center justify-end gap-1" onClick={e => e.stopPropagation()}>
                       <button onClick={() => openDetail(c)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg bg-gray-100"><Eye className="w-4 h-4" /></button>
                       <button onClick={() => openEdit(c)} className="p-1.5 text-gray-500 hover:bg-gray-200 rounded-lg bg-gray-100"><Edit2 className="w-4 h-4" /></button>
-                      <button onClick={() => setShowDeleteConfirm(c.id)} className="p-1.5 text-red-500 hover:bg-red-100 rounded-lg bg-gray-100"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </div>
                 );
@@ -400,8 +469,33 @@ export default function Cuti() {
                 </div>
               </div>
             </div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">Saldo Cuti Tahunan 2026</h4>
-            
+
+            {/* Sisa cuti current user from API */}
+            {sisaCuti && (
+              <div className="mb-5 p-4 bg-green-50 rounded-xl border border-green-100">
+                <p className="text-sm font-semibold text-green-800 mb-2">Saldo Cuti Anda</p>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-white rounded-lg p-3 border border-green-100 text-center">
+                    <p className="text-xs text-gray-500">Kuota</p>
+                    <p className="text-xl font-bold text-green-700">{sisaCuti.kuota ?? 12}</p>
+                    <p className="text-[10px] text-gray-400">hari</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border border-green-100 text-center">
+                    <p className="text-xs text-gray-500">Terpakai</p>
+                    <p className="text-xl font-bold text-orange-600">{sisaCuti.terpakai ?? 0}</p>
+                    <p className="text-[10px] text-gray-400">hari</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border border-green-100 text-center">
+                    <p className="text-xs text-gray-500">Sisa</p>
+                    <p className={`text-xl font-bold ${(sisaCuti.sisa ?? 12) <= 3 ? 'text-red-600' : (sisaCuti.sisa ?? 12) <= 6 ? 'text-yellow-600' : 'text-green-700'}`}>{sisaCuti.sisa ?? 12}</p>
+                    <p className="text-[10px] text-gray-400">hari</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">Saldo Cuti Tahunan {new Date().getFullYear()}</h4>
+
             {/* Desktop Table View for Saldo */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
@@ -415,17 +509,17 @@ export default function Cuti() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {pegawai.filter(p => p.statusAktif === 'Aktif').slice(0, 12).map(p => {
+                  {pegawai.filter(p => (p.statusAktif || p.status_aktif) === 'Aktif').slice(0, 12).map(p => {
                     const kuota = 12;
-                    const cutiPegawai = cuti.filter(c => c.pegawaiId === p.id && c.status === 'Disetujui');
-                    const terpakai = cutiPegawai.reduce((s, c) => s + c.jumlahHari, 0);
+                    const cutiPegawai = cutiList.filter(c => (c.pegawaiId || c.pegawai_id) === p.id && c.status === 'Disetujui');
+                    const terpakai = cutiPegawai.reduce((s, c) => s + (c.jumlahHari || c.jumlah_hari || 0), 0);
                     const sisa = Math.max(0, kuota - terpakai);
                     const persen = Math.min(100, Math.round((terpakai / kuota) * 100));
                     return (
                       <tr key={p.id} className="hover:bg-gray-50/60">
                         <td className="px-4 py-3.5">
                           <p className="text-sm font-medium text-gray-800">{p.nama}</p>
-                          <p className="text-xs text-gray-400">{p.unitKerja}</p>
+                          <p className="text-xs text-gray-400">{p.unitKerja || p.unit_kerja}</p>
                         </td>
                         <td className="px-4 py-3.5 text-center text-gray-700 font-medium">{kuota} hari</td>
                         <td className="px-4 py-3.5 text-center text-orange-600 font-medium">{terpakai} hari</td>
@@ -451,17 +545,17 @@ export default function Cuti() {
 
             {/* Mobile Card View for Saldo */}
             <div className="md:hidden divide-y divide-gray-100">
-              {pegawai.filter(p => p.statusAktif === 'Aktif').slice(0, 12).map(p => {
+              {pegawai.filter(p => (p.statusAktif || p.status_aktif) === 'Aktif').slice(0, 12).map(p => {
                 const kuota = 12;
-                const cutiPegawai = cuti.filter(c => c.pegawaiId === p.id && c.status === 'Disetujui');
-                const terpakai = cutiPegawai.reduce((s, c) => s + c.jumlahHari, 0);
+                const cutiPegawai = cutiList.filter(c => (c.pegawaiId || c.pegawai_id) === p.id && c.status === 'Disetujui');
+                const terpakai = cutiPegawai.reduce((s, c) => s + (c.jumlahHari || c.jumlah_hari || 0), 0);
                 const sisa = Math.max(0, kuota - terpakai);
                 const persen = Math.min(100, Math.round((terpakai / kuota) * 100));
                 return (
                   <div key={p.id} className="py-3">
                     <div className="mb-2">
                       <p className="text-sm font-medium text-gray-800">{p.nama}</p>
-                      <p className="text-xs text-gray-400">{p.unitKerja}</p>
+                      <p className="text-xs text-gray-400">{p.unitKerja || p.unit_kerja}</p>
                     </div>
                     <div className="flex justify-between text-xs mb-1">
                       <span className="text-gray-500">Terpakai: <span className="font-semibold text-orange-600">{terpakai} hari</span></span>
@@ -508,15 +602,15 @@ export default function Cuti() {
                   <option value="">— Pilih Pegawai —</option>
                   {pegawai.map(p => (
                     <option key={p.id} value={p.id}>
-                      {p.gelarDepan ? p.gelarDepan + ' ' : ''}{p.nama}{p.gelarBelakang ? ', ' + p.gelarBelakang : ''} — {p.unitKerja}
+                      {p.gelarDepan ? p.gelarDepan + ' ' : ''}{p.nama}{p.gelarBelakang ? ', ' + p.gelarBelakang : ''} — {p.unitKerja || p.unit_kerja}
                     </option>
                   ))}
                 </select>
                 {form.pegawaiId && (() => {
-                  const p = pegawai.find(x => x.id === form.pegawaiId);
+                  const p = pegawai.find(x => String(x.id) === String(form.pegawaiId));
                   return p ? (
                     <div className="mt-1.5 flex items-center gap-2 text-xs text-gray-500 px-1">
-                      <span className={`px-2 py-0.5 rounded-full font-medium ${p.statusPegawai === 'PNS' ? 'bg-blue-100 text-blue-700' : p.statusPegawai === 'PPPK' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>{p.statusPegawai}</span>
+                      <span className={`px-2 py-0.5 rounded-full font-medium ${p.statusPegawai === 'PNS' || p.status_pegawai === 'PNS' ? 'bg-blue-100 text-blue-700' : (p.statusPegawai || p.status_pegawai) === 'PPPK' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>{p.statusPegawai || p.status_pegawai}</span>
                       <span>{p.jabatan}</span>
                     </div>
                   ) : null;
@@ -546,7 +640,6 @@ export default function Cuti() {
                   </optgroup>
                 </select>
 
-                {/* Info card jenis cuti terpilih */}
                 {form.jenisCuti && (() => {
                   const jc = JENIS_CUTI.find(j => j.value === form.jenisCuti);
                   if (!jc) return null;
@@ -610,9 +703,7 @@ export default function Cuti() {
                 return (
                   <div className={`p-3.5 rounded-xl border flex items-center justify-between ${melebihi ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-200'}`}>
                     <div>
-                      <p className={`text-sm font-semibold ${melebihi ? 'text-red-700' : 'text-blue-700'}`}>
-                        {hari} hari kerja
-                      </p>
+                      <p className={`text-sm font-semibold ${melebihi ? 'text-red-700' : 'text-blue-700'}`}>{hari} hari kerja</p>
                       <p className="text-xs text-gray-500 mt-0.5">Tidak termasuk Sabtu & Minggu</p>
                     </div>
                     {melebihi && (
@@ -672,10 +763,10 @@ export default function Cuti() {
                 className="px-4 py-2 text-sm border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
                 Batal
               </button>
-              <button onClick={handleSave}
-                className="flex items-center gap-2 px-5 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors">
+              <button onClick={handleSave} disabled={submitMutation.isPending}
+                className="flex items-center gap-2 px-5 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-60">
                 <CalendarDays className="w-4 h-4" />
-                {editData ? 'Perbarui Data' : 'Ajukan Cuti'}
+                {submitMutation.isPending ? 'Menyimpan...' : editData ? 'Perbarui Data' : 'Ajukan Cuti'}
               </button>
             </div>
           </div>
@@ -692,58 +783,67 @@ export default function Cuti() {
               <button onClick={() => setShowDetailModal(false)} className="p-1.5 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5 text-gray-500" /></button>
             </div>
             <div className="p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-semibold">
-                  {getPegawai(selectedCuti.pegawaiId)?.nama.charAt(0)}
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-800">{getFullName(selectedCuti.pegawaiId)}</p>
-                  <p className="text-xs text-gray-500">{getPegawai(selectedCuti.pegawaiId)?.jabatan} · {getPegawai(selectedCuti.pegawaiId)?.unitKerja}</p>
-                </div>
-              </div>
-              <div className={`p-3 rounded-xl ${statusConfig[selectedCuti.status].bg}`}>
-                <p className={`text-sm font-semibold ${statusConfig[selectedCuti.status].color}`}>{statusConfig[selectedCuti.status].label}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><p className="text-xs text-gray-400 mb-1">Jenis Cuti</p><p className="text-sm font-medium text-gray-800">{selectedCuti.jenisCuti}</p></div>
-                <div><p className="text-xs text-gray-400 mb-1">Jumlah Hari</p><p className="text-sm font-semibold text-blue-600">{selectedCuti.jumlahHari} hari kerja</p></div>
-                <div><p className="text-xs text-gray-400 mb-1">Tanggal Mulai</p><p className="text-sm text-gray-800">{fmtDate(selectedCuti.tanggalMulai)}</p></div>
-                <div><p className="text-xs text-gray-400 mb-1">Tanggal Selesai</p><p className="text-sm text-gray-800">{fmtDate(selectedCuti.tanggalSelesai)}</p></div>
-                <div className="col-span-2"><p className="text-xs text-gray-400 mb-1">Tanggal Pengajuan</p><p className="text-sm text-gray-800">{fmtDate(selectedCuti.tanggalPengajuan)}</p></div>
-              </div>
-              <div><p className="text-xs text-gray-400 mb-1">Alasan</p><p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">{selectedCuti.alasan}</p></div>
+              {(() => {
+                const pegId = selectedCuti.pegawaiId || selectedCuti.pegawai_id;
+                const p = getPegawai(pegId);
+                const sc = statusConfig[selectedCuti.status] || statusConfig['Pending'];
+                const levels = selectedCuti.approvalLevels || selectedCuti.approval_levels || [];
+                return (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-semibold">
+                        {(p?.nama || '?').charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-800">{getFullName(pegId)}</p>
+                        <p className="text-xs text-gray-500">{p?.jabatan} · {p?.unitKerja || p?.unit_kerja}</p>
+                      </div>
+                    </div>
+                    <div className={`p-3 rounded-xl ${sc.bg}`}>
+                      <p className={`text-sm font-semibold ${sc.color}`}>{sc.label}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div><p className="text-xs text-gray-400 mb-1">Jenis Cuti</p><p className="text-sm font-medium text-gray-800">{selectedCuti.jenisCuti || selectedCuti.jenis_cuti}</p></div>
+                      <div><p className="text-xs text-gray-400 mb-1">Jumlah Hari</p><p className="text-sm font-semibold text-blue-600">{selectedCuti.jumlahHari || selectedCuti.jumlah_hari} hari kerja</p></div>
+                      <div><p className="text-xs text-gray-400 mb-1">Tanggal Mulai</p><p className="text-sm text-gray-800">{fmtDate(selectedCuti.tanggalMulai || selectedCuti.tanggal_mulai)}</p></div>
+                      <div><p className="text-xs text-gray-400 mb-1">Tanggal Selesai</p><p className="text-sm text-gray-800">{fmtDate(selectedCuti.tanggalSelesai || selectedCuti.tanggal_selesai)}</p></div>
+                      <div className="col-span-2"><p className="text-xs text-gray-400 mb-1">Tanggal Pengajuan</p><p className="text-sm text-gray-800">{fmtDate(selectedCuti.tanggalPengajuan || selectedCuti.tanggal_pengajuan)}</p></div>
+                    </div>
+                    <div><p className="text-xs text-gray-400 mb-1">Alasan</p><p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">{selectedCuti.alasan}</p></div>
 
-              {/* Approval Timeline */}
-              {selectedCuti.approvalLevels && (
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">Alur Persetujuan</p>
-                  <div className="space-y-3">
-                    {selectedCuti.approvalLevels.map(lvl => (
-                      <div key={lvl.level} className={`flex items-start gap-3 p-3 rounded-xl border ${
-                        lvl.status === 'Disetujui' ? 'bg-green-50 border-green-100' :
-                        lvl.status === 'Ditolak' ? 'bg-red-50 border-red-100' :
-                        'bg-gray-50 border-gray-100'
-                      }`}>
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                          lvl.status === 'Disetujui' ? 'bg-green-500' :
-                          lvl.status === 'Ditolak' ? 'bg-red-500' : 'bg-gray-300'
-                        }`}>
-                          {lvl.status === 'Disetujui' ? <Check className="w-3.5 h-3.5 text-white" /> :
-                           lvl.status === 'Ditolak' ? <X className="w-3.5 h-3.5 text-white" /> :
-                           <Clock className="w-3.5 h-3.5 text-white" />}
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-800">Level {lvl.level}: {lvl.jabatan}</p>
-                          {lvl.nama && <p className="text-xs text-gray-500 mt-0.5">oleh {lvl.nama}</p>}
-                          {lvl.tanggal && <p className="text-xs text-gray-400">{fmtDate(lvl.tanggal)}</p>}
-                          {lvl.catatan && <p className="text-xs text-red-600 mt-1">Catatan: {lvl.catatan}</p>}
-                          {lvl.status === 'Pending' && <p className="text-xs text-yellow-600 mt-0.5">Menunggu persetujuan</p>}
+                    {levels.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">Alur Persetujuan</p>
+                        <div className="space-y-3">
+                          {levels.map((lvl: any) => (
+                            <div key={lvl.level} className={`flex items-start gap-3 p-3 rounded-xl border ${
+                              lvl.status === 'Disetujui' ? 'bg-green-50 border-green-100' :
+                              lvl.status === 'Ditolak' ? 'bg-red-50 border-red-100' :
+                              'bg-gray-50 border-gray-100'
+                            }`}>
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                                lvl.status === 'Disetujui' ? 'bg-green-500' :
+                                lvl.status === 'Ditolak' ? 'bg-red-500' : 'bg-gray-300'
+                              }`}>
+                                {lvl.status === 'Disetujui' ? <Check className="w-3.5 h-3.5 text-white" /> :
+                                 lvl.status === 'Ditolak' ? <X className="w-3.5 h-3.5 text-white" /> :
+                                 <Clock className="w-3.5 h-3.5 text-white" />}
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-800">Level {lvl.level}: {lvl.jabatan}</p>
+                                {lvl.nama && <p className="text-xs text-gray-500 mt-0.5">oleh {lvl.nama}</p>}
+                                {lvl.tanggal && <p className="text-xs text-gray-400">{fmtDate(lvl.tanggal)}</p>}
+                                {lvl.catatan && <p className="text-xs text-red-600 mt-1">Catatan: {lvl.catatan}</p>}
+                                {lvl.status === 'Pending' && <p className="text-xs text-yellow-600 mt-0.5">Menunggu persetujuan</p>}
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                    )}
+                  </>
+                );
+              })()}
             </div>
             <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
               <button onClick={() => { setShowDetailModal(false); openEdit(selectedCuti); }}
@@ -771,25 +871,9 @@ export default function Cuti() {
               className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 mb-4 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none" />
             <div className="flex gap-3">
               <button onClick={() => setShowRejectModal(null)} className="flex-1 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">Batal</button>
-              <button onClick={handleReject} className="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700">Tolak Cuti</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ─── Delete Confirm ─── */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowDeleteConfirm(null)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trash2 className="w-6 h-6 text-red-600" />
-            </div>
-            <h3 className="text-center font-semibold text-gray-800 mb-2">Hapus Data Cuti?</h3>
-            <p className="text-center text-sm text-gray-500 mb-6">Data pengajuan cuti ini akan dihapus permanen.</p>
-            <div className="flex gap-3">
-              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">Batal</button>
-              <button onClick={() => handleDelete(showDeleteConfirm)} className="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700">Hapus</button>
+              <button onClick={handleReject} disabled={rejectMutation.isPending} className="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-60">
+                {rejectMutation.isPending ? 'Memproses...' : 'Tolak Cuti'}
+              </button>
             </div>
           </div>
         </div>

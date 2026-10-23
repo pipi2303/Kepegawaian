@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { BPJSRecord, TanggunganBPJS } from '../types';
 import { toast } from 'sonner';
 import { bpjsApi } from '../data/api';
+import http from '../lib/http';
 
 const fmt = (n: number) => new Intl.NumberFormat('id-ID').format(n);
 const fmtRp = (n: number) => `Rp ${fmt(n)}`;
@@ -20,7 +21,20 @@ const downloadBlob = (blob: Blob, filename: string) => {
 const now = new Date();
 
 export default function BPJS() {
-  const { bpjs, pegawai, addBPJS, updateBPJS, deleteBPJS } = useAppContext();
+  const { bpjs, addBPJS, updateBPJS, deleteBPJS } = useAppContext();
+
+  // Replace mock pegawai with real API
+  const { data: pegawaiRaw } = useQuery({
+    queryKey: ['pegawai-bpjs'],
+    queryFn: () => http.get('/pegawai', { params: { per_page: 200, status_aktif: 'Aktif' } }).then(r => r.data.data?.data ?? r.data.data ?? []),
+    staleTime: 300_000,
+  });
+  const pegawai = useMemo(() => (pegawaiRaw ?? []).map((p: any) => ({
+    ...p,
+    id: String(p.id),
+    unitKerja: p.unitKerja ?? p.unit_kerja,
+    statusAktif: p.statusAktif ?? p.status_aktif,
+  })), [pegawaiRaw]);
   const [search, setSearch] = useState('');
   const [detailData, setDetailData] = useState<BPJSRecord | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -32,11 +46,12 @@ export default function BPJS() {
   const [exportingTK, setExportingTK] = useState(false);
   const [exportingKes, setExportingKes] = useState(false);
 
-  const { data: summaryData } = useQuery({
+  const { data: summaryRaw } = useQuery({
     queryKey: ['bpjs-summary'],
-    queryFn: () => bpjsApi.summary().then(r => r.data),
+    queryFn: bpjsApi.summary,
     staleTime: 60_000,
   });
+  const summaryData = summaryRaw?.data ?? summaryRaw;
 
   const emptyForm: Omit<BPJSRecord, 'id'> = { pegawaiId: '', nomorKartuKesehatan: '', kelasBPJSKes: 'II', statusBPJSKes: 'Aktif', nomorBPJSTK: '', statusBPJSTK: 'Aktif', tanggungan: [], iuranKesehatan: 0, iuranKetenagakerjaan: 0, tanggalDaftar: '' };
   const [form, setForm] = useState<Omit<BPJSRecord, 'id'>>(emptyForm);

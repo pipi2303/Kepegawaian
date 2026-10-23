@@ -4,10 +4,12 @@ import {
   Clock, FileText, Award, ChevronDown, ChevronUp, RefreshCw, Star,
   AlertCircle, BookOpen, TrendingUp, Users, BadgeCheck, Activity,
 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppContext } from '../context/AppContext';
 import type { STRRecord, SIPRecord, CredentialingRecord, KewenangaKlinis, CPDRecord } from '../types';
 import { dataCPD as initialCPD } from '../data/mockDataRS';
 import { toast } from 'sonner';
+import http from '../lib/http';
 
 type TabType = 'str' | 'sip' | 'credentialing' | 'cpd';
 
@@ -112,15 +114,62 @@ function WorkflowStepper({ status }: { status: string }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function Credentialing() {
-  const { str, sip, credentialing, pegawai, cpd,
+  const { str, sip, pegawai, cpd,
     addSTR, updateSTR, deleteSTR,
     addSIP, updateSIP, deleteSIP,
     addCredentialing, updateCredentialing, deleteCredentialing,
     addCPD, updateCPD, deleteCPD,
   } = useAppContext();
 
+  const qc = useQueryClient();
+
   // Seed CPD initial data once
   const allCPD = cpd.length > 0 ? cpd : initialCPD as CPDRecord[];
+
+  // ── Real API: credentialing list & license alerts ──────────────────────────
+  const { data: credApiData } = useQuery({
+    queryKey: ['credentialing'],
+    queryFn: () => http.get('/credentialing').then(r => r.data.data),
+    staleTime: 60000,
+  });
+
+  const { data: licenseAlertsData } = useQuery({
+    queryKey: ['license-alerts'],
+    queryFn: () => http.get('/credentialing/license-alerts').then(r => r.data.data),
+    staleTime: 300000,
+  });
+
+  const submitCredMutation = useMutation({
+    mutationFn: (d: any) => http.post('/credentialing', d).then(r => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['credentialing'] });
+      toast.success('Permohonan kredensial diajukan');
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'Gagal mengajukan kredensial'),
+  });
+
+  const rekomendasiMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number | string; data: any }) =>
+      http.post(`/credentialing/${id}/rekomendasi`, data).then(r => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['credentialing'] });
+      toast.success('Rekomendasi disimpan');
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'Gagal menyimpan rekomendasi'),
+  });
+
+  const spkMutation = useMutation({
+    mutationFn: ({ id, nomor_spk }: { id: number | string; nomor_spk: string }) =>
+      http.post(`/credentialing/${id}/issue-spk`, { nomor_spk }).then(r => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['credentialing'] });
+      toast.success('SPK berhasil diterbitkan');
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'Gagal menerbitkan SPK'),
+  });
+
+  // Merge API credentialing with context fallback — API wins when available
+  const credentialing: CredentialingRecord[] = (credApiData?.data ?? credApiData ?? []) as CredentialingRecord[];
 
   const [activeTab, setActiveTab] = useState<TabType>('str');
   const [search, setSearch] = useState('');
@@ -194,13 +243,24 @@ export default function Credentialing() {
   const pendingCred = credentialing.filter(c => c.statusKredensial !== 'Selesai' && c.statusKredensial !== 'Ditolak').length;
   const totalSKP = allCPD.filter(c => c.status === 'Diverifikasi').reduce((a,b) => a + b.skp, 0);
 
-  // Alert items
-  const criticalAlerts = [
+  // Alert items — prefer API license-alerts, fall back to computed from local str/sip
+  const apiAlerts: Array<{ type: string; name: string; detail: string; color: string }> = Array.isArray(licenseAlertsData)
+    ? licenseAlertsData.map((a: any) => ({
+        type: a.type || a.jenis || 'Alert',
+        name: a.nama || a.name || getFullName(a.pegawai_id || a.pegawaiId || ''),
+        detail: a.detail || a.keterangan || '',
+        color: a.color || (a.status === 'Expired' ? 'red' : 'yellow'),
+      }))
+    : [];
+
+  const localAlerts = [
     ...str.filter(s => s.status === 'Expired').map(s => ({ type: 'STR Expired', name: getFullName(s.pegawaiId), detail: s.nomorSTR, color: 'red' })),
     ...str.filter(s => s.status === 'Akan Expired').map(s => ({ type: 'STR Akan Expired', name: getFullName(s.pegawaiId), detail: `${daysUntilExpiry(s.tanggalExpired)} hari lagi`, color: 'yellow' })),
     ...sip.filter(s => s.status === 'Expired').map(s => ({ type: 'SIP/SIK Expired', name: getFullName(s.pegawaiId), detail: s.nomorSIP, color: 'red' })),
     ...credentialing.filter(c => c.tanggalExpired && daysUntilExpiry(c.tanggalExpired!) <= 90 && c.statusKredensial === 'Selesai').map(c => ({ type: 'Kredensial Segera Expired', name: getFullName(c.pegawaiId), detail: `${daysUntilExpiry(c.tanggalExpired!)} hari lagi`, color: 'orange' })),
   ];
+
+  const criticalAlerts = apiAlerts.length > 0 ? apiAlerts : localAlerts;
 
   // ── CRUD handlers ─────────────────────────────────────────────────────────
   const openAdd = () => {
@@ -228,9 +288,23 @@ export default function Credentialing() {
 
   const handleSaveCred = () => {
     if (!formCred.pegawaiId || !formCred.tanggalPengajuan) { toast.error('Pegawai dan Tanggal Pengajuan wajib diisi'); return; }
-    if (editData && 'statusKredensial' in editData) { updateCredentialing({ ...formCred, id: editData.id } as CredentialingRecord); toast.success('Data kredensial berhasil diperbarui'); }
-    else { addCredentialing(formCred); toast.success('Pengajuan kredensial berhasil disimpan'); }
-    setShowModal(false);
+    if (editData && 'statusKredensial' in editData) {
+      updateCredentialing({ ...formCred, id: editData.id } as CredentialingRecord);
+      toast.success('Data kredensial berhasil diperbarui');
+      setShowModal(false);
+    } else {
+      submitCredMutation.mutate({
+        pegawai_id: formCred.pegawaiId,
+        jenis: formCred.jenis,
+        tanggal_pengajuan: formCred.tanggalPengajuan,
+        status_kredensial: formCred.statusKredensial,
+        kewenangan: formCred.kewenangan,
+        disetujui_oleh: formCred.disetujuiOleh,
+        rekomendasi_komite: formCred.rekomendasiKomite,
+        tanggal_kredensial: formCred.tanggalKredensial,
+        tanggal_expired: formCred.tanggalExpired,
+      }, { onSuccess: () => setShowModal(false) });
+    }
   };
 
   const handleSaveCPD = () => {
@@ -262,9 +336,19 @@ export default function Credentialing() {
     const idx = WORKFLOW_STEPS.indexOf(c.statusKredensial);
     if (idx < 0 || idx >= WORKFLOW_STEPS.length - 1) return;
     const next = WORKFLOW_STEPS[idx + 1] as CredentialingRecord['statusKredensial'];
-    updateCredentialing({ ...c, statusKredensial: next });
-    setDetailCred({ ...c, statusKredensial: next });
-    toast.success(`Status diperbarui → ${next}`);
+    // Use API for rekomendasi (Komite Medik → Selesai) and SPK (issue-spk at Selesai)
+    if (next === 'Selesai' && c.statusKredensial === 'Komite Medik') {
+      rekomendasiMutation.mutate({ id: c.id, data: { status: 'Selesai' } }, {
+        onSuccess: () => {
+          const updated = { ...c, statusKredensial: next };
+          setDetailCred(updated);
+        },
+      });
+    } else {
+      updateCredentialing({ ...c, statusKredensial: next });
+      setDetailCred({ ...c, statusKredensial: next });
+      toast.success(`Status diperbarui → ${next}`);
+    }
   };
 
   const tabs: { key: TabType; label: string; count: number; icon: React.ElementType }[] = [

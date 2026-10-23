@@ -8,7 +8,6 @@ import {
   User, FileCheck, Printer, FileText, Send, ThumbsUp, ClipboardList,
 } from 'lucide-react';
 
-import { useAppContext } from '../context/AppContext';
 import { C, CHART_COLORS } from '../components/colors';
 import type { SKPRecord, SKPItem } from '../types';
 import { toast } from 'sonner';
@@ -16,7 +15,43 @@ import { bscObjectives, okrObjectives } from '../data/performanceData';
 import ProfilKinerjaTab from '../components/skp/ProfilKinerjaTab';
 import ApprovalTab from '../components/skp/ApprovalTab';
 import LaporanTab from '../components/skp/LaporanTab';
-import { skpApi } from '../data/api';
+import { skpApi, disiplinApi, kenaikanPangkatApi } from '../data/api';
+import http from '../lib/http';
+import { useQuery } from '@tanstack/react-query';
+
+// ─── Shared query helpers ──────────────────────────────────────────────────────
+const fetchPegawai = () =>
+  http.get('/pegawai', { params: { per_page: 200 } })
+    .then(r => (r.data.data?.data ?? r.data.data ?? []).map((p: any) => ({
+      ...p,
+      id: String(p.id),
+      unitKerja: p.unitKerja ?? p.unit_kerja ?? '',
+      gelarDepan: p.gelarDepan ?? p.gelar_depan ?? '',
+      gelarBelakang: p.gelarBelakang ?? p.gelar_belakang ?? '',
+      statusAktif: p.statusAktif ?? p.status_aktif ?? '',
+      eselon: p.eselon,
+    })));
+
+// Normalise API skp record to shape used by local tabs
+const normSKP = (s: any) => ({
+  ...s,
+  id: String(s.id),
+  pegawaiId: String(s.pegawai_id ?? s.pegawaiId ?? ''),
+  status: s.status ?? 'Draft',
+  nilaiAkhir: s.nilai_akhir ?? s.nilaiAkhir ?? null,
+  predikat: s.predikat ?? null,
+  semester: s.semester ?? 1,
+  tahun: s.tahun ?? new Date().getFullYear(),
+  // legacy shape compat for OutputDampakTab / CascadingTab
+  targetKinerja: (s.details ?? s.targetKinerja ?? []).map((d: any) => ({
+    ...d,
+    id: String(d.id),
+    uraianKegiatan: d.uraianKegiatan ?? d.rencana_kinerja_individu ?? '',
+    target: d.target ?? d.target_max ?? 0,
+    satuan: d.satuan ?? '',
+    bobot: d.bobot ?? 0,
+  })),
+});
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const TABS = [
@@ -153,38 +188,63 @@ function calcBehaviorScore(scores: BehaviorScores, isSupv: boolean): number {
 // ─── HELPER ───────────────────────────────────────────────────────────────────
 const EMPTY_ITEM: Omit<SKPItem, 'id'> = { uraianKegiatan: '', target: 0, satuan: '', bobot: 0 };
 
-// ─── AUTOMATED KPI SYNC DATA (derived from AppContext) ────────────────────────
+// ─── AUTOMATED KPI SYNC DATA (derived from real APIs) ─────────────────────────
 function useAutoKPI() {
-  const { absensi, disiplin, diklat, pegawai, skp } = useAppContext();
+  const now = new Date();
+  const bulan = now.getMonth() + 1;
+  const tahun = now.getFullYear();
+
+  const { data: absensiData } = useQuery({
+    queryKey: ['autoKPI-absensi', bulan, tahun],
+    queryFn: () => http.get('/absensi/rekap-bulanan', { params: { bulan, tahun } }).then(r => r.data.data ?? []),
+    staleTime: 120_000,
+  });
+  const { data: disiplinData } = useQuery({
+    queryKey: ['autoKPI-disiplin'],
+    queryFn: () => disiplinApi.getAll({ per_page: 200 }).then(r => r.data?.data ?? r.data ?? []),
+    staleTime: 120_000,
+  });
+  const { data: diklatData } = useQuery({
+    queryKey: ['autoKPI-diklat'],
+    queryFn: () => http.get('/diklat', { params: { per_page: 200, status: 'Selesai' } }).then(r => r.data?.data?.data ?? r.data?.data ?? []),
+    staleTime: 120_000,
+  });
+  const { data: pegawaiData } = useQuery({
+    queryKey: ['autoKPI-pegawai'],
+    queryFn: () => http.get('/pegawai', { params: { per_page: 200, status_aktif: 'Aktif' } }).then(r => r.data.data?.total ?? r.data.data?.data?.length ?? 0),
+    staleTime: 300_000,
+  });
+  const { data: skpData } = useQuery({
+    queryKey: ['autoKPI-skp'],
+    queryFn: () => skpApi.getAll({ per_page: 200 }).then(r => (r.data?.data ?? r.data ?? []).map(normSKP)),
+    staleTime: 120_000,
+  });
+
   return useMemo(() => {
-    const totalPegawai = pegawai.filter(p => p.statusAktif === 'Aktif').length;
-    // Kehadiran Maret 2026
-    const marAbsensi = absensi.filter(a => a.tanggal.startsWith('2026-03'));
-    const hadirCount = marAbsensi.filter(a => a.status === 'Hadir' || a.status === 'Dinas Luar').length;
-    const alphaCount = marAbsensi.filter(a => a.status === 'Alpha').length;
-    const totalPossible = marAbsensi.length;
-    const kehadiranPct = totalPossible > 0 ? ((hadirCount / totalPossible) * 100).toFixed(1) : '0';
+    const absensi: any[] = absensiData ?? [];
+    const disiplin: any[] = disiplinData ?? [];
+    const diklat: any[] = diklatData ?? [];
+    const totalPegawai: number = typeof pegawaiData === 'number' ? pegawaiData : 1;
+    const skp: any[] = skpData ?? [];
 
-    // Disiplin aktif
-    const disiplinAktif = disiplin.filter(d => d.status !== 'Selesai').length;
-    const disiplinBerat = disiplin.filter(d => d.tingkatHukuman === 'Berat').length;
+    const hadirCount = absensi.filter((a: any) => a.status === 'Hadir' || a.status === 'Dinas Luar').length;
+    const alphaCount = absensi.filter((a: any) => a.status === 'Alpha').length;
+    const kehadiranPct = absensi.length > 0 ? ((hadirCount / absensi.length) * 100).toFixed(1) : '0';
 
-    // Diklat JP total Tahun 2025-2026
-    const diklatSelesai = diklat.filter(d => d.status === 'Selesai');
-    const totalJP = diklatSelesai.reduce((s, d) => s + (d.jumlahJP || 0), 0);
+    const disiplinAktif = disiplin.filter((d: any) => d.status !== 'Selesai').length;
+    const disiplinBerat = disiplin.filter((d: any) => (d.tingkat_hukuman ?? d.tingkatHukuman) === 'Berat').length;
+
+    const totalJP = diklat.reduce((s: number, d: any) => s + (d.jumlah_jp ?? d.jumlahJP ?? 0), 0);
     const avgJPPerPegawai = totalPegawai > 0 ? (totalJP / totalPegawai).toFixed(1) : '0';
 
-    // SKP selesai
-    const skpSelesai = skp.filter(s => s.status === 'Selesai');
+    const skpSelesai = skp.filter((s: any) => s.status === 'Disetujui' || s.status === 'Selesai');
     const avgNilai = skpSelesai.length > 0
-      ? (skpSelesai.reduce((s, r) => s + (r.nilaiAkhir || 0), 0) / skpSelesai.length).toFixed(1)
+      ? (skpSelesai.reduce((s: number, r: any) => s + (r.nilaiAkhir || 0), 0) / skpSelesai.length).toFixed(1)
       : '–';
-    const skpTotal = skp.length;
-    const skpSelesaiCount = skpSelesai.length;
-    const skpPct = skpTotal > 0 ? ((skpSelesaiCount / skpTotal) * 100).toFixed(0) : '0';
+    const skpPct = skp.length > 0 ? ((skpSelesai.length / skp.length) * 100).toFixed(0) : '0';
 
     return { kehadiranPct, alphaCount, disiplinAktif, disiplinBerat, avgJPPerPegawai, totalJP, avgNilai, skpPct };
-  }, [absensi, disiplin, diklat, pegawai, skp]);
+  }, [absensiData, disiplinData, diklatData, pegawaiData, skpData]);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -196,12 +256,24 @@ const BAR_COLORS = CHART_COLORS as unknown as string[];
 
 // ─── TAB 1: Dashboard ─────────────────────────────────────────────────────────
 function DashboardTab({ onTabChange }: { onTabChange: (t: TabId) => void }) {
-  const { skp, pegawai, disiplin, kenaikanPangkat } = useAppContext();
   const auto = useAutoKPI();
 
+  const { data: skpRaw } = useQuery({
+    queryKey: ['dashboard-skp'],
+    queryFn: () => skpApi.getAll({ per_page: 200 }).then(r => (r.data?.data ?? r.data ?? []).map(normSKP)),
+    staleTime: 120_000,
+  });
+  const { data: pegawai = [] } = useQuery({
+    queryKey: ['dashboard-pegawai'],
+    queryFn: fetchPegawai,
+    staleTime: 300_000,
+  });
+
+  const skp = skpRaw ?? [];
+
   const totalSKP = skp.length;
-  const selesai = skp.filter(s => s.status === 'Selesai');
-  const aktif = skp.filter(s => s.status === 'Aktif');
+  const selesai = skp.filter((s: any) => s.status === 'Disetujui' || s.status === 'Selesai');
+  const aktif = skp.filter((s: any) => s.status === 'Diajukan' || s.status === 'Draft' || s.status === 'Aktif');
   const avgNilai = selesai.length > 0
     ? (selesai.reduce((s, r) => s + (r.nilaiAkhir || 0), 0) / selesai.length).toFixed(1)
     : '–';
@@ -515,7 +587,11 @@ function KamusKPITab({ onImportKPI }: { onImportKPI: (kpi: KPIEntry) => void }) 
 // ─── TAB 3: SKP Aktif ─────────────────────────────────────────────────────────
 // API-backed version; falls back to empty list if offline
 function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry | null; clearImportedKPI: () => void }) {
-  const { pegawai } = useAppContext();
+  const { data: pegawai = [] } = useQuery({
+    queryKey: ['skp-pegawai'],
+    queryFn: fetchPegawai,
+    staleTime: 300_000,
+  });
 
   // ── API state ──────────────────────────────────────────────────────────────
   const [apiData, setApiData] = useState<{ data: any[]; meta?: any } | null>(null);
@@ -1293,7 +1369,17 @@ function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry 
 
 // ─── TAB 4: Penilaian Perilaku ────────────────────────────────────────────────
 function PenilaianPerilakuTab() {
-  const { skp, pegawai } = useAppContext();
+  const { data: skpRaw } = useQuery({
+    queryKey: ['perilaku-skp'],
+    queryFn: () => skpApi.getAll({ per_page: 200 }).then(r => (r.data?.data ?? r.data ?? []).map(normSKP)),
+    staleTime: 120_000,
+  });
+  const { data: pegawai = [] } = useQuery({
+    queryKey: ['perilaku-pegawai'],
+    queryFn: fetchPegawai,
+    staleTime: 300_000,
+  });
+  const skp = skpRaw ?? [];
   const [selectedSKPId, setSelectedSKPId] = useState('');
   const [scores, setScores] = useState<BehaviorScores>({});
 
@@ -1448,7 +1534,17 @@ function PenilaianPerilakuTab() {
 
 // ─── TAB 5: Cascading ─────────────────────────────────────────────────────────
 function CascadingTab() {
-  const { skp, pegawai } = useAppContext();
+  const { data: skpRaw } = useQuery({
+    queryKey: ['cascading-skp'],
+    queryFn: () => skpApi.getAll({ per_page: 200 }).then(r => (r.data?.data ?? r.data ?? []).map(normSKP)),
+    staleTime: 120_000,
+  });
+  const { data: pegawai = [] } = useQuery({
+    queryKey: ['cascading-pegawai'],
+    queryFn: fetchPegawai,
+    staleTime: 300_000,
+  });
+  const skp = skpRaw ?? [];
   const [selectedBSC, setSelectedBSC] = useState<string | null>(null);
   const [selectedOKR, setSelectedOKR] = useState<string | null>(null);
 
@@ -1572,8 +1668,8 @@ function CascadingTab() {
             </div>
           ) : (
             <div className="space-y-2">
-              {/* Semua SKP aktif dengan OKR terpilih */}
-              {skp.filter(s => s.status === 'Aktif').slice(0, 4).map(s => {
+              {/* Semua SKP aktif (Diajukan/Draft) dengan OKR terpilih */}
+              {skp.filter(s => s.status === 'Diajukan' || s.status === 'Draft' || s.status === 'Aktif').slice(0, 4).map(s => {
                 const p = pegawai.find(px => px.id === s.pegawaiId);
                 return (
                   <div key={s.id} className="p-3 rounded-xl border border-gray-100 bg-white">
@@ -1588,7 +1684,7 @@ function CascadingTab() {
                   </div>
                 );
               })}
-              {skp.filter(s => s.status === 'Aktif').length === 0 && (
+              {skp.filter(s => s.status === 'Diajukan' || s.status === 'Draft' || s.status === 'Aktif').length === 0 && (
                 <div className="p-4 bg-gray-50 rounded-xl text-center text-xs text-gray-400">Tidak ada SKP aktif</div>
               )}
             </div>
@@ -1623,14 +1719,45 @@ function saveCoaching(skpId: string, val: string) {
 
 // ─── TAB 6: Output & Dampak ��──────────────────────────────────────────────────
 function OutputDampakTab() {
-  const { skp, pegawai, kenaikanPangkat, disiplin } = useAppContext();
+  const { data: skpRaw } = useQuery({
+    queryKey: ['output-skp'],
+    queryFn: () => skpApi.getAll({ per_page: 200 }).then(r => (r.data?.data ?? r.data ?? []).map(normSKP)),
+    staleTime: 120_000,
+  });
+  const { data: pegawai = [] } = useQuery({
+    queryKey: ['output-pegawai'],
+    queryFn: fetchPegawai,
+    staleTime: 300_000,
+  });
+  const { data: kenaikanPangkatRaw } = useQuery({
+    queryKey: ['output-kp'],
+    queryFn: () => kenaikanPangkatApi.getAll({ per_page: 200 }).then(r => r.data?.data ?? r.data ?? []),
+    staleTime: 300_000,
+  });
+  const { data: disiplinRaw } = useQuery({
+    queryKey: ['output-disiplin'],
+    queryFn: () => disiplinApi.getAll({ per_page: 200 }).then(r => r.data?.data ?? r.data ?? []),
+    staleTime: 120_000,
+  });
+  const skp = skpRaw ?? [];
+  const kenaikanPangkat = (kenaikanPangkatRaw ?? []).map((k: any) => ({
+    ...k,
+    pegawaiId: String(k.pegawai_id ?? k.pegawaiId ?? ''),
+    status: k.status ?? '',
+  }));
+  const disiplin = (disiplinRaw ?? []).map((d: any) => ({
+    ...d,
+    pegawaiId: String(d.pegawai_id ?? d.pegawaiId ?? ''),
+    status: d.status ?? '',
+    tingkatHukuman: d.tingkat_hukuman ?? d.tingkatHukuman ?? '',
+  }));
 
   const [coachingNotes, setCoachingNotes] = useState<Record<string, string>>({});
   const [showRemunerasi, setShowRemunerasi] = useState(false);
 
   const employees = useMemo(() => {
     const latestSKPByPegawai = new Map<string, SKPRecord>();
-    skp.filter(s => s.status === 'Selesai').forEach(s => {
+    skp.filter((s: any) => s.status === 'Disetujui' || s.status === 'Selesai').forEach((s: any) => {
       const existing = latestSKPByPegawai.get(s.pegawaiId);
       if (!existing || s.tahun > existing.tahun || (s.tahun === existing.tahun && s.semester > existing.semester)) {
         latestSKPByPegawai.set(s.pegawaiId, s);
