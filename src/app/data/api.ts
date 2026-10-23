@@ -177,6 +177,39 @@ export const absensiImportApi = {
   },
 };
 
+// TPP (Tambahan Penghasilan Pegawai)
+export const tppApi = {
+  getAll: (params?: Record<string, any>) => http.get('/tpp', { params }).then(r => r.data),
+  generate: (d: { pegawai_id: number; bulan: number; tahun: number }) =>
+    http.post('/tpp/generate', d).then(r => r.data),
+  bulkGenerate: (bulan: number, tahun: number) =>
+    http.post('/tpp/bulk-generate', { bulan, tahun }).then(r => r.data),
+  approve: (id: number) => http.post(`/tpp/${id}/approve`).then(r => r.data),
+  bayar: (id: number) => http.post(`/tpp/${id}/bayar`).then(r => r.data),
+  export: (bulan: number, tahun: number) =>
+    http.get('/tpp/export', { params: { bulan, tahun }, responseType: 'blob' }),
+  kelas: () => http.get('/tpp/kelas').then(r => r.data),
+  storeKelas: (d: any) => http.post('/tpp/kelas', d).then(r => r.data),
+  deleteKelas: (id: number) => http.delete(`/tpp/kelas/${id}`).then(r => r.data),
+};
+
+// REKRUTMEN PPPK/HONORER
+export const rekrutmenApi = {
+  // Admin
+  getFormasi: (p?: any) => http.get('/rekrutmen/formasi', { params: p }).then(r => r.data),
+  createFormasi: (d: any) => http.post('/rekrutmen/formasi', d).then(r => r.data),
+  updateFormasi: (id: number, d: any) => http.put(`/rekrutmen/formasi/${id}`, d).then(r => r.data),
+  aktifkan: (id: number) => http.post(`/rekrutmen/formasi/${id}/aktifkan`).then(r => r.data),
+  tutup: (id: number) => http.post(`/rekrutmen/formasi/${id}/tutup`).then(r => r.data),
+  getLamaran: (p?: any) => http.get('/rekrutmen/lamaran', { params: p }).then(r => r.data),
+  updateStatus: (id: number, d: any) => http.put(`/rekrutmen/lamaran/${id}/status`, d).then(r => r.data),
+  exportLamaran: (formasi_id: number) => http.get('/rekrutmen/export-lamaran', { params: { formasi_id }, responseType: 'blob' }),
+  // Public (no auth — web.php routes)
+  getPublicLowongan: () => fetch('/rekrutmen/lowongan').then(r => r.json()),
+  daftar: (d: any) => fetch('/rekrutmen/daftar', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(d) }).then(r => r.json()),
+  cekStatus: (email: string, formasi_id: number) => fetch(`/rekrutmen/status?email=${encodeURIComponent(email)}&formasi_id=${formasi_id}`).then(r => r.json()),
+};
+
 // GENERATOR SURAT KEPEGAWAIAN
 export const suratApi = {
   keteranganBekerja: (pegawai_id: number, tujuan: string) =>
@@ -187,4 +220,27 @@ export const suratApi = {
     http.post('/surat/surat-cuti', { cuti_id }, { responseType: 'blob' }),
   kontrakPPPK: (pegawai_id: number) =>
     http.post('/surat/kontrak-pppk', { pegawai_id }, { responseType: 'blob' }),
+};
+
+// DIKLAT & KOMPETENSI
+export const diklatApi = {
+  getAll: (params?: any) => http.get('/diklat', { params }).then(r => r.data),
+  create: (d: any) => http.post('/diklat', d).then(r => r.data),
+  update: (id: number, d: any) => http.put(`/diklat/${id}`, d).then(r => r.data),
+  remove: (id: number) => http.delete(`/diklat/${id}`).then(r => r.data),
+  rekap: (tahun: number) => http.get('/diklat-rekap', { params: { tahun } }).then(r => r.data),
+  uploadSertifikat: (id: number, file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return http.post(`/diklat/${id}/sertifikat`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+};
+
+// BPJS e-REPORTING
+export const bpjsApi = {
+  exportTK: (bulan: number, tahun: number) =>
+    http.get('/bpjs/export-tk', { params: { bulan, tahun }, responseType: 'blob' }),
+  exportKesehatan: (bulan: number, tahun: number) =>
+    http.get('/bpjs/export-kesehatan', { params: { bulan, tahun }, responseType: 'blob' }),
+  summary: () => http.get('/bpjs/summary').then(r => r.data),
 };

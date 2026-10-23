@@ -21,6 +21,8 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\HandleInertiaRequests::class,
             \App\Http\Middleware\ValidateLicense::class,
         ]);
+        // Public rekrutmen POST (no CSRF — unauthenticated external submissions)
+        $middleware->validateCsrfTokens(except: ['rekrutmen/daftar']);
     })
     ->withProviders([
         \App\Providers\EventServiceProvider::class,

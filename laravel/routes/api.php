@@ -18,6 +18,10 @@ use App\Http\Controllers\LaporanBKDController;
 use App\Http\Controllers\KGBController;
 use App\Http\Controllers\ImportAbsensiController;
 use App\Http\Controllers\SuratController;
+use App\Http\Controllers\TPPController;
+use App\Http\Controllers\DiklatController;
+use App\Http\Controllers\BPJSController;
+use App\Http\Controllers\RekrutmenController;
 
 /*
 |--------------------------------------------------------------------------
@@ -333,6 +337,44 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('surat-tugas', [SuratController::class, 'suratTugas']);
         Route::post('surat-cuti', [SuratController::class, 'suratCuti']);
         Route::post('kontrak-pppk', [SuratController::class, 'kontrakPPPK']);
+    });
+
+    // 25. TPP (Tambahan Penghasilan Pegawai)
+    Route::prefix('tpp')->group(function () {
+        Route::get('/',                 [TPPController::class, 'index']);
+        Route::post('/generate',        [TPPController::class, 'store']);
+        Route::post('/bulk-generate',   [TPPController::class, 'bulkGenerate']);
+        Route::get('/export',           [TPPController::class, 'export']);
+        Route::get('/kelas',            [TPPController::class, 'kelas']);
+        Route::post('/kelas',           [TPPController::class, 'storeKelas']);
+        Route::delete('/kelas/{kelas}', [TPPController::class, 'destroyKelas']);
+        Route::post('/{tpp}/approve',   [TPPController::class, 'approve']);
+        Route::post('/{tpp}/bayar',     [TPPController::class, 'bayar']);
+    });
+
+    // 26. Rekrutmen (Admin)
+    Route::prefix('rekrutmen')->group(function () {
+        Route::get('formasi',                      [RekrutmenController::class, 'indexFormasi']);
+        Route::post('formasi',                     [RekrutmenController::class, 'storeFormasi']);
+        Route::put('formasi/{formasi}',            [RekrutmenController::class, 'updateFormasi']);
+        Route::post('formasi/{formasi}/aktifkan',  [RekrutmenController::class, 'activateFormasi']);
+        Route::post('formasi/{formasi}/tutup',     [RekrutmenController::class, 'closeFormasi']);
+        Route::get('lamaran',                      [RekrutmenController::class, 'indexLamaran']);
+        Route::get('lamaran/{lamaran}',            [RekrutmenController::class, 'showLamaran']);
+        Route::put('lamaran/{lamaran}/status',     [RekrutmenController::class, 'updateStatus']);
+        Route::get('export-lamaran',               [RekrutmenController::class, 'exportLamaran']);
+    });
+
+    // 27. Diklat & Kompetensi
+    Route::apiResource('diklat', DiklatController::class);
+    Route::get('diklat-rekap',                [DiklatController::class, 'rekap']);
+    Route::post('diklat/{diklat}/sertifikat', [DiklatController::class, 'uploadSertifikat']);
+
+    // 28. BPJS e-Reporting
+    Route::prefix('bpjs')->group(function () {
+        Route::get('export-tk',        [BPJSController::class, 'exportTK']);
+        Route::get('export-kesehatan', [BPJSController::class, 'exportKesehatan']);
+        Route::get('summary',          [BPJSController::class, 'summary']);
     });
 });
 

@@ -15,6 +15,13 @@ Route::middleware('guest')->group(function () {
     Route::post('login', [LoginController::class, 'store'])->middleware('throttle:5,1');
 });
 
+// Public rekrutmen routes (no auth)
+Route::middleware('throttle:10,1')->group(function () {
+    Route::get('rekrutmen/lowongan', [\App\Http\Controllers\PublicRekrutmenController::class, 'formasiAktif']);
+    Route::post('rekrutmen/daftar',  [\App\Http\Controllers\PublicRekrutmenController::class, 'daftar'])->middleware('throttle:3,1');
+    Route::get('rekrutmen/status',   [\App\Http\Controllers\PublicRekrutmenController::class, 'statusLamaran']);
+});
+
 // Authenticated Routes — idle timeout aktif di semua route ini
 Route::middleware(['auth', SessionIdleTimeout::class])->group(function () {
     Route::post('logout', [LoginController::class, 'destroy'])->name('logout');

@@ -1,11 +1,23 @@
 import React, { useState, useMemo } from 'react';
-import { Heart, Search, Plus, Eye, Edit2, X, CheckCircle, AlertCircle, Users } from 'lucide-react';
+import { Heart, Search, Plus, Eye, Edit2, X, CheckCircle, AlertCircle, Users, Download, FileSpreadsheet } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import { useQuery } from '@tanstack/react-query';
 import type { BPJSRecord, TanggunganBPJS } from '../types';
 import { toast } from 'sonner';
+import { bpjsApi } from '../data/api';
 
 const fmt = (n: number) => new Intl.NumberFormat('id-ID').format(n);
+const fmtRp = (n: number) => `Rp ${fmt(n)}`;
 const statusColor = { 'Aktif': 'bg-green-100 text-green-700', 'Tidak Aktif': 'bg-red-100 text-red-700', 'Belum Terdaftar': 'bg-gray-100 text-gray-500' };
+
+const downloadBlob = (blob: Blob, filename: string) => {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+};
+
+const now = new Date();
 
 export default function BPJS() {
   const { bpjs, pegawai, addBPJS, updateBPJS, deleteBPJS } = useAppContext();
@@ -13,6 +25,18 @@ export default function BPJS() {
   const [detailData, setDetailData] = useState<BPJSRecord | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+
+  // Export state
+  const [exportBulan, setExportBulan] = useState(now.getMonth() + 1);
+  const [exportTahun, setExportTahun] = useState(now.getFullYear());
+  const [exportingTK, setExportingTK] = useState(false);
+  const [exportingKes, setExportingKes] = useState(false);
+
+  const { data: summaryData } = useQuery({
+    queryKey: ['bpjs-summary'],
+    queryFn: () => bpjsApi.summary().then(r => r.data),
+    staleTime: 60_000,
+  });
 
   const emptyForm: Omit<BPJSRecord, 'id'> = { pegawaiId: '', nomorKartuKesehatan: '', kelasBPJSKes: 'II', statusBPJSKes: 'Aktif', nomorBPJSTK: '', statusBPJSTK: 'Aktif', tanggungan: [], iuranKesehatan: 0, iuranKetenagakerjaan: 0, tanggalDaftar: '' };
   const [form, setForm] = useState<Omit<BPJSRecord, 'id'>>(emptyForm);
@@ -34,6 +58,26 @@ export default function BPJS() {
     setShowModal(false);
   };
 
+  const handleExportTK = async () => {
+    setExportingTK(true);
+    try {
+      const res = await bpjsApi.exportTK(exportBulan, exportTahun);
+      downloadBlob(res.data, `BPJS_TK_${exportBulan}_${exportTahun}.xlsx`);
+      toast.success('Export BPJS TK berhasil');
+    } catch { toast.error('Gagal export BPJS TK'); }
+    finally { setExportingTK(false); }
+  };
+
+  const handleExportKesehatan = async () => {
+    setExportingKes(true);
+    try {
+      const res = await bpjsApi.exportKesehatan(exportBulan, exportTahun);
+      downloadBlob(res.data, `BPJS_Kes_${exportBulan}_${exportTahun}.xlsx`);
+      toast.success('Export BPJS Kesehatan berhasil');
+    } catch { toast.error('Gagal export BPJS Kesehatan'); }
+    finally { setExportingKes(false); }
+  };
+
   return (
     <div className="p-4 lg:p-6 space-y-5">
       <div className="flex items-center justify-between">
@@ -46,12 +90,13 @@ export default function BPJS() {
         </button>
       </div>
 
+      {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'BPJS Kesehatan Aktif', value: aktifKes, sub: `dari ${bpjs.length} terdaftar`, color: 'text-green-600' },
-          { label: 'BPJS Ketenagakerjaan Aktif', value: aktifTK, sub: 'JKK + JKM + JHT + JP', color: 'text-blue-600' },
-          { label: 'Total Tanggungan', value: totalTanggungan, sub: 'Istri/suami & anak', color: 'text-purple-600' },
-          { label: 'Belum Terdaftar', value: belumDaftar, sub: 'Perlu didaftarkan', color: belumDaftar > 0 ? 'text-red-600' : 'text-gray-500' },
+          { label: 'BPJS Kesehatan Aktif',         value: summaryData?.total_peserta_kesehatan ?? aktifKes,  sub: `dari ${bpjs.length} terdaftar`,      color: 'text-green-600' },
+          { label: 'BPJS Ketenagakerjaan Aktif',   value: summaryData?.total_peserta_tk ?? aktifTK,          sub: 'JKK + JKM + JHT + JP',              color: 'text-blue-600' },
+          { label: 'Total Tanggungan',              value: totalTanggungan,                                   sub: 'Istri/suami & anak',                 color: 'text-purple-600' },
+          { label: 'Belum Terdaftar',               value: belumDaftar,                                       sub: 'Perlu didaftarkan',                  color: belumDaftar > 0 ? 'text-red-600' : 'text-gray-500' },
         ].map((s, i) => (
           <div key={i} className="bg-white rounded-xl border border-gray-200 p-4">
             <p className="text-xs text-gray-500">{s.label}</p>
@@ -59,6 +104,58 @@ export default function BPJS() {
             <p className="text-xs text-gray-400 mt-0.5">{s.sub}</p>
           </div>
         ))}
+      </div>
+
+      {/* Iuran summary from API */}
+      {summaryData && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+            <p className="text-xs font-semibold text-blue-600 mb-1">Total Iuran BPJS TK Bulan Ini (est.)</p>
+            <p className="text-xl font-bold text-blue-700">{fmtRp(summaryData.total_iuran_tk)}</p>
+            <p className="text-xs text-blue-400 mt-0.5">Pemberi kerja + pekerja</p>
+          </div>
+          <div className="bg-green-50 border border-green-100 rounded-xl p-4">
+            <p className="text-xs font-semibold text-green-600 mb-1">Total Iuran BPJS Kesehatan Bulan Ini (est.)</p>
+            <p className="text-xl font-bold text-green-700">{fmtRp(summaryData.total_iuran_kesehatan)}</p>
+            <p className="text-xs text-green-400 mt-0.5">Pemberi kerja + pekerja</p>
+          </div>
+        </div>
+      )}
+
+      {/* Export Panel */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <p className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+          <FileSpreadsheet className="w-4 h-4 text-green-600" /> Export Laporan iPayroll BPJS
+        </p>
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <label className="text-xs text-gray-500 block mb-1">Bulan</label>
+            <select value={exportBulan} onChange={e => setExportBulan(Number(e.target.value))}
+              className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                <option key={m} value={m}>{new Date(2000, m - 1).toLocaleString('id-ID', { month: 'long' })}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-gray-500 block mb-1">Tahun</label>
+            <select value={exportTahun} onChange={e => setExportTahun(Number(e.target.value))}
+              className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              {[now.getFullYear(), now.getFullYear() - 1, now.getFullYear() - 2].map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
+          <button onClick={handleExportTK} disabled={exportingTK}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg disabled:opacity-60">
+            <Download className="w-4 h-4" /> {exportingTK ? 'Mengunduh...' : 'Export BPJS TK'}
+          </button>
+          <button onClick={handleExportKesehatan} disabled={exportingKes}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg disabled:opacity-60">
+            <Download className="w-4 h-4" /> {exportingKes ? 'Mengunduh...' : 'Export BPJS Kesehatan'}
+          </button>
+        </div>
+        <p className="text-xs text-gray-400 mt-2">Format iPayroll standar BPJS Ketenagakerjaan · BPJS Kesehatan</p>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -139,7 +236,7 @@ export default function BPJS() {
                 <div>
                   <p className="text-xs font-semibold text-gray-500 mb-3">TANGGUNGAN ({detailData.tanggungan.length})</p>
                   <div className="space-y-2">
-                    {detailData.tanggungan.map(t => (
+                    {detailData.tanggungan.map((t: TanggunganBPJS) => (
                       <div key={t.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div>
                           <p className="text-sm font-medium text-gray-800">{t.nama}</p>
