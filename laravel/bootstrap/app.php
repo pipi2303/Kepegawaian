@@ -34,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\BackupDatabase::class,
         \App\Console\Commands\CekKGBOtomatis::class,
         \App\Console\Commands\CekPensiunOtomatis::class,
+        \App\Console\Commands\CekKontrakExpiry::class,
     ])
     ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
         $schedule->command('hcms:cek-lisensi-nakes')->dailyAt('07:00');
@@ -41,6 +42,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('hcms:generate-slip-gaji')->monthlyOn(25, '06:00');
         $schedule->command('hcms:cek-kgb')->weeklyOn(1, '08:00'); // Senin 08:00 WIB
         $schedule->command('hcms:cek-pensiun')->dailyAt('09:00');
+        $schedule->command('hcms:cek-kontrak')->weeklyOn(1, '08:30');
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->report(function (\Throwable $e) {

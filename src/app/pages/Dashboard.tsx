@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import http from '../lib/http';
+import { dashboardApi } from '../data/api';
 import {
   Users, Clock, CalendarDays, TrendingUp, Target, AlertCircle,
   ShieldAlert, GraduationCap, ChevronRight,
@@ -13,6 +14,7 @@ import {
   ClipboardList, ArrowUpRight, UserPlus,
   TrendingDown, LayoutDashboard, RefreshCw,
   Filter, Minus, CheckCircle2, AlertTriangle,
+  BedDouble, ChevronDown, ChevronUp, ExternalLink,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { useDashboardSummary, useNotifications } from '../hooks';
@@ -85,6 +87,20 @@ export default function Dashboard() {
     queryFn: () => http.get('/dashboard/str-by-unit').then(r => r.data.data),
     staleTime: 300_000,
   });
+
+  const { data: direkturSummary } = useQuery({
+    queryKey: ['direktur-summary'],
+    queryFn: dashboardApi.direkturSummary,
+    staleTime: 300_000,
+  });
+
+  const { data: workforceMap } = useQuery({
+    queryKey: ['workforce-map'],
+    queryFn: dashboardApi.workforceMap,
+    staleTime: 300_000,
+  });
+
+  const [direkturOpen, setDirekturOpen] = useState(true);
 
   const [activeTab, setActiveTab] = useState<'ringkasan' | 'kehadiran' | 'sdm' | 'kinerja'>('ringkasan');
   const [activityFeed, setActivityFeed] = useState<'aktivitas' | 'pengingat'>('aktivitas');
@@ -583,6 +599,233 @@ export default function Dashboard() {
     <div className="p-4 lg:p-6 space-y-5">
 
 
+
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* DIREKTUR DASHBOARD                                                    */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        {/* Collapsible header */}
+        <button
+          onClick={() => setDirekturOpen(o => !o)}
+          className="w-full flex items-center justify-between px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <Building2 className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-semibold text-gray-800">Executive Dashboard — Direktur RS</span>
+            {direkturSummary && (
+              <span className="text-[10px] text-gray-400 ml-1">
+                {new Date(direkturSummary.generated_at ?? '').toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
+              </span>
+            )}
+          </div>
+          {direkturOpen ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+        </button>
+
+        {direkturOpen && (
+          <div className="p-4 space-y-4">
+            {/* Skeleton when loading */}
+            {!direkturSummary && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {Array.from({ length: 9 }).map((_, i) => (
+                  <div key={i} className="h-20 bg-gray-100 animate-pulse rounded-xl" />
+                ))}
+              </div>
+            )}
+
+            {direkturSummary && (
+              <>
+                {/* Section 1: Executive KPI Row */}
+                <div>
+                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">SDM & Kehadiran</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                    {/* Total Pegawai Aktif */}
+                    <div className="bg-blue-50 rounded-xl p-3 cursor-pointer hover:bg-blue-100 transition-colors" onClick={() => navigate('/pegawai')}>
+                      <p className="text-[10px] text-blue-600 font-medium mb-1">Total Pegawai Aktif</p>
+                      <p className="text-2xl font-bold text-blue-700">{direkturSummary.totalAktif ?? 0}</p>
+                      <p className="text-[10px] text-blue-500 mt-1">
+                        PNS {direkturSummary.pns} · PPPK {direkturSummary.pppk} · Hon. {direkturSummary.honorer}
+                      </p>
+                    </div>
+
+                    {/* Hadir Hari Ini */}
+                    <div className="bg-emerald-50 rounded-xl p-3">
+                      <p className="text-[10px] text-emerald-600 font-medium mb-1">Hadir Hari Ini</p>
+                      <p className="text-2xl font-bold text-emerald-700">
+                        {direkturSummary.totalAktif > 0
+                          ? Math.round((direkturSummary.hadirHariIni / direkturSummary.totalAktif) * 100)
+                          : 0}%
+                      </p>
+                      <p className="text-[10px] text-emerald-500 mt-1">
+                        {direkturSummary.hadirHariIni} hadir · {direkturSummary.terlambat} terlambat
+                      </p>
+                    </div>
+
+                    {/* Cuti Pending */}
+                    <div
+                      className="bg-orange-50 rounded-xl p-3 cursor-pointer hover:bg-orange-100 transition-colors"
+                      onClick={() => navigate('/cuti')}
+                    >
+                      <p className="text-[10px] text-orange-600 font-medium mb-1">Cuti Pending</p>
+                      <p className="text-2xl font-bold text-orange-700">{direkturSummary.cutiPending ?? 0}</p>
+                      <p className="text-[10px] text-orange-500 mt-1">Menunggu persetujuan</p>
+                    </div>
+
+                    {/* Kontrak Akan Habis */}
+                    <div
+                      className={`rounded-xl p-3 cursor-pointer transition-colors ${direkturSummary.kontrakExpiring > 0 ? 'bg-amber-50 hover:bg-amber-100' : 'bg-gray-50 hover:bg-gray-100'}`}
+                      onClick={() => navigate('/kontrak')}
+                    >
+                      <p className={`text-[10px] font-medium mb-1 ${direkturSummary.kontrakExpiring > 0 ? 'text-amber-600' : 'text-gray-500'}`}>
+                        Kontrak Habis ≤30h
+                      </p>
+                      <p className={`text-2xl font-bold ${direkturSummary.kontrakExpiring > 0 ? 'text-amber-700' : 'text-gray-600'}`}>
+                        {direkturSummary.kontrakExpiring ?? 0}
+                      </p>
+                      <p className={`text-[10px] mt-1 ${direkturSummary.kontrakExpiring > 0 ? 'text-amber-500' : 'text-gray-400'}`}>pegawai</p>
+                    </div>
+
+                    {/* Pensiun Mendekati */}
+                    <div
+                      className={`rounded-xl p-3 cursor-pointer transition-colors ${direkturSummary.pensiunMendekati > 0 ? 'bg-red-50 hover:bg-red-100' : 'bg-gray-50 hover:bg-gray-100'}`}
+                      onClick={() => navigate('/pegawai')}
+                    >
+                      <p className={`text-[10px] font-medium mb-1 ${direkturSummary.pensiunMendekati > 0 ? 'text-red-600' : 'text-gray-500'}`}>
+                        Pensiun ≤90 Hari
+                      </p>
+                      <p className={`text-2xl font-bold ${direkturSummary.pensiunMendekati > 0 ? 'text-red-700' : 'text-gray-600'}`}>
+                        {direkturSummary.pensiunMendekati ?? 0}
+                      </p>
+                      <p className={`text-[10px] mt-1 ${direkturSummary.pensiunMendekati > 0 ? 'text-red-500' : 'text-gray-400'}`}>pegawai</p>
+                    </div>
+
+                    {/* K3RS Insiden YTD */}
+                    <div className="bg-pink-50 rounded-xl p-3 cursor-pointer hover:bg-pink-100 transition-colors" onClick={() => navigate('/k3rs')}>
+                      <p className="text-[10px] text-pink-600 font-medium mb-1">K3RS Insiden YTD</p>
+                      <p className="text-2xl font-bold text-pink-700">{direkturSummary.insidenYTD ?? 0}</p>
+                      <p className="text-[10px] text-pink-500 mt-1">{direkturSummary.insidenBerat ?? 0} berat/fatal</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 2 & 3: Financial + BOR side by side */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                  {/* Financial Overview */}
+                  <div className="lg:col-span-2">
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Keuangan SDM Bulan Ini</p>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="bg-teal-50 rounded-xl p-3">
+                        <p className="text-[10px] text-teal-600 font-medium mb-1">Total RBK</p>
+                        <p className="text-lg font-bold text-teal-700 leading-tight">{fmtRp(Number(direkturSummary.totalRBK ?? 0))}</p>
+                        <p className="text-[10px] text-teal-500 mt-1">Remunerasi Kinerja</p>
+                      </div>
+                      <div className="bg-indigo-50 rounded-xl p-3">
+                        <p className="text-[10px] text-indigo-600 font-medium mb-1">Total TPP</p>
+                        <p className="text-lg font-bold text-indigo-700 leading-tight">{fmtRp(Number(direkturSummary.totalTPP ?? 0))}</p>
+                        <p className="text-[10px] text-indigo-500 mt-1">Tambahan Penghasilan</p>
+                      </div>
+                      <div className="bg-purple-50 rounded-xl p-3">
+                        <p className="text-[10px] text-purple-600 font-medium mb-1">Rata-rata SKP</p>
+                        <p className="text-lg font-bold text-purple-700 leading-tight">
+                          {direkturSummary.rataSkp != null ? Number(direkturSummary.rataSkp).toFixed(1) : '—'}
+                        </p>
+                        <p className="text-[10px] text-purple-500 mt-1">Nilai akhir disetujui</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* BOR Card */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Kapasitas RS</p>
+                      <button
+                        onClick={() => navigate('/settings')}
+                        className="flex items-center gap-0.5 text-[10px] text-blue-500 hover:underline"
+                      >
+                        Update <ExternalLink className="w-3 h-3" />
+                      </button>
+                    </div>
+                    <div className="bg-white border border-gray-200 rounded-xl p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <BedDouble className="w-4 h-4 text-blue-500" />
+                        <p className="text-xs font-semibold text-gray-700">BOR (Bed Occupancy Rate)</p>
+                      </div>
+                      <p className="text-3xl font-bold text-blue-700 mb-1">{direkturSummary.borManual ?? 0}%</p>
+                      {/* Progress bar */}
+                      <div className="w-full bg-gray-100 rounded-full h-2 mb-2">
+                        <div
+                          className={`h-2 rounded-full transition-all ${
+                            (direkturSummary.borManual ?? 0) >= 85 ? 'bg-red-500'
+                            : (direkturSummary.borManual ?? 0) >= 70 ? 'bg-amber-500'
+                            : 'bg-blue-500'
+                          }`}
+                          style={{ width: `${Math.min(100, direkturSummary.borManual ?? 0)}%` }}
+                        />
+                      </div>
+                      <p className="text-[10px] text-gray-500">
+                        <span className="font-medium">{direkturSummary.totalTT ?? 200}</span> tempat tidur tersedia
+                      </p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">Update manual via Admin Settings</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 4: Workforce Map */}
+                {workforceMap && workforceMap.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Peta Tenaga Kerja per Unit</p>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                      {/* Bar chart */}
+                      <RechartsWrapper
+                        type="bar"
+                        data={workforceMap.slice(0, 10).map((u: any) => ({
+                          unit_kerja: u.unit_kerja?.length > 12 ? u.unit_kerja.slice(0, 10) + '…' : u.unit_kerja,
+                          Staf: u.jumlah,
+                          Hadir: u.hadir_hari_ini,
+                        }))}
+                        xKey="unit_kerja"
+                        yKey={['Staf', 'Hadir']}
+                        colors={[CHART_COLORS[0], CHART_COLORS[7]]}
+                        height={200}
+                        margin={{ top: 0, right: 8, left: -20, bottom: 0 }}
+                      />
+
+                      {/* Table */}
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="border-b border-gray-100">
+                              <th className="text-left py-1 pr-2 text-gray-400 font-medium">Unit</th>
+                              <th className="text-right py-1 px-1 text-gray-400 font-medium">Staf</th>
+                              <th className="text-right py-1 px-1 text-gray-400 font-medium">Hadir</th>
+                              <th className="text-right py-1 pl-1 text-gray-400 font-medium">%</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {workforceMap.slice(0, 8).map((u: any) => (
+                              <tr key={u.unit_kerja} className="border-b border-gray-50 hover:bg-gray-50">
+                                <td className="py-1 pr-2 text-gray-700 truncate max-w-[120px]" title={u.unit_kerja}>
+                                  {u.unit_kerja?.length > 18 ? u.unit_kerja.slice(0, 16) + '…' : u.unit_kerja}
+                                </td>
+                                <td className="text-right py-1 px-1 text-gray-600 font-medium">{u.jumlah}</td>
+                                <td className="text-right py-1 px-1 text-emerald-600 font-medium">{u.hadir_hari_ini}</td>
+                                <td className="text-right py-1 pl-1">
+                                  <span className={`font-semibold ${u.kehadiran_pct >= 80 ? 'text-emerald-600' : u.kehadiran_pct >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
+                                    {u.kehadiran_pct}%
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* ── HR Director Dashboard ── */}
       <div className="contents">

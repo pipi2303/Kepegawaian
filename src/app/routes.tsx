@@ -48,6 +48,7 @@ const RBK                    = lazy(() => import('./pages/RBK'));
 const Rekrutmen              = lazy(() => import('./pages/Rekrutmen'));
 const PortalLamaran          = lazy(() => import('./pages/PortalLamaran'));
 const PensiunTracker         = lazy(() => import('./pages/PensiunTracker'));
+const AngkaKredit            = lazy(() => import('./pages/AngkaKredit'));
 
 // ─── Router Singleton ─────────────────────────────────────────────────────────
 const ROUTER_KEY = '__hrAppRouter_v11';
@@ -175,6 +176,8 @@ function buildRouter(): RouterType {
               path: 'rekrutmen',
               element: <ProtectedRoute roles={['admin', 'direktur']}><Rekrutmen /></ProtectedRoute>
             },
+            // Angka Kredit JFT
+            { path: 'angka-kredit', Component: AngkaKredit },
             // Self-service portal
             { path: 'my/profile',               Component: MyProfile },
             { path: 'my/cuti',                  Component: MyCuti },

@@ -1,11 +1,11 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   Target, Plus, Info, X, Edit2, Eye, Award, Trash2, ChevronDown,
   ChevronUp, Save, BookOpen, BarChart2, GitBranch, TrendingUp,
   Zap, AlertTriangle, CheckCircle2, Clock, Users, Layers, ArrowRight,
   Search, Filter, Star, Brain, Heart, Handshake, Lightbulb, Crown,
   RefreshCw, Download, AlertCircle, CheckSquare, ChevronRight,
-  User, FileCheck, Printer, FileText,
+  User, FileCheck, Printer, FileText, Send, ThumbsUp, ClipboardList,
 } from 'lucide-react';
 
 import { useAppContext } from '../context/AppContext';
@@ -16,6 +16,7 @@ import { bscObjectives, okrObjectives } from '../data/performanceData';
 import ProfilKinerjaTab from '../components/skp/ProfilKinerjaTab';
 import ApprovalTab from '../components/skp/ApprovalTab';
 import LaporanTab from '../components/skp/LaporanTab';
+import { skpApi } from '../data/api';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const TABS = [
@@ -39,9 +40,14 @@ const PREDIKAT_CFG: Record<string, { color: string; bg: string; border: string; 
   'Sangat Kurang':{ color: 'text-red-700',   bg: 'bg-red-100',     border: 'border-red-200',     min: 0   },
 };
 const STATUS_CFG: Record<string, string> = {
-  'Draft':   'bg-gray-100 text-gray-600',
-  'Aktif':   'bg-blue-100 text-blue-700',
-  'Selesai': 'bg-green-100 text-green-700',
+  'Draft':     'bg-gray-100 text-gray-600',
+  'Diajukan':  'bg-blue-100 text-blue-700',
+  'Dinilai':   'bg-amber-100 text-amber-700',
+  'Disetujui': 'bg-green-100 text-green-700',
+  'Banding':   'bg-red-100 text-red-700',
+  // legacy local mock statuses
+  'Aktif':     'bg-blue-100 text-blue-700',
+  'Selesai':   'bg-green-100 text-green-700',
 };
 const KPI_KATEGORI_CFG: Record<string, { color: string; bg: string; icon: string }> = {
   'Medis':    { color: 'text-red-700',     bg: 'bg-red-50',    icon: '🏥' },
@@ -507,124 +513,233 @@ function KamusKPITab({ onImportKPI }: { onImportKPI: (kpi: KPIEntry) => void }) 
 }
 
 // ─── TAB 3: SKP Aktif ─────────────────────────────────────────────────────────
+// API-backed version; falls back to empty list if offline
 function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry | null; clearImportedKPI: () => void }) {
-  const { skp, pegawai, addSKP, updateSKP, deleteSKP } = useAppContext();
+  const { pegawai } = useAppContext();
+
+  // ── API state ──────────────────────────────────────────────────────────────
+  const [apiData, setApiData] = useState<{ data: any[]; meta?: any } | null>(null);
+  const [loading, setLoading] = useState(false);
   const [filterPegawai, setFilterPegawai] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterTahun, setFilterTahun] = useState('');
-  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
-  const [selectedSKP, setSelectedSKP] = useState<SKPRecord | null>(null);
+  const [page, setPage] = useState(1);
+
+  const fetchSKP = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await skpApi.getAll({
+        pegawai_id: filterPegawai || undefined,
+        status: filterStatus || undefined,
+        tahun: filterTahun || undefined,
+        page,
+      });
+      setApiData(res);
+    } catch {
+      // ponytail: silent fallback; API offline → keep showing empty list
+      setApiData(prev => prev ?? { data: [] });
+    } finally {
+      setLoading(false);
+    }
+  }, [filterPegawai, filterStatus, filterTahun, page]);
+
+  useEffect(() => { fetchSKP(); }, [fetchSKP]);
+
+  // Pagination helper
+  const paginatedData = apiData?.data?.data ?? apiData?.data ?? [];
+  const paginationMeta = apiData?.data?.meta ?? apiData?.meta ?? null;
+
+  // ── Modal state ────────────────────────────────────────────────────────────
+  const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const [selectedSKP, setSelectedSKP] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
   const [showRealisasiModal, setShowRealisasiModal] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
-  const [editData, setEditData] = useState<SKPRecord | null>(null);
+  const [showNilaiModal, setShowNilaiModal] = useState(false);
+  const [editData, setEditData] = useState<any>(null);
+  const [saving, setSaving] = useState(false);
 
+  // ── Form state ─────────────────────────────────────────────────────────────
   const [formPegawaiId, setFormPegawaiId] = useState('');
   const [formTahun, setFormTahun] = useState(2026);
   const [formSemester, setFormSemester] = useState<1 | 2>(1);
-  const [formStatus, setFormStatus] = useState<'Draft' | 'Aktif' | 'Selesai'>('Aktif');
-  const [formItems, setFormItems] = useState<Array<Omit<SKPItem, 'id'> & { id: string }>>([{ id: genItemId(), ...EMPTY_ITEM }]);
-  const [realisasiValues, setRealisasiValues] = useState<Record<string, number>>({});
-  const [showKamusModal, setShowKamusModal] = useState(false);
+  const [formDetails, setFormDetails] = useState<any[]>([{
+    _key: genItemId(), aspek: '', rencana_kinerja_atasan: '',
+    rencana_kinerja_individu: '', indikator_kinerja_individu: '',
+    target_min: '', target_max: '', satuan: '',
+  }]);
 
-  // Apply imported KPI when switching tab
-  React.useEffect(() => {
+  // ── Nilai (penilaian atasan) form ──────────────────────────────────────────
+  const [nilaiHasil, setNilaiHasil] = useState('');
+  const [nilaiPerilaku, setNilaiPerilaku] = useState('');
+  const [catatanAtasan, setCatatanAtasan] = useState('');
+  const [penilaiId, setPenilaiId] = useState('');
+
+  // ── Realisasi per butir ────────────────────────────────────────────────────
+  const [realisasiMap, setRealisasiMap] = useState<Record<number, string>>({});
+
+  // Apply imported KPI when form is open
+  useEffect(() => {
     if (importedKPI && showFormModal) {
-      setFormItems(prev => [...prev, {
-        id: genItemId(),
-        uraianKegiatan: importedKPI.nama,
-        target: 100,
+      setFormDetails(prev => [...prev, {
+        _key: genItemId(),
+        aspek: importedKPI.kategori,
+        rencana_kinerja_atasan: '',
+        rencana_kinerja_individu: importedKPI.nama,
+        indikator_kinerja_individu: importedKPI.formula,
+        target_min: 0,
+        target_max: 100,
         satuan: importedKPI.satuan,
-        bobot: 0,
       }]);
       clearImportedKPI();
     }
   }, [importedKPI, showFormModal, clearImportedKPI]);
 
-  const filteredSKP = useMemo(() =>
-    skp.filter(s => {
-      if (filterPegawai && s.pegawaiId !== filterPegawai) return false;
-      if (filterStatus && s.status !== filterStatus) return false;
-      if (filterTahun && s.tahun !== Number(filterTahun)) return false;
-      return true;
-    }),
-    [skp, filterPegawai, filterStatus, filterTahun]
-  );
-
-  const getPegawai = (id: string) => pegawai.find(p => p.id === id);
-  const getFullName = (id: string) => {
-    const p = getPegawai(id);
-    return p ? `${p.gelarDepan || ''} ${p.nama}`.trim() : '-';
-  };
-  const totalBobot = formItems.reduce((s, i) => s + (Number(i.bobot) || 0), 0);
+  const [showKamusModal, setShowKamusModal] = useState(false);
 
   const openAdd = () => {
     setEditData(null);
-    setFormPegawaiId(''); setFormTahun(2026); setFormSemester(1); setFormStatus('Aktif');
-    setFormItems([{ id: genItemId(), ...EMPTY_ITEM }]);
+    setFormPegawaiId(''); setFormTahun(2026); setFormSemester(1);
+    setFormDetails([{ _key: genItemId(), aspek: '', rencana_kinerja_atasan: '', rencana_kinerja_individu: '', indikator_kinerja_individu: '', target_min: '', target_max: '', satuan: '' }]);
     setShowFormModal(true);
   };
-  const openEdit = (s: SKPRecord) => {
+
+  const openEdit = (s: any) => {
     setEditData(s);
-    setFormPegawaiId(s.pegawaiId); setFormTahun(s.tahun); setFormSemester(s.semester); setFormStatus(s.status);
-    setFormItems(s.targetKinerja.map(t => ({ ...t })));
+    setFormPegawaiId(String(s.pegawai_id));
+    setFormTahun(s.tahun);
+    setFormSemester(s.semester);
+    setFormDetails((s.details ?? []).map((d: any) => ({ ...d, _key: String(d.id) })));
     setShowFormModal(true);
   };
-  const openRealisasi = (s: SKPRecord) => {
+
+  const openRealisasi = (s: any) => {
     setSelectedSKP(s);
-    const init: Record<string, number> = {};
-    s.targetKinerja.forEach(t => { if (t.realisasi != null) init[t.id] = t.realisasi; });
-    setRealisasiValues(init);
+    const init: Record<number, string> = {};
+    (s.details ?? []).forEach((d: any) => { if (d.realisasi != null) init[d.id] = String(d.realisasi); });
+    setRealisasiMap(init);
     setShowRealisasiModal(true);
   };
-  const addItem = () => setFormItems(prev => [...prev, { id: genItemId(), ...EMPTY_ITEM }]);
-  const removeItem = (id: string) => setFormItems(prev => prev.filter(i => i.id !== id));
-  const updateItem = (id: string, field: string, value: any) =>
-    setFormItems(prev => prev.map(i => i.id === id ? { ...i, [field]: value } : i));
 
-  const handleSave = () => {
-    if (!formPegawaiId) { toast.error('Pilih pegawai terlebih dahulu'); return; }
-    if (formItems.some(i => !i.uraianKegiatan)) { toast.error('Isi semua uraian kegiatan'); return; }
-    if (totalBobot !== 100) { toast.error(`Total bobot harus 100% (saat ini ${totalBobot}%)`); return; }
-    const items: SKPItem[] = formItems.map(i => ({ ...i, target: Number(i.target), bobot: Number(i.bobot) }));
-    if (editData) {
-      updateSKP({ ...editData, pegawaiId: formPegawaiId, tahun: formTahun, semester: formSemester, status: formStatus, targetKinerja: items });
-      toast.success('SKP berhasil diperbarui');
-    } else {
-      addSKP({ pegawaiId: formPegawaiId, tahun: formTahun, semester: formSemester, status: formStatus, targetKinerja: items });
-      toast.success('SKP baru berhasil dibuat');
+  const openNilai = (s: any) => {
+    setSelectedSKP(s);
+    setNilaiHasil(''); setNilaiPerilaku(''); setCatatanAtasan(''); setPenilaiId('');
+    setShowNilaiModal(true);
+  };
+
+  const addDetail = () => setFormDetails(prev => [...prev, {
+    _key: genItemId(), aspek: '', rencana_kinerja_atasan: '',
+    rencana_kinerja_individu: '', indikator_kinerja_individu: '',
+    target_min: '', target_max: '', satuan: '',
+  }]);
+  const removeDetail = (key: string) => setFormDetails(prev => prev.filter(d => d._key !== key));
+  const updateDetail = (key: string, field: string, val: any) =>
+    setFormDetails(prev => prev.map(d => d._key === key ? { ...d, [field]: val } : d));
+
+  const handleSave = async () => {
+    if (!formPegawaiId) { toast.error('Pilih pegawai'); return; }
+    if (formDetails.some(d => !d.rencana_kinerja_individu || !d.indikator_kinerja_individu || !d.satuan)) {
+      toast.error('Lengkapi semua butir (Rencana Individu, Indikator, Satuan)'); return;
     }
-    setShowFormModal(false);
+    setSaving(true);
+    const payload = {
+      pegawai_id: Number(formPegawaiId),
+      tahun: formTahun,
+      semester: formSemester,
+      details: formDetails.map(({ _key, ...d }) => d),
+    };
+    try {
+      if (editData) {
+        await skpApi.update(editData.id, payload);
+        toast.success('SKP berhasil diperbarui');
+      } else {
+        await skpApi.create(payload);
+        toast.success('SKP baru berhasil dibuat');
+      }
+      setShowFormModal(false);
+      fetchSKP();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? 'Gagal menyimpan SKP');
+    } finally {
+      setSaving(false);
+    }
   };
-  const handleSaveRealisasi = () => {
-    if (!selectedSKP) return;
-    const updatedItems = selectedSKP.targetKinerja.map(t => {
-      const real = realisasiValues[t.id] ?? t.realisasi ?? 0;
-      const capaian = t.target > 0 ? Math.min(130, Math.round((real / t.target) * 100)) : 0;
-      return { ...t, realisasi: real, nilaiCapaian: capaian };
-    });
-    const nilaiAkhir = Math.round(updatedItems.reduce((sum, t) => sum + ((t.nilaiCapaian || 0) * t.bobot / 100), 0));
-    const predikat = getNilaiPredikat(nilaiAkhir);
-    updateSKP({ ...selectedSKP, targetKinerja: updatedItems, nilaiAkhir, predikat, status: 'Selesai' });
-    toast.success(`Realisasi disimpan — Nilai Akhir: ${nilaiAkhir} (${predikat})`);
-    setShowRealisasiModal(false);
-  };
-  const handleDelete = (id: string) => { deleteSKP(id); setShowDeleteConfirm(null); toast.success('Data SKP dihapus'); };
-  const toggleCard = (id: string) => setExpandedCards(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
-  // Avatar color palette
+  const handleAjukan = async (s: any) => {
+    try {
+      await skpApi.ajukan(s.id);
+      toast.success('SKP berhasil diajukan');
+      fetchSKP();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? 'Gagal mengajukan SKP');
+    }
+  };
+
+  const handleNilai = async () => {
+    if (!nilaiHasil || !nilaiPerilaku || !penilaiId) { toast.error('Lengkapi semua field penilaian'); return; }
+    setSaving(true);
+    try {
+      await skpApi.nilai(selectedSKP.id, {
+        nilai_hasil_kerja: Number(nilaiHasil),
+        nilai_perilaku: Number(nilaiPerilaku),
+        catatan_atasan: catatanAtasan,
+        pejabat_penilai_id: Number(penilaiId),
+      });
+      toast.success('Penilaian berhasil disimpan');
+      setShowNilaiModal(false);
+      fetchSKP();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? 'Gagal menyimpan penilaian');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSetujui = async (s: any) => {
+    try {
+      await skpApi.setujui(s.id);
+      toast.success('SKP berhasil disetujui');
+      fetchSKP();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? 'Gagal menyetujui SKP');
+    }
+  };
+
+  const handleSaveRealisasi = async () => {
+    if (!selectedSKP) return;
+    setSaving(true);
+    try {
+      const updates = Object.entries(realisasiMap).map(([id, val]) =>
+        skpApi.updateRealisasi(Number(id), { realisasi: Number(val) })
+      );
+      await Promise.all(updates);
+      toast.success('Realisasi disimpan');
+      setShowRealisasiModal(false);
+      fetchSKP();
+    } catch {
+      toast.error('Gagal menyimpan realisasi');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleCard = (id: number) => setExpandedCards(prev => {
+    const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n;
+  });
+
   const avatarColors = [
-    'bg-blue-100 text-blue-700','bg-violet-100 text-violet-700',
-    'bg-emerald-100 text-emerald-700','bg-rose-100 text-rose-700',
-    'bg-amber-100 text-amber-700','bg-cyan-100 text-cyan-700',
-    'bg-indigo-100 text-indigo-700','bg-pink-100 text-pink-700',
+    'bg-blue-100 text-blue-700', 'bg-violet-100 text-violet-700',
+    'bg-emerald-100 text-emerald-700', 'bg-rose-100 text-rose-700',
+    'bg-amber-100 text-amber-700', 'bg-cyan-100 text-cyan-700',
   ];
-  const getAvatarCls = (name: string) => avatarColors[(name.charCodeAt(0) || 0) % avatarColors.length];
+  const getAvatarCls = (name: string) => avatarColors[(name?.charCodeAt(0) || 0) % avatarColors.length];
+
   const STATUS_ROW_CFG: Record<string, { pill: string; dot: string }> = {
-    'Draft':   { pill: 'bg-gray-100 text-gray-500 border border-gray-200',         dot: 'bg-gray-400'    },
-    'Aktif':   { pill: 'bg-blue-50 text-blue-600 border border-blue-200',           dot: 'bg-blue-500'    },
-    'Selesai': { pill: 'bg-emerald-50 text-emerald-700 border border-emerald-200',  dot: 'bg-emerald-500' },
+    'Draft':     { pill: 'bg-gray-100 text-gray-500 border border-gray-200',         dot: 'bg-gray-400'    },
+    'Diajukan':  { pill: 'bg-blue-50 text-blue-600 border border-blue-200',           dot: 'bg-blue-500'    },
+    'Dinilai':   { pill: 'bg-amber-50 text-amber-600 border border-amber-200',        dot: 'bg-amber-500'   },
+    'Disetujui': { pill: 'bg-emerald-50 text-emerald-700 border border-emerald-200',  dot: 'bg-emerald-500' },
+    'Banding':   { pill: 'bg-red-50 text-red-600 border border-red-200',              dot: 'bg-red-500'     },
   };
 
   return (
@@ -632,25 +747,26 @@ function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry 
       {/* ── Filter & Action Bar ── */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
         <div className="flex-1 relative">
-          <select value={filterPegawai} onChange={e => setFilterPegawai(e.target.value)}
+          <select value={filterPegawai} onChange={e => { setFilterPegawai(e.target.value); setPage(1); }}
             className="w-full appearance-none text-sm bg-white border border-gray-200 rounded-xl pl-3 pr-8 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
             <option value="">Semua Pegawai</option>
             {pegawai.map(p => <option key={p.id} value={p.id}>{p.gelarDepan || ''} {p.nama} — {p.jabatan}</option>)}
           </select>
           <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
         </div>
-        <div className="relative sm:w-40">
-          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+        <div className="relative sm:w-44">
+          <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1); }}
             className="w-full appearance-none text-sm bg-white border border-gray-200 rounded-xl pl-3 pr-8 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
             <option value="">Semua Status</option>
             <option value="Draft">Draft</option>
-            <option value="Aktif">Aktif</option>
-            <option value="Selesai">Selesai</option>
+            <option value="Diajukan">Diajukan</option>
+            <option value="Dinilai">Dinilai</option>
+            <option value="Disetujui">Disetujui</option>
           </select>
           <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
         </div>
         <div className="relative sm:w-36">
-          <select value={filterTahun} onChange={e => setFilterTahun(e.target.value)}
+          <select value={filterTahun} onChange={e => { setFilterTahun(e.target.value); setPage(1); }}
             className="w-full appearance-none text-sm bg-white border border-gray-200 rounded-xl pl-3 pr-8 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
             <option value="">Semua Tahun</option>
             {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
@@ -663,17 +779,22 @@ function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry 
         </button>
       </div>
 
-      {/* Count hint */}
-      <p className="text-xs text-gray-400 px-0.5">
-        {filteredSKP.length} data SKP ditemukan
-        {(filterPegawai || filterStatus || filterTahun) && (
-          <button onClick={() => { setFilterPegawai(''); setFilterStatus(''); setFilterTahun(''); }}
-            className="ml-2 text-blue-500 hover:underline">Reset filter</button>
-        )}
-      </p>
+      {/* Count / reset */}
+      <div className="flex items-center gap-3">
+        <p className="text-xs text-gray-400 px-0.5">
+          {loading ? 'Memuat...' : `${paginatedData.length} data SKP`}
+          {(filterPegawai || filterStatus || filterTahun) && (
+            <button onClick={() => { setFilterPegawai(''); setFilterStatus(''); setFilterTahun(''); setPage(1); }}
+              className="ml-2 text-blue-500 hover:underline">Reset filter</button>
+          )}
+        </p>
+        <button onClick={fetchSKP} className="p-1 text-gray-400 hover:text-gray-600 rounded" title="Refresh">
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+        </button>
+      </div>
 
       {/* ── SKP List ── */}
-      {filteredSKP.length === 0 ? (
+      {!loading && paginatedData.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-16 text-center">
           <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-blue-300" />
@@ -687,18 +808,13 @@ function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry 
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          {filteredSKP.map((s, idx) => {
-            const p = getPegawai(s.pegawaiId);
+          {paginatedData.map((s: any, idx: number) => {
+            const peg = s.pegawai;
+            const nama = peg ? `${peg.nama}` : `Pegawai #${s.pegawai_id}`;
             const predikatCfg = s.predikat ? PREDIKAT_CFG[s.predikat] : null;
             const isExpanded = expandedCards.has(s.id);
-            const kpiBehavior = loadBehavior(s.id);
-            const isSupv = p?.eselon != null;
-            const hasPerilaku = Object.keys(kpiBehavior).length > 0;
-            const perilakuScore = hasPerilaku ? calcBehaviorScore(kpiBehavior, isSupv) : null;
-            const finalScore = s.nilaiAkhir != null && perilakuScore != null
-              ? Math.round(s.nilaiAkhir * 0.7 + perilakuScore * 0.3) : null;
-            const avatarCls = getAvatarCls(p?.nama || 'A');
-            const statusCfg = STATUS_ROW_CFG[s.status] || STATUS_ROW_CFG['Draft'];
+            const avatarCls = getAvatarCls(nama);
+            const statusCfg = STATUS_ROW_CFG[s.status] ?? STATUS_ROW_CFG['Draft'];
 
             return (
               <div key={s.id} className={idx > 0 ? 'border-t border-gray-100' : ''}>
@@ -707,30 +823,20 @@ function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry 
                   className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50/60 transition-colors cursor-pointer select-none group"
                   onClick={() => toggleCard(s.id)}
                 >
-                  {/* Avatar */}
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold flex-shrink-0 text-sm ${avatarCls}`}>
-                    {(p?.nama || '?').charAt(0).toUpperCase()}
+                    {nama.charAt(0).toUpperCase()}
                   </div>
-
-                  {/* Identity */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-800 truncate leading-tight">{getFullName(s.pegawaiId)}</p>
+                    <p className="text-sm font-semibold text-gray-800 truncate leading-tight">{nama}</p>
                     <p className="text-xs text-gray-400 mt-0.5 truncate">
-                      {p?.jabatan || '–'}
-                      {p?.unitKerja ? ` · ${p.unitKerja}` : ''}
+                      {peg?.jabatan || '–'}
+                      {peg?.unit_kerja ? ` · ${peg.unit_kerja}` : ''}
                       {' · '}Sem. {s.semester} {s.tahun}
                     </p>
                   </div>
-
-                  {/* Right side */}
                   <div className="flex items-center gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
-                    {s.nilaiAkhir != null && (
-                      <span className="text-lg font-bold text-gray-800 tabular-nums min-w-10 text-right">{s.nilaiAkhir}</span>
-                    )}
-                    {finalScore != null && (
-                      <span className="hidden md:inline-flex text-[11px] px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-semibold">
-                        Final {finalScore}
-                      </span>
+                    {s.nilai_akhir != null && (
+                      <span className="text-lg font-bold text-gray-800 tabular-nums">{Number(s.nilai_akhir).toFixed(1)}</span>
                     )}
                     {s.predikat && predikatCfg && (
                       <span className={`hidden sm:inline-flex text-[11px] px-2.5 py-1 rounded-full font-semibold ${predikatCfg.bg} ${predikatCfg.color}`}>
@@ -741,55 +847,61 @@ function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry 
                       <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusCfg.dot}`} />
                       {s.status}
                     </span>
-                    {/* Icons */}
+                    {/* Workflow buttons */}
                     <div className="flex items-center gap-0.5">
                       <button onClick={e => { e.stopPropagation(); setSelectedSKP(s); setShowDetailModal(true); }}
-                        className="p-1.5 text-gray-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Lihat Detail">
+                        className="p-1.5 text-gray-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg" title="Detail">
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button onClick={e => { e.stopPropagation(); openEdit(s); }}
-                        className="p-1.5 text-gray-300 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors" title="Edit">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      {s.status === 'Aktif' && (
+                      {(s.status === 'Draft' || s.status === 'Diajukan') && (
+                        <button onClick={e => { e.stopPropagation(); openEdit(s); }}
+                          className="p-1.5 text-gray-300 hover:text-gray-700 hover:bg-gray-100 rounded-lg" title="Edit">
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                      )}
+                      {s.status === 'Draft' && (
+                        <button onClick={e => { e.stopPropagation(); handleAjukan(s); }}
+                          className="p-1.5 text-gray-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg" title="Ajukan">
+                          <Send className="w-4 h-4" />
+                        </button>
+                      )}
+                      {s.status === 'Diajukan' && (
+                        <button onClick={e => { e.stopPropagation(); openNilai(s); }}
+                          className="p-1.5 text-gray-300 hover:text-amber-600 hover:bg-amber-50 rounded-lg" title="Nilai (Atasan)">
+                          <ClipboardList className="w-4 h-4" />
+                        </button>
+                      )}
+                      {s.status === 'Dinilai' && (
+                        <button onClick={e => { e.stopPropagation(); handleSetujui(s); }}
+                          className="p-1.5 text-gray-300 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Setujui">
+                          <ThumbsUp className="w-4 h-4" />
+                        </button>
+                      )}
+                      {s.status === 'Diajukan' && (s.details?.length ?? 0) > 0 && (
                         <button onClick={e => { e.stopPropagation(); openRealisasi(s); }}
-                          className="p-1.5 text-gray-300 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Input Realisasi">
+                          className="p-1.5 text-gray-300 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Update Realisasi">
                           <Save className="w-4 h-4" />
                         </button>
                       )}
-                      <button onClick={e => { e.stopPropagation(); setShowDeleteConfirm(s.id); }}
-                        className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Hapus">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
                     </div>
                     <div className="pl-0.5">
                       {isExpanded
-                        ? <ChevronUp className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
-                        : <ChevronDown className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
-                      }
+                        ? <ChevronUp className="w-4 h-4 text-gray-300 group-hover:text-gray-500" />
+                        : <ChevronDown className="w-4 h-4 text-gray-300 group-hover:text-gray-500" />}
                     </div>
                   </div>
                 </div>
 
-                {/* ── Expanded Detail ── */}
+                {/* ── Expanded ── */}
                 {isExpanded && (
                   <div className="border-t border-gray-100 bg-gray-50/40 px-5 pb-5 pt-4">
-                    {/* Mobile badges */}
-                    <div className="flex items-center gap-2 mb-3 sm:hidden flex-wrap">
-                      {s.nilaiAkhir != null && <span className="text-base font-bold text-gray-800">{s.nilaiAkhir}</span>}
-                      {finalScore != null && <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-semibold">Final {finalScore}</span>}
-                      {s.predikat && predikatCfg && (
-                        <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${predikatCfg.bg} ${predikatCfg.color}`}>{s.predikat}</span>
-                      )}
-                    </div>
-
                     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
                       <div className="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between">
-                        <p className="text-xs font-semibold text-gray-600">{s.targetKinerja.length} Butir Kegiatan / KPI</p>
-                        {s.status === 'Aktif' && (
+                        <p className="text-xs font-semibold text-gray-600">{(s.details ?? []).length} Butir Rencana Kinerja</p>
+                        {s.status === 'Diajukan' && (s.details?.length ?? 0) > 0 && (
                           <button onClick={() => openRealisasi(s)}
-                            className="flex items-center gap-1 text-xs text-emerald-600 border border-emerald-200 px-2.5 py-1 rounded-lg hover:bg-emerald-50 transition-colors">
-                            <Save className="w-3 h-3" /> Input Realisasi
+                            className="flex items-center gap-1 text-xs text-emerald-600 border border-emerald-200 px-2.5 py-1 rounded-lg hover:bg-emerald-50">
+                            <Save className="w-3 h-3" /> Update Realisasi
                           </button>
                         )}
                       </div>
@@ -797,41 +909,30 @@ function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry 
                         <table className="w-full text-xs">
                           <thead>
                             <tr className="text-gray-400 bg-gray-50/80 border-b border-gray-100">
-                              <th className="text-left px-4 py-2.5 font-medium">Uraian Kegiatan / KPI</th>
+                              <th className="text-left px-4 py-2.5 font-medium">Rencana Kinerja Individu</th>
+                              <th className="text-left px-3 py-2.5 font-medium">Indikator</th>
                               <th className="text-center px-3 py-2.5 font-medium whitespace-nowrap">Target</th>
                               <th className="text-center px-3 py-2.5 font-medium whitespace-nowrap">Realisasi</th>
-                              <th className="text-center px-3 py-2.5 font-medium whitespace-nowrap">Bobot</th>
                               <th className="text-center px-3 py-2.5 font-medium whitespace-nowrap">Capaian</th>
-                              <th className="text-left px-4 py-2.5 font-medium min-w-28">Progress</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {s.targetKinerja.map(t => {
-                              const capai = t.realisasi != null && t.target > 0
-                                ? Math.min(Math.round((t.realisasi / t.target) * 100), 130) : 0;
+                            {(s.details ?? []).map((d: any) => {
+                              const capai = d.capaian_persen ? Number(d.capaian_persen) : 0;
                               const capaiBar = Math.min(capai, 100);
-                              const barCls = capai >= 100 ? 'bg-emerald-500' : capai >= 75 ? 'bg-blue-500' : 'bg-amber-400';
                               const capaiCls = capai >= 100 ? 'text-emerald-600' : capai >= 75 ? 'text-blue-600' : 'text-amber-600';
                               return (
-                                <tr key={t.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60">
-                                  <td className="px-4 py-3 text-gray-700">{t.uraianKegiatan}</td>
-                                  <td className="px-3 py-3 text-center text-gray-500 whitespace-nowrap">{t.target.toLocaleString()} {t.satuan}</td>
+                                <tr key={d.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60">
+                                  <td className="px-4 py-3 text-gray-700 max-w-xs truncate">{d.rencana_kinerja_individu}</td>
+                                  <td className="px-3 py-3 text-gray-500 max-w-xs truncate">{d.indikator_kinerja_individu}</td>
+                                  <td className="px-3 py-3 text-center text-gray-500 whitespace-nowrap">{d.target_max} {d.satuan}</td>
                                   <td className="px-3 py-3 text-center font-semibold text-gray-700">
-                                    {t.realisasi != null ? t.realisasi.toLocaleString() : <span className="text-gray-300">—</span>}
+                                    {d.realisasi != null ? Number(d.realisasi).toLocaleString() : <span className="text-gray-300">—</span>}
                                   </td>
-                                  <td className="px-3 py-3 text-center text-gray-500">{t.bobot}%</td>
                                   <td className="px-3 py-3 text-center">
-                                    {t.nilaiCapaian != null
-                                      ? <span className={`font-bold ${capaiCls}`}>{t.nilaiCapaian.toFixed(1)}</span>
+                                    {d.capaian_persen != null
+                                      ? <span className={`font-bold ${capaiCls}`}>{Number(d.capaian_persen).toFixed(1)}%</span>
                                       : <span className="text-gray-300">—</span>}
-                                  </td>
-                                  <td className="px-4 py-3">
-                                    <div className="flex items-center gap-2 min-w-24">
-                                      <div className="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                                        <div className={`h-1.5 rounded-full ${barCls}`} style={{ width: `${capaiBar}%` }} />
-                                      </div>
-                                      <span className={`text-[10px] font-semibold w-7 text-right tabular-nums ${capaiCls}`}>{capai}%</span>
-                                    </div>
                                   </td>
                                 </tr>
                               );
@@ -839,18 +940,13 @@ function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry 
                           </tbody>
                         </table>
                       </div>
-                      {s.nilaiAkhir != null && (
+                      {s.nilai_akhir != null && (
                         <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-white border-t border-gray-100 flex items-center justify-between flex-wrap gap-2">
                           <div className="flex items-center gap-2 flex-wrap">
                             <Award className="w-3.5 h-3.5 text-gray-400" />
-                            <span className="text-xs text-gray-500">Nilai Akhir KPI</span>
-                            <span className="text-sm font-bold text-gray-800">{s.nilaiAkhir}</span>
-                            {perilakuScore != null && (
-                              <span className="text-xs text-gray-400">
-                                + Perilaku <strong className="text-purple-600">{perilakuScore}</strong>
-                                {' → Final '}<strong className="text-purple-700">{finalScore}</strong>
-                              </span>
-                            )}
+                            <span className="text-xs text-gray-500">Nilai Hasil Kerja (70%): <strong>{s.nilai_hasil_kerja}</strong></span>
+                            <span className="text-xs text-gray-500">Perilaku (30%): <strong>{s.nilai_perilaku}</strong></span>
+                            <span className="text-sm font-bold text-gray-800">→ {Number(s.nilai_akhir).toFixed(1)}</span>
                           </div>
                           {s.predikat && predikatCfg && (
                             <span className={`text-xs px-3 py-1 rounded-full font-semibold ${predikatCfg.bg} ${predikatCfg.color}`}>{s.predikat}</span>
@@ -866,7 +962,22 @@ function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry 
         </div>
       )}
 
-      {/* ── Form Modal ── */}
+      {/* Pagination */}
+      {paginationMeta && paginationMeta.last_page > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <button disabled={page === 1} onClick={() => setPage(p => p - 1)}
+            className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50">
+            Sebelumnya
+          </button>
+          <span className="text-xs text-gray-500">Hal. {page} / {paginationMeta.last_page}</span>
+          <button disabled={page === paginationMeta.last_page} onClick={() => setPage(p => p + 1)}
+            className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50">
+            Berikutnya
+          </button>
+        </div>
+      )}
+
+      {/* ── Form Modal (Create/Edit) ── */}
       {showFormModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowFormModal(false)} />
@@ -881,13 +992,13 @@ function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry 
               </div>
             </div>
             <div className="p-6 space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
                   <label className="text-xs font-medium text-gray-700 block mb-1.5">Pegawai *</label>
                   <select value={formPegawaiId} onChange={e => setFormPegawaiId(e.target.value)}
                     className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Pilih Pegawai</option>
-                    {pegawai.map(p => <option key={p.id} value={p.id}>{p.gelarDepan || ''} {p.nama} — {p.jabatan}</option>)}
+                    {pegawai.map(p => <option key={p.id} value={p.id}>{p.nama} — {(p as any).jabatan}</option>)}
                   </select>
                 </div>
                 <div>
@@ -905,52 +1016,54 @@ function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry 
                     <option value={2}>Semester 2 (Jul–Des)</option>
                   </select>
                 </div>
-                <div>
-                  <label className="text-xs font-medium text-gray-700 block mb-1.5">Status</label>
-                  <select value={formStatus} onChange={e => setFormStatus(e.target.value as any)}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="Draft">Draft</option>
-                    <option value="Aktif">Aktif</option>
-                    <option value="Selesai">Selesai</option>
-                  </select>
-                </div>
               </div>
+
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <label className="text-sm font-semibold text-gray-700">
-                    Butir Kegiatan / Target KPI
-                    <span className={`ml-2 text-xs ${totalBobot === 100 ? 'text-green-600' : 'text-red-500'}`}>(Bobot: {totalBobot}% / 100%)</span>
-                  </label>
-                  <button onClick={addItem} className="flex items-center gap-1 text-xs text-blue-600 hover:underline"><Plus className="w-3 h-3" /> Tambah</button>
+                  <label className="text-sm font-semibold text-gray-700">Rencana Kinerja Individu</label>
+                  <button onClick={addDetail} className="flex items-center gap-1 text-xs text-blue-600 hover:underline"><Plus className="w-3 h-3" /> Tambah Butir</button>
                 </div>
                 <div className="space-y-3">
-                  {formItems.map((item, idx) => (
-                    <div key={item.id} className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  {formDetails.map((d, idx) => (
+                    <div key={d._key} className="p-4 bg-gray-50 rounded-xl border border-gray-100">
                       <div className="flex items-center justify-between mb-3">
-                        <p className="text-xs font-semibold text-gray-600">Kegiatan #{idx + 1}</p>
-                        {formItems.length > 1 && <button onClick={() => removeItem(item.id)} className="text-red-400 hover:text-red-600"><X className="w-4 h-4" /></button>}
+                        <p className="text-xs font-semibold text-gray-600">Butir #{idx + 1}</p>
+                        {formDetails.length > 1 && <button onClick={() => removeDetail(d._key)} className="text-red-400 hover:text-red-600"><X className="w-4 h-4" /></button>}
                       </div>
                       <div className="grid grid-cols-1 gap-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs text-gray-500 block mb-1">Aspek</label>
+                            <input type="text" value={d.aspek || ''} onChange={e => updateDetail(d._key, 'aspek', e.target.value)} placeholder="Kuantitas / Kualitas"
+                              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-500 block mb-1">Satuan *</label>
+                            <input type="text" value={d.satuan || ''} onChange={e => updateDetail(d._key, 'satuan', e.target.value)} placeholder="% / pasien / jam"
+                              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                          </div>
+                        </div>
                         <div>
-                          <label className="text-xs text-gray-500 block mb-1">Uraian Kegiatan / KPI *</label>
-                          <input type="text" value={item.uraianKegiatan} onChange={e => updateItem(item.id, 'uraianKegiatan', e.target.value)}
+                          <label className="text-xs text-gray-500 block mb-1">Rencana Kinerja Individu *</label>
+                          <input type="text" value={d.rencana_kinerja_individu || ''} onChange={e => updateDetail(d._key, 'rencana_kinerja_individu', e.target.value)}
                             placeholder="Contoh: Kepatuhan pengisian asesmen awal 24 jam"
                             className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         </div>
-                        <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <label className="text-xs text-gray-500 block mb-1">Indikator Kinerja Individu *</label>
+                          <input type="text" value={d.indikator_kinerja_individu || ''} onChange={e => updateDetail(d._key, 'indikator_kinerja_individu', e.target.value)}
+                            placeholder="Contoh: (Asesmen lengkap / Total pasien) × 100"
+                            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="text-xs text-gray-500 block mb-1">Target</label>
-                            <input type="number" value={item.target || ''} onChange={e => updateItem(item.id, 'target', e.target.value)} placeholder="100"
+                            <label className="text-xs text-gray-500 block mb-1">Target Min</label>
+                            <input type="number" value={d.target_min ?? ''} onChange={e => updateDetail(d._key, 'target_min', e.target.value)} placeholder="0"
                               className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                           </div>
                           <div>
-                            <label className="text-xs text-gray-500 block mb-1">Satuan</label>
-                            <input type="text" value={item.satuan} onChange={e => updateItem(item.id, 'satuan', e.target.value)} placeholder="% / pasien / jam"
-                              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-500 block mb-1">Bobot (%)</label>
-                            <input type="number" value={item.bobot || ''} onChange={e => updateItem(item.id, 'bobot', e.target.value)} placeholder="25" min={0} max={100}
+                            <label className="text-xs text-gray-500 block mb-1">Target Max</label>
+                            <input type="number" value={d.target_max ?? ''} onChange={e => updateDetail(d._key, 'target_max', e.target.value)} placeholder="100"
                               className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                           </div>
                         </div>
@@ -960,18 +1073,21 @@ function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry 
                 </div>
               </div>
               <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
-                <p className="text-xs text-amber-800"><strong>Catatan:</strong> SKP ditetapkan di awal periode dan ditandatangani pegawai & pejabat penilai. Total bobot harus = 100%. Nilai Perilaku (30%) akan diinput terpisah di tab Penilaian Perilaku.</p>
+                <p className="text-xs text-amber-800"><strong>PermenPAN-RB No. 6/2022:</strong> SKP ditetapkan di awal periode. Nilai = Hasil Kerja (70%) + Perilaku (30%). Atasan menilai setelah SKP diajukan.</p>
               </div>
             </div>
             <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
               <button onClick={() => setShowFormModal(false)} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Batal</button>
-              <button onClick={handleSave} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">{editData ? 'Perbarui SKP' : 'Simpan SKP'}</button>
+              <button onClick={handleSave} disabled={saving}
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60">
+                {saving ? 'Menyimpan...' : editData ? 'Perbarui SKP' : 'Simpan SKP'}
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Kamus KPI mini-modal from form */}
+      {/* ── Kamus KPI mini-modal ── */}
       {showKamusModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowKamusModal(false)} />
@@ -984,7 +1100,11 @@ function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry 
               {KAMUS_KPI.map(kpi => (
                 <button key={kpi.id} className="w-full text-left p-3 hover:bg-blue-50 rounded-xl border border-gray-100 transition-colors"
                   onClick={() => {
-                    setFormItems(prev => [...prev, { id: genItemId(), uraianKegiatan: kpi.nama, target: 100, satuan: kpi.satuan, bobot: 0 }]);
+                    setFormDetails(prev => [...prev, {
+                      _key: genItemId(), aspek: kpi.kategori, rencana_kinerja_atasan: '',
+                      rencana_kinerja_individu: kpi.nama, indikator_kinerja_individu: kpi.formula,
+                      target_min: 0, target_max: 100, satuan: kpi.satuan,
+                    }]);
                     setShowKamusModal(false);
                     toast.success(`"${kpi.nama}" ditambahkan`);
                   }}>
@@ -1001,38 +1121,40 @@ function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry 
         </div>
       )}
 
-      {/* Realisasi Modal */}
+      {/* ── Realisasi Modal ── */}
       {showRealisasiModal && selectedSKP && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowRealisasiModal(false)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
-              <h2 className="font-semibold text-gray-800">Input Realisasi Kinerja</h2>
+              <h2 className="font-semibold text-gray-800">Update Realisasi Kinerja</h2>
               <button onClick={() => setShowRealisasiModal(false)} className="p-2 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5 text-gray-500" /></button>
             </div>
             <div className="p-6">
               <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm font-medium text-blue-800">{getFullName(selectedSKP.pegawaiId)}</p>
+                <p className="text-sm font-medium text-blue-800">{selectedSKP.pegawai?.nama}</p>
                 <p className="text-xs text-blue-600">SKP Semester {selectedSKP.semester} Tahun {selectedSKP.tahun}</p>
               </div>
               <div className="space-y-4">
-                {selectedSKP.targetKinerja.map(t => {
-                  const real = realisasiValues[t.id] ?? t.realisasi ?? 0;
-                  const capai = t.target > 0 ? Math.min(130, Math.round((real / t.target) * 100)) : 0;
+                {(selectedSKP.details ?? []).map((d: any) => {
+                  const val = realisasiMap[d.id] ?? '';
+                  const capai = d.target_max > 0 && val ? Math.min(120, (Number(val) / d.target_max) * 100) : 0;
                   return (
-                    <div key={t.id} className="p-4 bg-gray-50 rounded-xl">
-                      <p className="text-sm font-medium text-gray-700 mb-3">{t.uraianKegiatan}</p>
+                    <div key={d.id} className="p-4 bg-gray-50 rounded-xl">
+                      <p className="text-sm font-medium text-gray-700 mb-1">{d.rencana_kinerja_individu}</p>
+                      <p className="text-xs text-gray-400 mb-3">{d.indikator_kinerja_individu}</p>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-xs text-gray-500 block mb-1">Target: {t.target.toLocaleString()} {t.satuan}</label>
-                          <input type="number" value={real || ''} onChange={e => setRealisasiValues(prev => ({ ...prev, [t.id]: Number(e.target.value) }))}
+                          <label className="text-xs text-gray-500 block mb-1">Target: {d.target_max} {d.satuan}</label>
+                          <input type="number" value={val}
+                            onChange={e => setRealisasiMap(prev => ({ ...prev, [d.id]: e.target.value }))}
                             placeholder="Input realisasi"
                             className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         </div>
                         <div>
-                          <label className="text-xs text-gray-500 block mb-1">Bobot: {t.bobot}%</label>
+                          <label className="text-xs text-gray-500 block mb-1">Capaian (otomatis)</label>
                           <div className={`h-9 flex items-center px-3 rounded-lg ${capai >= 100 ? 'bg-green-50 text-green-700' : capai >= 75 ? 'bg-blue-50 text-blue-700' : 'bg-yellow-50 text-yellow-700'}`}>
-                            <span className="text-sm font-semibold">Capaian: {capai}%</span>
+                            <span className="text-sm font-semibold">{capai.toFixed(1)}%</span>
                           </div>
                         </div>
                       </div>
@@ -1043,13 +1165,79 @@ function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry 
             </div>
             <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
               <button onClick={() => setShowRealisasiModal(false)} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Batal</button>
-              <button onClick={handleSaveRealisasi} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">Simpan & Hitung Nilai</button>
+              <button onClick={handleSaveRealisasi} disabled={saving}
+                className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-60">
+                {saving ? 'Menyimpan...' : 'Simpan Realisasi'}
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Detail Modal */}
+      {/* ── Nilai (Penilaian Atasan) Modal ── */}
+      {showNilaiModal && selectedSKP && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowNilaiModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
+              <h2 className="font-semibold text-gray-800">Penilaian SKP</h2>
+              <button onClick={() => setShowNilaiModal(false)} className="p-1.5 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5 text-gray-500" /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                <p className="text-sm font-medium text-amber-800">{selectedSKP.pegawai?.nama}</p>
+                <p className="text-xs text-amber-600">Sem. {selectedSKP.semester} / {selectedSKP.tahun}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-700 block mb-1.5">Nilai Hasil Kerja (0–100) *</label>
+                <input type="number" min={0} max={100} value={nilaiHasil}
+                  onChange={e => setNilaiHasil(e.target.value)} placeholder="Contoh: 85"
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-700 block mb-1.5">Nilai Perilaku (0–100) *</label>
+                <input type="number" min={0} max={100} value={nilaiPerilaku}
+                  onChange={e => setNilaiPerilaku(e.target.value)} placeholder="Contoh: 80"
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+              </div>
+              {nilaiHasil && nilaiPerilaku && (
+                <div className="p-3 bg-gray-50 rounded-lg text-center">
+                  <p className="text-xs text-gray-500 mb-1">Nilai Akhir = (HK × 0.70) + (Perilaku × 0.30)</p>
+                  <p className="text-xl font-bold text-gray-800">
+                    {((Number(nilaiHasil) * 0.70) + (Number(nilaiPerilaku) * 0.30)).toFixed(1)}
+                  </p>
+                  <p className="text-xs text-blue-600 font-medium mt-1">
+                    {getNilaiPredikat((Number(nilaiHasil) * 0.70) + (Number(nilaiPerilaku) * 0.30))}
+                  </p>
+                </div>
+              )}
+              <div>
+                <label className="text-xs font-medium text-gray-700 block mb-1.5">Pejabat Penilai *</label>
+                <select value={penilaiId} onChange={e => setPenilaiId(e.target.value)}
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                  <option value="">Pilih Pejabat Penilai</option>
+                  {pegawai.map(p => <option key={p.id} value={p.id}>{p.nama}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-700 block mb-1.5">Catatan Atasan</label>
+                <textarea value={catatanAtasan} onChange={e => setCatatanAtasan(e.target.value)}
+                  rows={3} placeholder="Catatan pembinaan / umpan balik..."
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none" />
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+              <button onClick={() => setShowNilaiModal(false)} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Batal</button>
+              <button onClick={handleNilai} disabled={saving}
+                className="px-4 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-60">
+                {saving ? 'Menyimpan...' : 'Simpan Penilaian'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Detail Modal ── */}
       {showDetailModal && selectedSKP && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDetailModal(false)} />
@@ -1060,44 +1248,41 @@ function SKPAktifTab({ importedKPI, clearImportedKPI }: { importedKPI: KPIEntry 
             </div>
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div><p className="text-xs text-gray-500">Pegawai</p><p className="font-medium text-gray-800">{getFullName(selectedSKP.pegawaiId)}</p></div>
+                <div><p className="text-xs text-gray-500">Pegawai</p><p className="font-medium text-gray-800">{selectedSKP.pegawai?.nama}</p></div>
                 <div><p className="text-xs text-gray-500">Periode</p><p className="font-medium text-gray-800">Sem. {selectedSKP.semester} / {selectedSKP.tahun}</p></div>
-                <div><p className="text-xs text-gray-500">Status</p><span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_CFG[selectedSKP.status]}`}>{selectedSKP.status}</span></div>
-                {selectedSKP.nilaiAkhir != null && (
+                <div><p className="text-xs text-gray-500">Status</p><span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_CFG[selectedSKP.status] ?? 'bg-gray-100 text-gray-600'}`}>{selectedSKP.status}</span></div>
+                {selectedSKP.nilai_akhir != null && (
                   <div>
                     <p className="text-xs text-gray-500">Nilai Akhir</p>
-                    <p className="font-bold text-gray-800">{selectedSKP.nilaiAkhir} — {selectedSKP.predikat}</p>
+                    <p className="font-bold text-gray-800">{Number(selectedSKP.nilai_akhir).toFixed(1)} — {selectedSKP.predikat}</p>
+                  </div>
+                )}
+                {selectedSKP.penilai && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-gray-500">Pejabat Penilai</p>
+                    <p className="font-medium text-gray-800">{selectedSKP.penilai.nama}</p>
+                  </div>
+                )}
+                {selectedSKP.catatan_atasan && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-gray-500">Catatan Atasan</p>
+                    <p className="text-sm text-gray-700 italic">"{selectedSKP.catatan_atasan}"</p>
                   </div>
                 )}
               </div>
               <div className="space-y-2">
-                {selectedSKP.targetKinerja.map((t, i) => (
-                  <div key={t.id} className="p-3 bg-gray-50 rounded-xl">
-                    <p className="text-xs font-semibold text-gray-600 mb-1">#{i + 1} {t.uraianKegiatan}</p>
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span>Target: {t.target.toLocaleString()} {t.satuan}</span>
-                      <span>Bobot: {t.bobot}%</span>
-                      {t.realisasi != null && <span className="text-green-600 font-medium">Realisasi: {t.realisasi.toLocaleString()}</span>}
-                      {t.nilaiCapaian != null && <span className="font-medium text-blue-600">Capaian: {t.nilaiCapaian.toFixed(1)}</span>}
+                {(selectedSKP.details ?? []).map((d: any, i: number) => (
+                  <div key={d.id} className="p-3 bg-gray-50 rounded-xl">
+                    <p className="text-xs font-semibold text-gray-600 mb-1">#{i + 1} {d.rencana_kinerja_individu}</p>
+                    <p className="text-[11px] text-gray-400 mb-2">{d.indikator_kinerja_individu}</p>
+                    <div className="flex items-center gap-4 text-xs text-gray-500 flex-wrap">
+                      <span>Target: {d.target_max} {d.satuan}</span>
+                      {d.realisasi != null && <span className="text-green-600 font-medium">Realisasi: {d.realisasi}</span>}
+                      {d.capaian_persen != null && <span className="font-medium text-blue-600">Capaian: {Number(d.capaian_persen).toFixed(1)}%</span>}
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirm */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteConfirm(null)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
-            <p className="font-semibold text-gray-800 mb-2">Hapus SKP?</p>
-            <p className="text-sm text-gray-500 mb-4">Data SKP ini akan dihapus permanen dan tidak dapat dikembalikan.</p>
-            <div className="flex justify-end gap-3">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 text-sm border border-gray-200 rounded-lg">Batal</button>
-              <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">Ya, Hapus</button>
             </div>
           </div>
         </div>

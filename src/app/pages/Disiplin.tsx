@@ -1,99 +1,123 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { ShieldAlert, Plus, Search, Eye, Edit2, Trash2, X, AlertTriangle, CheckCircle, Clock, FileText } from 'lucide-react';
-import { useAppContext } from '../context/AppContext';
-import type { DisiplinRecord } from '../types';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { disiplinApi } from '../data/api';
 import { toast } from 'sonner';
 
 const tingkatConfig = {
-  Ringan: { color: 'text-yellow-700', bg: 'bg-yellow-100', border: 'border-yellow-200', dot: 'bg-yellow-500' },
-  Sedang: { color: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-200', dot: 'bg-orange-500' },
-  Berat: { color: 'text-red-700', bg: 'bg-red-100', border: 'border-red-200', dot: 'bg-red-500' },
-};
-const statusConfig = {
-  Investigasi: { color: 'text-blue-700', bg: 'bg-blue-100', icon: Search },
-  Proses: { color: 'text-yellow-700', bg: 'bg-yellow-100', icon: Clock },
-  Selesai: { color: 'text-green-700', bg: 'bg-green-100', icon: CheckCircle },
-  Banding: { color: 'text-purple-700', bg: 'bg-purple-100', icon: AlertTriangle },
+  Ringan: { color: 'text-yellow-700', bg: 'bg-yellow-100', border: 'border-yellow-200' },
+  Sedang: { color: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-200' },
+  Berat:  { color: 'text-red-700',    bg: 'bg-red-100',    border: 'border-red-200'    },
 };
 
-const jenisHukumanByTingkat = {
+const jenisHukumanByTingkat: Record<string, string[]> = {
   Ringan: ['Teguran Lisan', 'Teguran Tertulis', 'Pernyataan Tidak Puas Secara Tertulis'],
   Sedang: ['Penundaan Kenaikan Gaji Berkala', 'Penundaan Kenaikan Pangkat', 'Penurunan Pangkat 1 Tingkat selama 1 Tahun'],
-  Berat: ['Penurunan Pangkat 1 Tingkat selama 3 Tahun', 'Pemindahan dalam rangka Penurunan Jabatan', 'Pembebasan dari Jabatan', 'Pemberhentian dengan Hormat atas permintaan Sendiri', 'Pemberhentian Tidak dengan Hormat'],
+  Berat:  ['Penurunan Pangkat 1 Tingkat selama 3 Tahun', 'Pemindahan dalam rangka Penurunan Jabatan', 'Pembebasan dari Jabatan', 'Pemberhentian dengan Hormat atas permintaan Sendiri', 'Pemberhentian Tidak dengan Hormat'],
 };
 
 const EMPTY_FORM = {
-  pegawaiId: '', jenisHukuman: '', tingkatHukuman: 'Ringan' as 'Ringan' | 'Sedang' | 'Berat',
-  tanggalKejadian: '', tanggalSK: '', nomorSK: '', kronologi: '',
-  status: 'Investigasi' as DisiplinRecord['status'], pejabatPenetap: '',
+  pegawai_id: '', tingkat_hukuman: 'Ringan', jenis_hukuman: '',
+  uraian_pelanggaran: '', nomor_sk: '', tanggal_sk: '',
+  tanggal_mulai_berlaku: '', tanggal_selesai: '', status_hukuman: 'Aktif',
 };
 
+const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function Disiplin() {
-  const { disiplin, pegawai, addDisiplin, updateDisiplin, deleteDisiplin } = useAppContext();
+  const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [filterTingkat, setFilterTingkat] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [editData, setEditData] = useState<DisiplinRecord | null>(null);
-  const [detailData, setDetailData] = useState<DisiplinRecord | null>(null);
+  const [editData, setEditData] = useState<any | null>(null);
+  const [detailData, setDetailData] = useState<any | null>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
 
-  const getPegawai = (id: string) => pegawai.find(p => p.id === id);
-  const getFullName = (id: string) => {
-    const p = getPegawai(id);
-    if (!p) return '-';
-    return `${p.gelarDepan || ''} ${p.nama}${p.gelarBelakang ? ', ' + p.gelarBelakang : ''}`.trim();
-  };
+  const filters = { tingkat_hukuman: filterTingkat || undefined };
 
-  const filtered = useMemo(() => disiplin.filter(d => {
-    const nama = getFullName(d.pegawaiId).toLowerCase();
-    const matchSearch = !search || nama.includes(search.toLowerCase()) || d.jenisHukuman.toLowerCase().includes(search.toLowerCase());
-    const matchTingkat = !filterTingkat || d.tingkatHukuman === filterTingkat;
-    const matchStatus = !filterStatus || d.status === filterStatus;
-    return matchSearch && matchTingkat && matchStatus;
-  }), [disiplin, search, filterTingkat, filterStatus, pegawai]);
+  const { data: listResp, isLoading } = useQuery({
+    queryKey: ['disiplin', filters],
+    queryFn: () => disiplinApi.getAll(filters),
+  });
 
-  const stats = {
-    ringan: disiplin.filter(d => d.tingkatHukuman === 'Ringan').length,
-    sedang: disiplin.filter(d => d.tingkatHukuman === 'Sedang').length,
-    berat: disiplin.filter(d => d.tingkatHukuman === 'Berat').length,
-    proses: disiplin.filter(d => d.status !== 'Selesai').length,
+  const { data: statsResp } = useQuery({
+    queryKey: ['disiplin-stats'],
+    queryFn: () => disiplinApi.stats(),
+  });
+
+  const rows: any[] = listResp?.data?.data ?? listResp?.data ?? [];
+  const stats = statsResp?.data ?? { ringan: 0, sedang: 0, berat: 0 };
+
+  const filtered = rows.filter(d => {
+    if (!search) return true;
+    const nama = (d.nama ?? '').toLowerCase();
+    return nama.includes(search.toLowerCase()) || (d.jenis_hukuman ?? '').toLowerCase().includes(search.toLowerCase());
+  });
+
+  const saveMut = useMutation({
+    mutationFn: (payload: any) => editData
+      ? disiplinApi.update(editData.id, payload)
+      : disiplinApi.create(payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['disiplin'] });
+      qc.invalidateQueries({ queryKey: ['disiplin-stats'] });
+      toast.success(editData ? 'Data disiplin diperbarui' : 'Kasus disiplin dicatat');
+      setShowModal(false);
+    },
+    onError: () => toast.error('Gagal menyimpan data'),
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: (id: number) => disiplinApi.remove(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['disiplin'] });
+      qc.invalidateQueries({ queryKey: ['disiplin-stats'] });
+      toast.success('Data disiplin dihapus');
+      setShowDeleteConfirm(null);
+    },
+    onError: () => toast.error('Gagal menghapus data'),
+  });
+
+  const handleSK = async (id: number, nama: string) => {
+    try {
+      const res = await disiplinApi.skDisiplin(id);
+      downloadBlob(res.data, `sk_disiplin_${nama}.pdf`);
+      toast.success('SK Disiplin diunduh');
+    } catch {
+      toast.error('Gagal generate SK');
+    }
   };
 
   const openAdd = () => { setForm({ ...EMPTY_FORM }); setEditData(null); setShowModal(true); };
-  const openEdit = (d: DisiplinRecord) => {
+  const openEdit = (d: any) => {
     setEditData(d);
     setForm({
-      pegawaiId: d.pegawaiId, jenisHukuman: d.jenisHukuman, tingkatHukuman: d.tingkatHukuman,
-      tanggalKejadian: d.tanggalKejadian, tanggalSK: d.tanggalSK || '', nomorSK: d.nomorSK || '',
-      kronologi: d.kronologi, status: d.status, pejabatPenetap: d.pejabatPenetap || '',
+      pegawai_id: String(d.pegawai_id), tingkat_hukuman: d.tingkat_hukuman,
+      jenis_hukuman: d.jenis_hukuman, uraian_pelanggaran: d.uraian_pelanggaran,
+      nomor_sk: d.nomor_sk, tanggal_sk: d.tanggal_sk?.slice(0, 10) ?? '',
+      tanggal_mulai_berlaku: d.tanggal_mulai_berlaku?.slice(0, 10) ?? '',
+      tanggal_selesai: d.tanggal_selesai?.slice(0, 10) ?? '',
+      status_hukuman: d.status_hukuman ?? 'Aktif',
     });
     setShowModal(true);
   };
-  const openDetail = (d: DisiplinRecord) => { setDetailData(d); setShowDetailModal(true); };
 
   const handleSave = () => {
-    if (!form.pegawaiId || !form.jenisHukuman || !form.tanggalKejadian || !form.kronologi) {
-      toast.error('Harap isi semua field yang wajib diisi');
-      return;
+    if (!form.pegawai_id || !form.jenis_hukuman || !form.nomor_sk || !form.tanggal_sk || !form.tanggal_mulai_berlaku || !form.uraian_pelanggaran) {
+      toast.error('Harap isi semua field wajib'); return;
     }
-    if (editData) {
-      updateDisiplin({ ...editData, ...form });
-      toast.success('Data disiplin berhasil diperbarui');
-    } else {
-      addDisiplin(form as Omit<DisiplinRecord, 'id'>);
-      toast.success('Kasus disiplin berhasil dicatat');
-    }
-    setShowModal(false);
+    saveMut.mutate({ ...form, tanggal_selesai: form.tanggal_selesai || null });
   };
 
-  const handleDelete = (id: string) => {
-    deleteDisiplin(id);
-    setShowDeleteConfirm(null);
-    toast.success('Data disiplin berhasil dihapus');
-  };
+  const tc = (t: string) => tingkatConfig[t as keyof typeof tingkatConfig] ?? tingkatConfig.Ringan;
 
   return (
     <div className="p-4 lg:p-6">
@@ -109,12 +133,11 @@ export default function Disiplin() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+      <div className="grid grid-cols-3 gap-3 mb-5">
         {[
           { label: 'Hukuman Ringan', value: stats.ringan, color: 'text-yellow-600', bg: 'bg-yellow-50 border-yellow-100', icon: '⚠️' },
           { label: 'Hukuman Sedang', value: stats.sedang, color: 'text-orange-600', bg: 'bg-orange-50 border-orange-100', icon: '🔶' },
-          { label: 'Hukuman Berat', value: stats.berat, color: 'text-red-600', bg: 'bg-red-50 border-red-100', icon: '🔴' },
-          { label: 'Dalam Proses', value: stats.proses, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-100', icon: '⏳' },
+          { label: 'Hukuman Berat',  value: stats.berat,  color: 'text-red-600',    bg: 'bg-red-50 border-red-100',     icon: '🔴' },
         ].map(s => (
           <div key={s.label} className={`rounded-xl p-4 border ${s.bg}`}>
             <p className="text-lg mb-0.5">{s.icon}</p>
@@ -131,14 +154,15 @@ export default function Disiplin() {
           <div>
             <p className="text-sm font-medium text-amber-800">PP No. 94 Tahun 2021 tentang Disiplin Pegawai Negeri Sipil</p>
             <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-2">
-              {Object.entries(jenisHukumanByTingkat).map(([tingkat, jenis]) => (
-                <div key={tingkat} className={`p-2.5 rounded-lg text-xs ${tingkatConfig[tingkat as keyof typeof tingkatConfig].bg} ${tingkatConfig[tingkat as keyof typeof tingkatConfig].border} border`}>
-                  <p className={`font-semibold mb-1 ${tingkatConfig[tingkat as keyof typeof tingkatConfig].color}`}>Hukuman {tingkat}</p>
-                  <ul className="space-y-0.5">
-                    {jenis.slice(0, 3).map(j => <li key={j} className="text-gray-600">• {j}</li>)}
-                  </ul>
-                </div>
-              ))}
+              {Object.entries(jenisHukumanByTingkat).map(([tingkat, jenis]) => {
+                const cfg = tc(tingkat);
+                return (
+                  <div key={tingkat} className={`p-2.5 rounded-lg text-xs ${cfg.bg} ${cfg.border} border`}>
+                    <p className={`font-semibold mb-1 ${cfg.color}`}>Hukuman {tingkat}</p>
+                    <ul className="space-y-0.5">{jenis.slice(0, 3).map(j => <li key={j} className="text-gray-600">• {j}</li>)}</ul>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -159,14 +183,6 @@ export default function Disiplin() {
             <option value="Sedang">Sedang</option>
             <option value="Berat">Berat</option>
           </select>
-          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">Semua Status</option>
-            <option value="Investigasi">Investigasi</option>
-            <option value="Proses">Proses</option>
-            <option value="Selesai">Selesai</option>
-            <option value="Banding">Banding</option>
-          </select>
         </div>
 
         <div className="overflow-x-auto">
@@ -176,46 +192,41 @@ export default function Disiplin() {
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Pegawai</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 hidden lg:table-cell">Jenis Hukuman</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">Tingkat</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 hidden md:table-cell">Tgl Kejadian</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 hidden md:table-cell">Tgl SK</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 hidden lg:table-cell">No. SK</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">Status</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.length === 0 ? (
+              {isLoading ? (
+                <tr><td colSpan={7} className="py-12 text-center text-gray-400 text-sm">Memuat data...</td></tr>
+              ) : filtered.length === 0 ? (
                 <tr><td colSpan={7} className="py-12 text-center text-gray-400 text-sm">
                   <ShieldAlert className="w-10 h-10 mx-auto mb-2 opacity-30" />
                   <p>Tidak ada kasus disiplin yang ditemukan</p>
                 </td></tr>
-              ) : filtered.map(d => {
-                const tc = tingkatConfig[d.tingkatHukuman];
-                const sc = statusConfig[d.status];
-                const StatusIcon = sc.icon;
+              ) : filtered.map((d: any) => {
+                const cfg = tc(d.tingkat_hukuman);
                 return (
-                  <tr key={d.id} className="hover:bg-gray-50/60 transition-colors cursor-pointer" onClick={() => openDetail(d)}>
+                  <tr key={d.id} className="hover:bg-gray-50/60 transition-colors cursor-pointer" onClick={() => setDetailData(d)}>
                     <td className="px-4 py-3.5">
-                      <p className="text-sm font-medium text-gray-800">{getFullName(d.pegawaiId)}</p>
-                      <p className="text-xs text-gray-400">{getPegawai(d.pegawaiId)?.unitKerja}</p>
+                      <p className="text-sm font-medium text-gray-800">{d.nama}</p>
+                      <p className="text-xs text-gray-400">{d.unit_kerja}</p>
                     </td>
-                    <td className="px-4 py-3.5 hidden lg:table-cell text-sm text-gray-700">{d.jenisHukuman}</td>
+                    <td className="px-4 py-3.5 hidden lg:table-cell text-sm text-gray-700">{d.jenis_hukuman}</td>
                     <td className="px-4 py-3.5 text-center">
-                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${tc.bg} ${tc.color}`}>
-                        {d.tingkatHukuman}
-                      </span>
+                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.color}`}>{d.tingkat_hukuman}</span>
                     </td>
-                    <td className="px-4 py-3.5 text-center text-xs text-gray-600 hidden md:table-cell">
-                      {new Date(d.tanggalKejadian).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </td>
-                    <td className="px-4 py-3.5 hidden lg:table-cell text-xs text-gray-500">{d.nomorSK || '—'}</td>
+                    <td className="px-4 py-3.5 text-center text-xs text-gray-600 hidden md:table-cell">{fmtDate(d.tanggal_sk)}</td>
+                    <td className="px-4 py-3.5 hidden lg:table-cell text-xs text-gray-500">{d.nomor_sk || '—'}</td>
                     <td className="px-4 py-3.5 text-center">
-                      <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full ${sc.bg} ${sc.color}`}>
-                        <StatusIcon className="w-3 h-3" />{d.status}
-                      </span>
+                      <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-700">{d.status_hukuman}</span>
                     </td>
                     <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center justify-center gap-1">
-                        <button onClick={() => openDetail(d)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" title="Detail"><Eye className="w-4 h-4" /></button>
+                        <button onClick={() => setDetailData(d)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" title="Detail"><Eye className="w-4 h-4" /></button>
+                        <button onClick={() => handleSK(d.id, d.nama)} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg" title="Generate SK PDF"><FileText className="w-4 h-4" /></button>
                         <button onClick={() => openEdit(d)} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg" title="Edit"><Edit2 className="w-4 h-4" /></button>
                         <button onClick={() => setShowDeleteConfirm(d.id)} className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg" title="Hapus"><Trash2 className="w-4 h-4" /></button>
                       </div>
@@ -239,17 +250,14 @@ export default function Disiplin() {
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="text-xs font-medium text-gray-700 block mb-1.5">Pegawai *</label>
-                <select value={form.pegawaiId} onChange={e => setForm(f => ({ ...f, pegawaiId: e.target.value }))}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="">Pilih Pegawai</option>
-                  {pegawai.map(p => <option key={p.id} value={p.id}>{p.gelarDepan || ''} {p.nama} — {p.unitKerja}</option>)}
-                </select>
+                <label className="text-xs font-medium text-gray-700 block mb-1.5">ID Pegawai *</label>
+                <input type="text" value={form.pegawai_id} onChange={e => setForm(f => ({ ...f, pegawai_id: e.target.value }))} placeholder="ID Pegawai"
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-medium text-gray-700 block mb-1.5">Tingkat Hukuman *</label>
-                  <select value={form.tingkatHukuman} onChange={e => setForm(f => ({ ...f, tingkatHukuman: e.target.value as any, jenisHukuman: '' }))}
+                  <select value={form.tingkat_hukuman} onChange={e => setForm(f => ({ ...f, tingkat_hukuman: e.target.value, jenis_hukuman: '' }))}
                     className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="Ringan">Ringan</option>
                     <option value="Sedang">Sedang</option>
@@ -258,58 +266,53 @@ export default function Disiplin() {
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-700 block mb-1.5">Jenis Hukuman *</label>
-                  <select value={form.jenisHukuman} onChange={e => setForm(f => ({ ...f, jenisHukuman: e.target.value }))}
+                  <select value={form.jenis_hukuman} onChange={e => setForm(f => ({ ...f, jenis_hukuman: e.target.value }))}
                     className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Pilih Jenis</option>
-                    {jenisHukumanByTingkat[form.tingkatHukuman].map(j => <option key={j} value={j}>{j}</option>)}
+                    {(jenisHukumanByTingkat[form.tingkat_hukuman] ?? []).map(j => <option key={j} value={j}>{j}</option>)}
                   </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-medium text-gray-700 block mb-1.5">Tanggal Kejadian *</label>
-                  <input type="date" value={form.tanggalKejadian} onChange={e => setForm(f => ({ ...f, tanggalKejadian: e.target.value }))}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-gray-700 block mb-1.5">Status</label>
-                  <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as any }))}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="Investigasi">Investigasi</option>
-                    <option value="Proses">Proses</option>
-                    <option value="Selesai">Selesai</option>
-                    <option value="Banding">Banding</option>
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-medium text-gray-700 block mb-1.5">Tanggal SK</label>
-                  <input type="date" value={form.tanggalSK} onChange={e => setForm(f => ({ ...f, tanggalSK: e.target.value }))}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-gray-700 block mb-1.5">Nomor SK</label>
-                  <input type="text" value={form.nomorSK} onChange={e => setForm(f => ({ ...f, nomorSK: e.target.value }))} placeholder="SK/DISIPLIN/..."
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-700 block mb-1.5">Pejabat Penetap</label>
-                <input type="text" value={form.pejabatPenetap} onChange={e => setForm(f => ({ ...f, pejabatPenetap: e.target.value }))} placeholder="Nama pejabat yang menetapkan hukuman"
+                <label className="text-xs font-medium text-gray-700 block mb-1.5">Nomor SK *</label>
+                <input type="text" value={form.nomor_sk} onChange={e => setForm(f => ({ ...f, nomor_sk: e.target.value }))} placeholder="SK/DISIPLIN/..."
                   className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-medium text-gray-700 block mb-1.5">Tanggal SK *</label>
+                  <input type="date" value={form.tanggal_sk} onChange={e => setForm(f => ({ ...f, tanggal_sk: e.target.value }))}
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-700 block mb-1.5">Berlaku Mulai *</label>
+                  <input type="date" value={form.tanggal_mulai_berlaku} onChange={e => setForm(f => ({ ...f, tanggal_mulai_berlaku: e.target.value }))}
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-medium text-gray-700 block mb-1.5">Berlaku Sampai (opsional)</label>
+                  <input type="date" value={form.tanggal_selesai} onChange={e => setForm(f => ({ ...f, tanggal_selesai: e.target.value }))}
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-700 block mb-1.5">Status Hukuman</label>
+                  <input type="text" value={form.status_hukuman} onChange={e => setForm(f => ({ ...f, status_hukuman: e.target.value }))}
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+              </div>
               <div>
-                <label className="text-xs font-medium text-gray-700 block mb-1.5">Kronologi Kasus *</label>
-                <textarea rows={4} value={form.kronologi} onChange={e => setForm(f => ({ ...f, kronologi: e.target.value }))}
-                  placeholder="Uraikan kronologi kasus secara singkat dan jelas..."
+                <label className="text-xs font-medium text-gray-700 block mb-1.5">Uraian Pelanggaran *</label>
+                <textarea rows={4} value={form.uraian_pelanggaran} onChange={e => setForm(f => ({ ...f, uraian_pelanggaran: e.target.value }))}
+                  placeholder="Uraikan pelanggaran secara singkat dan jelas..."
                   className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
               </div>
             </div>
             <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
               <button onClick={() => setShowModal(false)} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Batal</button>
-              <button onClick={handleSave} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">
-                {editData ? 'Perbarui' : 'Simpan'}
+              <button onClick={handleSave} disabled={saveMut.isPending} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-60">
+                {saveMut.isPending ? 'Menyimpan...' : editData ? 'Perbarui' : 'Simpan'}
               </button>
             </div>
           </div>
@@ -317,51 +320,56 @@ export default function Disiplin() {
       )}
 
       {/* Detail Modal */}
-      {showDetailModal && detailData && (
+      {detailData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowDetailModal(false)} />
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDetailData(null)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <h2 className="font-semibold text-gray-800">Detail Kasus Disiplin</h2>
-              <button onClick={() => setShowDetailModal(false)} className="p-1.5 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5 text-gray-500" /></button>
+              <button onClick={() => setDetailData(null)} className="p-1.5 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5 text-gray-500" /></button>
             </div>
             <div className="p-6 space-y-4">
-              <div className={`p-3 rounded-xl border ${tingkatConfig[detailData.tingkatHukuman].bg} ${tingkatConfig[detailData.tingkatHukuman].border}`}>
-                <p className={`text-sm font-semibold ${tingkatConfig[detailData.tingkatHukuman].color}`}>Hukuman {detailData.tingkatHukuman}</p>
-                <p className="text-gray-700 text-sm mt-0.5">{detailData.jenisHukuman}</p>
-              </div>
+              {(() => { const cfg = tc(detailData.tingkat_hukuman); return (
+                <div className={`p-3 rounded-xl border ${cfg.bg} ${cfg.border}`}>
+                  <p className={`text-sm font-semibold ${cfg.color}`}>Hukuman {detailData.tingkat_hukuman}</p>
+                  <p className="text-gray-700 text-sm mt-0.5">{detailData.jenis_hukuman}</p>
+                </div>
+              ); })()}
               <div>
                 <p className="text-xs text-gray-400 mb-1">Pegawai</p>
-                <p className="text-sm font-medium text-gray-800">{getFullName(detailData.pegawaiId)}</p>
-                <p className="text-xs text-gray-500">{getPegawai(detailData.pegawaiId)?.jabatan} · {getPegawai(detailData.pegawaiId)?.unitKerja}</p>
+                <p className="text-sm font-medium text-gray-800">{detailData.nama}</p>
+                <p className="text-xs text-gray-500">{detailData.jabatan} · {detailData.unit_kerja}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div><p className="text-xs text-gray-400 mb-1">Tanggal Kejadian</p><p className="text-sm text-gray-800">{new Date(detailData.tanggalKejadian).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
-                <div><p className="text-xs text-gray-400 mb-1">Status</p>
-                  <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${statusConfig[detailData.status].bg} ${statusConfig[detailData.status].color}`}>{detailData.status}</span>
-                </div>
-                {detailData.tanggalSK && <div><p className="text-xs text-gray-400 mb-1">Tanggal SK</p><p className="text-sm text-gray-800">{new Date(detailData.tanggalSK).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p></div>}
-                {detailData.nomorSK && <div><p className="text-xs text-gray-400 mb-1">Nomor SK</p><p className="text-sm font-mono text-gray-800">{detailData.nomorSK}</p></div>}
+                <div><p className="text-xs text-gray-400 mb-1">Nomor SK</p><p className="text-sm font-mono text-gray-800">{detailData.nomor_sk}</p></div>
+                <div><p className="text-xs text-gray-400 mb-1">Tanggal SK</p><p className="text-sm text-gray-800">{fmtDate(detailData.tanggal_sk)}</p></div>
+                <div><p className="text-xs text-gray-400 mb-1">Berlaku Mulai</p><p className="text-sm text-gray-800">{fmtDate(detailData.tanggal_mulai_berlaku)}</p></div>
+                <div><p className="text-xs text-gray-400 mb-1">Status</p><span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-700">{detailData.status_hukuman}</span></div>
               </div>
-              {detailData.pejabatPenetap && <div><p className="text-xs text-gray-400 mb-1">Pejabat Penetap</p><p className="text-sm text-gray-800">{detailData.pejabatPenetap}</p></div>}
               <div>
-                <p className="text-xs text-gray-400 mb-1">Kronologi Kasus</p>
-                <p className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3 leading-relaxed">{detailData.kronologi}</p>
+                <p className="text-xs text-gray-400 mb-1">Uraian Pelanggaran</p>
+                <p className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3 leading-relaxed">{detailData.uraian_pelanggaran}</p>
               </div>
             </div>
-            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
-              <button onClick={() => { setShowDetailModal(false); openEdit(detailData); }}
-                className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">
-                <Edit2 className="w-4 h-4" /> Edit
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center">
+              <button onClick={() => handleSK(detailData.id, detailData.nama)}
+                className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">
+                <FileText className="w-4 h-4" /> Generate SK PDF
               </button>
-              <button onClick={() => setShowDetailModal(false)} className="px-4 py-2 text-sm bg-gray-800 text-white rounded-lg hover:bg-gray-900">Tutup</button>
+              <div className="flex gap-2">
+                <button onClick={() => { setDetailData(null); openEdit(detailData); }}
+                  className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">
+                  <Edit2 className="w-4 h-4" /> Edit
+                </button>
+                <button onClick={() => setDetailData(null)} className="px-4 py-2 text-sm bg-gray-800 text-white rounded-lg hover:bg-gray-900">Tutup</button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
       {/* Delete Confirm */}
-      {showDeleteConfirm && (
+      {showDeleteConfirm !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowDeleteConfirm(null)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
@@ -369,10 +377,11 @@ export default function Disiplin() {
               <Trash2 className="w-6 h-6 text-red-600" />
             </div>
             <h3 className="text-center font-semibold text-gray-800 mb-2">Hapus Kasus Disiplin?</h3>
-            <p className="text-center text-sm text-gray-500 mb-6">Data kasus disiplin ini akan dihapus secara permanen.</p>
+            <p className="text-center text-sm text-gray-500 mb-6">Data ini akan dihapus secara permanen.</p>
             <div className="flex gap-3">
               <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">Batal</button>
-              <button onClick={() => handleDelete(showDeleteConfirm)} className="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700">Hapus</button>
+              <button onClick={() => deleteMut.mutate(showDeleteConfirm!)} disabled={deleteMut.isPending}
+                className="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-60">Hapus</button>
             </div>
           </div>
         </div>

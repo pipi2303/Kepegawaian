@@ -22,7 +22,9 @@ class PengaturanSeeder extends Seeder
             'lat_rs'       => env('LAT_RS', '-5.3971'),
             'lng_rs'       => env('LNG_RS', '105.2668'),
             'radius_meter' => env('RADIUS_ABSENSI', '200'),
-            'gps_wajib'    => env('GPS_WAJIB', 'false'),
+            'gps_wajib'           => env('GPS_WAJIB', 'false'),
+            'total_tempat_tidur'  => env('TOTAL_TT', '200'),
+            'bor_manual'          => '0',
         ];
 
         foreach ($defaults as $key => $value) {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Settings, Shield, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Settings, Shield, AlertTriangle, ExternalLink, BedDouble } from 'lucide-react';
 import { toast } from 'sonner';
 import { pengaturanApi, licenseApi } from '../data/api';
 import { useNavigate } from 'react-router';
@@ -15,6 +15,7 @@ const EMPTY = {
   nama_rs: '', kota_rs: '', kelas_rs: '', akreditasi_rs: '',
   alamat_rs: '', no_telp_rs: '', email_rs: '', direktur_rs: '', logo_rs: '',
   lat_rs: '', lng_rs: '', radius_meter: '',
+  total_tempat_tidur: '', bor_manual: '',
 };
 
 export default function AdminSettings() {
@@ -222,6 +223,67 @@ export default function AdminSettings() {
                 )}
               </div>
             )}
+          </div>
+
+          {/* Kapasitas RS card */}
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <BedDouble className="w-4 h-4 text-blue-500" />
+              <h2 className="font-semibold text-gray-800 text-sm uppercase tracking-wide">Kapasitas RS & BOR</h2>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className={labelCls}>Total Tempat Tidur</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={form.total_tempat_tidur}
+                  onChange={e => field('total_tempat_tidur', e.target.value)}
+                  className={inputCls}
+                  placeholder="200"
+                />
+                <p className="text-[11px] text-gray-400 mt-1">Kapasitas tempat tidur operasional RS</p>
+              </div>
+              <div>
+                <label className={labelCls}>BOR Manual (%) — update harian/mingguan</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={form.bor_manual}
+                  onChange={e => field('bor_manual', e.target.value)}
+                  className={inputCls}
+                  placeholder="0"
+                />
+                {form.bor_manual !== '' && (
+                  <div className="mt-2">
+                    <div className="w-full bg-gray-100 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full transition-all ${
+                          Number(form.bor_manual) >= 85 ? 'bg-red-500'
+                          : Number(form.bor_manual) >= 70 ? 'bg-amber-500'
+                          : 'bg-blue-500'
+                        }`}
+                        style={{ width: `${Math.min(100, Number(form.bor_manual) || 0)}%` }}
+                      />
+                    </div>
+                    <p className="text-[11px] text-gray-400 mt-1">
+                      {Number(form.bor_manual) >= 85 ? 'BOR tinggi — kapasitas kritis'
+                        : Number(form.bor_manual) >= 70 ? 'BOR optimal'
+                        : 'BOR rendah'}
+                    </p>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => saveMutation.mutate({ total_tempat_tidur: form.total_tempat_tidur, bor_manual: form.bor_manual })}
+                disabled={saveMutation.isPending}
+                className="w-full py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-60 transition-colors"
+              >
+                {saveMutation.isPending ? 'Menyimpan...' : 'Simpan Kapasitas'}
+              </button>
+            </div>
           </div>
 
           {/* System info card */}

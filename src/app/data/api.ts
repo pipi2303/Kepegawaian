@@ -59,6 +59,11 @@ export const absensiApi = {
 export const dashboardApi = {
   summary: () => http.get('/dashboard/summary').then(r => r.data.data),
   notifications: () => http.get('/notifications').then(r => r.data),
+  direkturSummary: () => http.get('/dashboard/direktur-summary').then(r => ({ ...r.data.data, generated_at: r.data.generated_at })),
+  trendAbsensi: () => http.get('/dashboard/trend-absensi').then(r => r.data.data),
+  kontrakExpiring: () => http.get('/dashboard/kontrak-expiring').then(r => r.data),
+  strByUnit: () => http.get('/dashboard/str-by-unit').then(r => r.data.data),
+  workforceMap: () => http.get('/dashboard/workforce-map').then(r => r.data.data),
 };
 
 // CREDENTIALING
@@ -292,4 +297,68 @@ export const kenaikanPangkatApi = {
     http.put(`/kenaikan-pangkat/${id}/status`, d).then(r => r.data),
   suratUsulan: (d: { pegawai_id: number; kp_id: number }) =>
     http.post('/kenaikan-pangkat/surat-usulan', d, { responseType: 'blob' }),
+};
+
+// DISIPLIN ASN (PP 94/2021)
+export const disiplinApi = {
+  getAll:     (p?: any)             => http.get('/disiplin', { params: p }).then(r => r.data),
+  create:     (d: any)              => http.post('/disiplin', d).then(r => r.data),
+  update:     (id: number, d: any)  => http.put(`/disiplin/${id}`, d).then(r => r.data),
+  remove:     (id: number)          => http.delete(`/disiplin/${id}`).then(r => r.data),
+  skDisiplin: (disiplin_id: number) => http.post('/disiplin/sk-disiplin', { disiplin_id }, { responseType: 'blob' }),
+  stats:      ()                    => http.get('/disiplin/stats').then(r => r.data),
+};
+
+// KONTRAK PEGAWAI
+export const kontrakApi = {
+  getAll:      (p?: any)                                         => http.get('/kontrak', { params: p }).then(r => r.data),
+  create:      (d: any)                                          => http.post('/kontrak', d).then(r => r.data),
+  update:      (id: number, d: any)                              => http.put(`/kontrak/${id}`, d).then(r => r.data),
+  perpanjang:  (id: number, d: { tanggal_selesai_baru: string }) => http.post(`/kontrak/${id}/perpanjang`, d).then(r => r.data),
+  expiring:    (hari?: number)                                   => http.get('/kontrak/expiring', { params: { hari } }).then(r => r.data),
+  generatePDF: (d: any)                                          => http.post('/kontrak/generate-pdf', d, { responseType: 'blob' }),
+};
+
+// SKP (Sasaran Kinerja Pegawai)
+export const skpApi = {
+  getAll: (p?: any) => http.get('/skp', { params: p }).then(r => r.data),
+  getOne: (id: number) => http.get(`/skp/${id}`).then(r => r.data),
+  create: (d: any) => http.post('/skp', d).then(r => r.data),
+  update: (id: number, d: any) => http.put(`/skp/${id}`, d).then(r => r.data),
+  ajukan: (id: number) => http.post(`/skp/${id}/ajukan`).then(r => r.data),
+  nilai: (id: number, d: any) => http.post(`/skp/${id}/nilai`, d).then(r => r.data),
+  setujui: (id: number) => http.post(`/skp/${id}/setujui`).then(r => r.data),
+  updateRealisasi: (detailId: number, d: { realisasi: number; capaian_persen?: number }) =>
+    http.put(`/skp/detail/${detailId}/realisasi`, d).then(r => r.data),
+  summary: (tahun: number) => http.get('/skp/summary', { params: { tahun } }).then(r => r.data),
+};
+
+// K3RS — Keselamatan & Kesehatan Kerja RS
+export const k3rsApi = {
+  getInsiden:     (p?: any)            => http.get('/k3rs/insiden', { params: p }).then(r => r.data),
+  createInsiden:  (d: any)             => http.post('/k3rs/insiden', d).then(r => r.data),
+  updateInsiden:  (id: number, d: any) => http.put(`/k3rs/insiden/${id}`, d).then(r => r.data),
+  statsInsiden:   ()                   => http.get('/k3rs/insiden/stats').then(r => r.data),
+  getVaksinasi:   (p?: any)            => http.get('/k3rs/vaksinasi', { params: p }).then(r => r.data),
+  createVaksinasi:(d: any)             => http.post('/k3rs/vaksinasi', d).then(r => r.data),
+  updateVaksinasi:(id: number, d: any) => http.put(`/k3rs/vaksinasi/${id}`, d).then(r => r.data),
+  deleteVaksinasi:(id: number)         => http.delete(`/k3rs/vaksinasi/${id}`).then(r => r.data),
+  coverage:       ()                   => http.get('/k3rs/vaksinasi/coverage').then(r => r.data),
+  getMCU:         (p?: any)            => http.get('/k3rs/mcu', { params: p }).then(r => r.data),
+  createMCU:      (d: any)             => http.post('/k3rs/mcu', d).then(r => r.data),
+  updateMCU:      (id: number, d: any) => http.put(`/k3rs/mcu/${id}`, d).then(r => r.data),
+  deleteMCU:      (id: number)         => http.delete(`/k3rs/mcu/${id}`).then(r => r.data),
+  mcuSummary:     ()                   => http.get('/k3rs/mcu/summary').then(r => r.data),
+};
+
+// ANGKA KREDIT JFT
+export const angkaKreditApi = {
+  getAll:     (p?: any)                                                      => http.get('/angka-kredit', { params: p }).then(r => r.data),
+  create:     (d: any)                                                       => http.post('/angka-kredit', d).then(r => r.data),
+  ajukan:     (d: { pegawai_id: number; tahun: number; semester: number })  => http.post('/angka-kredit/ajukan', d).then(r => r.data),
+  verifikasi: (id: number)                                                   => http.post(`/angka-kredit/${id}/verifikasi`).then(r => r.data),
+  setujui:    (id: number)                                                   => http.post(`/angka-kredit/${id}/setujui`).then(r => r.data),
+  rekap:      (p?: any)                                                      => http.get('/angka-kredit/rekap', { params: p }).then(r => r.data),
+  target:     ()                                                             => http.get('/angka-kredit/target').then(r => r.data),
+  storeTarget:(d: any)                                                       => http.post('/angka-kredit/target', d).then(r => r.data),
 };

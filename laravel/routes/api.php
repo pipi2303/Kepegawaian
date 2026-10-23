@@ -26,6 +26,9 @@ use App\Http\Controllers\RBKController;
 use App\Http\Controllers\PensiunController;
 use App\Http\Controllers\MutasiController;
 use App\Http\Controllers\KenaikanPangkatController;
+use App\Http\Controllers\SKPController;
+use App\Http\Controllers\DisiplinController;
+use App\Http\Controllers\KontrakController;
 
 /*
 |--------------------------------------------------------------------------
@@ -415,6 +418,72 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('/',              [KenaikanPangkatController::class, 'store']);
         Route::put('/{id}/status',    [KenaikanPangkatController::class, 'updateStatus']);
         Route::post('/surat-usulan',  [KenaikanPangkatController::class, 'generateSuratUsulan']);
+    });
+
+    // 33. SKP (Sasaran Kinerja Pegawai) — PermenPAN-RB No. 6/2022
+    Route::prefix('skp')->group(function () {
+        Route::get('/',                          [SKPController::class, 'index']);
+        Route::post('/',                         [SKPController::class, 'store']);
+        Route::get('/summary',                   [SKPController::class, 'summary']);
+        Route::put('/detail/{detail}/realisasi', [SKPController::class, 'updateRealisasi']);
+        Route::get('/{skp}',                     [SKPController::class, 'show']);
+        Route::put('/{skp}',                     [SKPController::class, 'update']);
+        Route::post('/{skp}/ajukan',             [SKPController::class, 'ajukan']);
+        Route::post('/{skp}/nilai',              [SKPController::class, 'nilai']);
+        Route::post('/{skp}/setujui',            [SKPController::class, 'setujui']);
+    });
+
+    // 34. Disiplin ASN (PP 94/2021)
+    Route::prefix('disiplin')->group(function () {
+        Route::get('/',              [DisiplinController::class, 'index']);
+        Route::get('/stats',         [DisiplinController::class, 'stats']);
+        Route::post('/',             [DisiplinController::class, 'store']);
+        Route::put('/{id}',          [DisiplinController::class, 'update']);
+        Route::delete('/{id}',       [DisiplinController::class, 'destroy']);
+        Route::post('/sk-disiplin',  [DisiplinController::class, 'generateSKDisiplin']);
+    });
+
+    // 35. Kontrak Pegawai + Expiry Alerts
+    Route::prefix('kontrak')->group(function () {
+        Route::get('/',                       [KontrakController::class, 'index']);
+        Route::get('/expiring',               [KontrakController::class, 'expiring']);
+        Route::post('/',                      [KontrakController::class, 'store']);
+        Route::put('/{kontrak}',              [KontrakController::class, 'update']);
+        Route::post('/{kontrak}/perpanjang',  [KontrakController::class, 'perpanjang']);
+        Route::post('/generate-pdf',          [KontrakController::class, 'generateKontrak']);
+    });
+
+    // 36. K3RS — Keselamatan & Kesehatan Kerja RS (Wajib KARS)
+    Route::prefix('k3rs')->group(function () {
+        // stats/coverage routes before wildcards
+        Route::get('/insiden/stats',     [\App\Http\Controllers\K3RSController::class, 'statsInsiden']);
+        Route::get('/insiden',           [\App\Http\Controllers\K3RSController::class, 'indexInsiden']);
+        Route::post('/insiden',          [\App\Http\Controllers\K3RSController::class, 'storeInsiden']);
+        Route::put('/insiden/{insiden}', [\App\Http\Controllers\K3RSController::class, 'updateInsiden']);
+
+        Route::get('/vaksinasi/coverage',      [\App\Http\Controllers\K3RSController::class, 'coverage']);
+        Route::get('/vaksinasi',               [\App\Http\Controllers\K3RSController::class, 'indexVaksinasi']);
+        Route::post('/vaksinasi',              [\App\Http\Controllers\K3RSController::class, 'storeVaksinasi']);
+        Route::put('/vaksinasi/{vaksinasi}',   [\App\Http\Controllers\K3RSController::class, 'updateVaksinasi']);
+        Route::delete('/vaksinasi/{vaksinasi}',[\App\Http\Controllers\K3RSController::class, 'destroyVaksinasi']);
+
+        Route::get('/mcu/summary',  [\App\Http\Controllers\K3RSController::class, 'mcuSummary']);
+        Route::get('/mcu',          [\App\Http\Controllers\K3RSController::class, 'indexMCU']);
+        Route::post('/mcu',         [\App\Http\Controllers\K3RSController::class, 'storeMCU']);
+        Route::put('/mcu/{mcu}',    [\App\Http\Controllers\K3RSController::class, 'updateMCU']);
+        Route::delete('/mcu/{mcu}', [\App\Http\Controllers\K3RSController::class, 'destroyMCU']);
+    });
+
+    // 37. Angka Kredit JFT (Jabatan Fungsional Tertentu)
+    Route::prefix('angka-kredit')->group(function () {
+        Route::get('/rekap',            [\App\Http\Controllers\AngkaKreditController::class, 'rekap']);
+        Route::get('/target',           [\App\Http\Controllers\AngkaKreditController::class, 'target']);
+        Route::post('/target',          [\App\Http\Controllers\AngkaKreditController::class, 'storeTarget']);
+        Route::get('/',                 [\App\Http\Controllers\AngkaKreditController::class, 'index']);
+        Route::post('/',                [\App\Http\Controllers\AngkaKreditController::class, 'store']);
+        Route::post('/ajukan',          [\App\Http\Controllers\AngkaKreditController::class, 'ajukan']);
+        Route::post('/{id}/verifikasi', [\App\Http\Controllers\AngkaKreditController::class, 'verifikasi']);
+        Route::post('/{id}/setujui',    [\App\Http\Controllers\AngkaKreditController::class, 'setujui']);
     });
 });
 
