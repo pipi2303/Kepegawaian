@@ -30,7 +30,8 @@ class CekKontrakExpiry extends Command
                 $tgl  = $k->tanggal_selesai->translatedFormat('d F Y');
                 $sisa = (int) now()->diffInDays($k->tanggal_selesai);
 
-                $msg = "⚠️ *Notifikasi Kontrak Kerja*\n\nYth. {$k->pegawai->nama},\n\nKontrak Kerja Anda berakhir pada *{$tgl}* ({$sisa} hari lagi).\n\nSegera hubungi Bagian SDM untuk proses perpanjangan.\n\n_HCMS {$k->pegawai->unit_kerja ?? ''}_";
+                $unitKerja = $k->pegawai->unit_kerja ?? '';
+                $msg = "⚠️ *Notifikasi Kontrak Kerja*\n\nYth. {$k->pegawai->nama},\n\nKontrak Kerja Anda berakhir pada *{$tgl}* ({$sisa} hari lagi).\n\nSegera hubungi Bagian SDM untuk proses perpanjangan.\n\n_HCMS {$unitKerja}_";
 
                 $phone = $k->pegawai->no_telp ?? null;
                 if ($phone) WhatsAppService::send($phone, $msg);
