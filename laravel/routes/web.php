@@ -31,15 +31,15 @@ Route::middleware(['auth', SessionIdleTimeout::class])->group(function () {
 
     // 2. Modul Data Pegawai
     Route::get('employee-management', fn() => \Inertia\Inertia::render('EmployeeManagement'))->name('employee-management');
-    Route::get('pegawai', [PegawaiWebController::class, 'index'])->name('pegawai.index');
-    Route::get('pegawai/{pegawai}', [PegawaiWebController::class, 'show'])->name('pegawai.show');
-    Route::post('pegawai', [PegawaiWebController::class, 'store'])->name('pegawai.store');
-    Route::put('pegawai/{pegawai}', [PegawaiWebController::class, 'update'])->name('pegawai.update');
+    Route::get('pegawai', [PegawaiWebController::class, 'index'])->name('web.pegawai.index');
+    Route::get('pegawai/{pegawai}', [PegawaiWebController::class, 'show'])->name('web.pegawai.show');
+    Route::post('pegawai', [PegawaiWebController::class, 'store'])->name('web.pegawai.store');
+    Route::put('pegawai/{pegawai}', [PegawaiWebController::class, 'update'])->name('web.pegawai.update');
 
-    // DELETE pegawai — wajib konfirmasi password (operasi irreversible di tampilan user)
+    // DELETE pegawai — wajib konfirmasi password
     Route::delete('pegawai/{pegawai}', [PegawaiWebController::class, 'destroy'])
         ->middleware('password.confirm')
-        ->name('pegawai.destroy');
+        ->name('web.pegawai.destroy');
 
     // 3. Modul Cuti Pegawai (PP 11/2017)
     Route::get('cuti', [CutiWebController::class, 'index'])->name('cuti.index');
