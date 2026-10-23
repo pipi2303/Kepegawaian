@@ -1,6 +1,9 @@
 #!/bin/sh
 set -e
 
+# Run composer scripts yang di-skip saat build (butuh .env)
+composer run-script post-autoload-dump 2>/dev/null || true
+
 # Generate APP_KEY jika belum ada
 if grep -q "^APP_KEY=$" /var/www/html/.env 2>/dev/null; then
     php artisan key:generate --force

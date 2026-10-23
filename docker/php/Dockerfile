@@ -28,7 +28,7 @@ COPY laravel/ .
 
 RUN composer install \
     --no-dev --optimize-autoloader --no-interaction \
-    --ignore-platform-reqs \
+    --no-scripts --ignore-platform-reqs \
     && chown -R www-data:www-data storage bootstrap/cache
 
 COPY docker/php/entrypoint.sh /entrypoint.sh
