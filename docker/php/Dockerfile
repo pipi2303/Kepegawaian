@@ -20,18 +20,18 @@ RUN apt-get update && apt-get install -y \
         opcache \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Use latest Composer 2.8+ which supports policy.advisories.ignore-id
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
 COPY laravel/ .
 
-# Install dependencies only (no artisan commands — need .env at runtime)
+# Install dependencies — security advisories ignored via composer.json policy section
 RUN composer install \
     --no-dev --optimize-autoloader --no-interaction \
     && chown -R www-data:www-data storage bootstrap/cache
 
-# Entrypoint script untuk setup saat container start
 COPY docker/php/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
