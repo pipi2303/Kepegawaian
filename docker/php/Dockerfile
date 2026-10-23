@@ -26,9 +26,11 @@ WORKDIR /var/www/html
 
 COPY laravel/ .
 
-RUN composer install \
-    --no-dev --optimize-autoloader --no-interaction \
-    --no-scripts --ignore-platform-reqs \
+RUN mkdir -p storage/app/public storage/framework/cache storage/framework/sessions \
+        storage/framework/views storage/logs bootstrap/cache \
+    && composer install \
+        --no-dev --optimize-autoloader --no-interaction \
+        --no-scripts --ignore-platform-reqs \
     && chown -R www-data:www-data storage bootstrap/cache
 
 COPY docker/php/entrypoint.sh /entrypoint.sh
