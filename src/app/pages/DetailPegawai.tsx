@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   User, Briefcase, Calendar, TrendingUp, Target, FolderOpen,
   ArrowLeft, Printer, Edit2, Award, Phone, Mail, Clock, GraduationCap,
-  Users, BadgeCheck, Gauge,
+  Users, BadgeCheck, Gauge, Loader2,
 } from 'lucide-react';
-import { useAppContext } from '../context/AppContext';
+import { pegawaiApi, cutiApi, skpApi, kenaikanPangkatApi, mutasiApi } from '../data/api';
 import { PANGKAT_GOLONGAN } from '../data/constants';
 import { EmployeeAvatar } from '../components/EmployeeAvatar';
 import EditPegawaiModal from '../components/EditPegawaiModal';
@@ -14,6 +15,112 @@ import { DataKeluargaTab } from '../components/DataKeluargaTab';
 import { MyPerformanceTab } from '../components/MyPerformanceTab';
 import { toast } from 'sonner';
 import type { Pegawai } from '../types';
+
+// Map snake_case API pegawai to camelCase Pegawai type
+function mapPegawai(p: any): Pegawai {
+  return {
+    id:                String(p.id),
+    nip:               p.nip               ?? '',
+    nama:              p.nama              ?? '',
+    gelarDepan:        p.gelar_depan       ?? p.gelarDepan,
+    gelarBelakang:     p.gelar_belakang    ?? p.gelarBelakang,
+    jenisKelamin:      p.jenis_kelamin     ?? p.jenisKelamin     ?? 'L',
+    tempatLahir:       p.tempat_lahir      ?? p.tempatLahir      ?? '',
+    tanggalLahir:      p.tanggal_lahir     ?? p.tanggalLahir     ?? '',
+    agama:             p.agama             ?? '',
+    statusPerkawinan:  p.status_perkawinan ?? p.statusPerkawinan ?? '',
+    alamat:            p.alamat            ?? '',
+    noTelp:            p.no_telp           ?? p.noTelp           ?? '',
+    email:             p.email             ?? '',
+    jabatan:           p.jabatan           ?? '',
+    jabatanFungsional: p.jabatan_fungsional?? p.jabatanFungsional?? '',
+    unitKerja:         p.unit_kerja        ?? p.unitKerja        ?? '',
+    golongan:          p.golongan          ?? '',
+    pangkat:           p.pangkat           ?? '',
+    tmtGolongan:       p.tmt_golongan      ?? p.tmtGolongan      ?? '',
+    tmtJabatan:        p.tmt_jabatan       ?? p.tmtJabatan       ?? '',
+    statusPegawai:     p.status_pegawai    ?? p.statusPegawai    ?? 'PNS',
+    statusAktif:       p.status_aktif      ?? p.statusAktif      ?? 'Aktif',
+    pendidikanTerakhir:p.pendidikan_terakhir?? p.pendidikanTerakhir?? '',
+    jurusan:           p.jurusan           ?? '',
+    institusi:         p.institusi         ?? '',
+    tahunLulus:        p.tahun_lulus       ?? p.tahunLulus       ?? 0,
+    tanggalMasuk:      p.tanggal_masuk     ?? p.tanggalMasuk     ?? '',
+    batasPensiun:      p.batas_pensiun     ?? p.batasPensiun     ?? '',
+    masaKerja:         p.masa_kerja        ?? p.masaKerja        ?? '',
+    eselon:            p.eselon,
+    badge:             p.badge,
+    foto:              p.foto,
+    sertifikat:        p.sertifikat        ?? [],
+  };
+}
+
+// Map SKP API response to frontend shape
+function mapSKP(s: any) {
+  return {
+    id:         String(s.id),
+    pegawaiId:  String(s.pegawai_id ?? s.pegawaiId ?? ''),
+    tahun:      s.tahun,
+    semester:   s.semester,
+    nilaiAkhir: s.nilai_akhir  ?? s.nilaiAkhir,
+    predikat:   s.predikat,
+    status:     s.status,
+    targetKinerja: (s.details ?? s.target_kinerja ?? []).map((t: any) => ({
+      id:             String(t.id),
+      uraianKegiatan: t.uraian_kegiatan  ?? t.uraianKegiatan  ?? '',
+      target:         t.target_kuantitas ?? t.target          ?? 0,
+      satuan:         t.satuan           ?? '',
+      bobot:          t.bobot            ?? 0,
+      realisasi:      t.realisasi,
+      nilaiCapaian:   t.capaian_persen   ?? t.nilaiCapaian,
+    })),
+  };
+}
+
+// Map Cuti API response
+function mapCuti(c: any) {
+  return {
+    id:           String(c.id),
+    pegawaiId:    String(c.pegawai_id ?? ''),
+    jenisCuti:    c.jenis_cuti   ?? c.jenisCuti   ?? '',
+    tanggalMulai: c.tanggal_mulai?? c.tanggalMulai?? '',
+    tanggalSelesai:c.tanggal_selesai??c.tanggalSelesai??'',
+    jumlahHari:   c.jumlah_hari  ?? c.jumlahHari  ?? 0,
+    alasan:       c.alasan       ?? '',
+    status:       c.status       ?? 'Pending',
+  };
+}
+
+// Map Kenaikan Pangkat API response
+function mapKP(k: any) {
+  return {
+    id:          String(k.id),
+    pegawaiId:   String(k.pegawai_id ?? ''),
+    pangkatLama: k.pangkat_lama ?? k.pangkatLama ?? '',
+    pangkatBaru: k.pangkat_baru ?? k.pangkatBaru ?? '',
+    golonganLama:k.golongan_lama?? k.golonganLama?? '',
+    golonganBaru:k.golongan_baru?? k.golonganBaru?? '',
+    jenisKenaikan:k.jenis_kenaikan??k.jenisKenaikan??'',
+    periodeUsulan:k.periode_usulan??k.periodeUsulan??'',
+    nomorSK:     k.nomor_sk     ?? k.nomorSK,
+    status:      k.status       ?? 'Proses',
+  };
+}
+
+// Map Riwayat Jabatan API response
+function mapRJ(r: any) {
+  return {
+    id:          String(r.id),
+    pegawaiId:   String(r.pegawai_id ?? ''),
+    jabatan:     r.jabatan      ?? '',
+    unitKerja:   r.unit_kerja   ?? r.unitKerja   ?? '',
+    golongan:    r.golongan     ?? '',
+    jenisJabatan:r.jenis_jabatan?? r.jenisJabatan?? '',
+    tmtMulai:    r.tmt_jabatan  ?? r.tmtMulai    ?? '',
+    tmtSelesai:  r.tmt_selesai  ?? r.tmtSelesai,
+    nomorSK:     r.nomor_sk     ?? r.nomorSK     ?? '',
+  };
+}
 
 const InfoRow = ({ label, value }: { label: string; value?: string | number }) => (
   <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-3">
@@ -36,12 +143,57 @@ const tabs = [
 export default function DetailPegawai() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState('profil');
   const [showEditModal, setShowEditModal] = useState(false);
-  const { pegawai, riwayatJabatan: allRJ, cuti: allCuti, kenaikanPangkat: allKP, skp: allSKP, updatePegawai } = useAppContext();
 
-  const pegawaiData = pegawai.find(p => p.id === id);
-  if (!pegawaiData) {
+  // Real API queries — all gracefully handle offline/404
+  const { data: pegawaiRaw, isLoading: pegawaiLoading } = useQuery({
+    queryKey: ['pegawai', id],
+    queryFn: () => pegawaiApi.getOne(Number(id)),
+    enabled: !!id,
+    retry: 1,
+  });
+
+  const { data: cutiRaw = [] } = useQuery({
+    queryKey: ['cuti', { pegawai_id: id }],
+    queryFn: () => cutiApi.getAll({ pegawai_id: id }),
+    enabled: !!id,
+    retry: 1,
+  });
+
+  const { data: skpRaw = [] } = useQuery({
+    queryKey: ['skp', { pegawai_id: id }],
+    queryFn: () => skpApi.getAll({ pegawai_id: id }),
+    enabled: !!id,
+    retry: 1,
+  });
+
+  const { data: kpRaw = [] } = useQuery({
+    queryKey: ['kenaikan-pangkat', { pegawai_id: id }],
+    queryFn: () => kenaikanPangkatApi.getAll({ pegawai_id: id }),
+    enabled: !!id,
+    retry: 1,
+  });
+
+  const { data: rjRaw = [] } = useQuery({
+    queryKey: ['riwayat-jabatan', id],
+    queryFn: () => mutasiApi.riwayat(Number(id)),
+    enabled: !!id,
+    retry: 1,
+  });
+
+  if (pegawaiLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-[#013E37]" />
+      </div>
+    );
+  }
+
+  // Normalize API data
+  const rawP = (pegawaiRaw as any)?.pegawai ?? pegawaiRaw;
+  if (!rawP?.id) {
     return (
       <div className="p-6 text-center">
         <p className="text-gray-500">Pegawai tidak ditemukan</p>
@@ -52,10 +204,17 @@ export default function DetailPegawai() {
     );
   }
 
-  const riwayatJabatan = allRJ.filter(r => r.pegawaiId === id);
-  const riwayatCuti = allCuti.filter(c => c.pegawaiId === id);
-  const riwayatKP = allKP.filter(k => k.pegawaiId === id);
-  const riwayatSKP = allSKP.filter(s => s.pegawaiId === id);
+  const pegawaiData: Pegawai = mapPegawai(rawP);
+
+  const cutiArr   = Array.isArray(cutiRaw) ? cutiRaw : (cutiRaw as any)?.data ?? [];
+  const skpArr    = Array.isArray(skpRaw)  ? skpRaw  : (skpRaw  as any)?.data ?? [];
+  const kpArr     = Array.isArray(kpRaw)   ? kpRaw   : (kpRaw   as any)?.data ?? [];
+  const rjArr     = Array.isArray(rjRaw)   ? rjRaw   : (rjRaw   as any)?.data ?? [];
+
+  const riwayatJabatan = rjArr.map(mapRJ);
+  const riwayatCuti    = cutiArr.map(mapCuti);
+  const riwayatKP      = kpArr.map(mapKP);
+  const riwayatSKP     = skpArr.map(mapSKP);
 
   // alias for backward compat in JSX below
   const pegawai_ = pegawaiData;
@@ -77,7 +236,8 @@ export default function DetailPegawai() {
   };
 
   const handleSave = (data: Omit<Pegawai, 'id'> & { id?: string }) => {
-    updatePegawai(data as Pegawai);
+    // Optimistic: invalidate after save (EditPegawaiModal handles the actual API call)
+    qc.invalidateQueries({ queryKey: ['pegawai', id] });
     toast.success(`Data ${data.nama} berhasil diperbarui`);
     setShowEditModal(false);
   };

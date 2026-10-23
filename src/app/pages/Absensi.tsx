@@ -1,11 +1,31 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
   Clock, Download, ChevronLeft, ChevronRight, AlertCircle, Plus,
-  Edit2, Trash2, Save, X, Calendar, Search, TrendingUp,
+  Edit2, Trash2, Save, X, Calendar, Search, TrendingUp, Upload,
 } from 'lucide-react';
-import { useAppContext } from '../context/AppContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router';
+import { absensiApi, laporanBKDApi, exportApi } from '../data/api';
+import { usePegawai } from '../hooks';
+import { downloadBlob } from '../lib/downloadBlob';
 import type { AbsensiRecord } from '../types';
 import { toast } from 'sonner';
+
+// Map snake_case API response → camelCase AbsensiRecord
+function mapRecord(r: any): AbsensiRecord & { pegawaiNama?: string; pegawaiJabatan?: string; pegawaiUnitKerja?: string } {
+  return {
+    id:         String(r.id),
+    pegawaiId:  String(r.pegawai_id),
+    tanggal:    typeof r.tanggal === 'string' ? r.tanggal.slice(0, 10) : r.tanggal,
+    jamMasuk:   r.jam_masuk  ?? undefined,
+    jamKeluar:  r.jam_keluar ?? undefined,
+    status:     r.status,
+    keterangan: r.keterangan ?? undefined,
+    pegawaiNama:      r.pegawai?.nama,
+    pegawaiJabatan:   r.pegawai?.jabatan,
+    pegawaiUnitKerja: r.pegawai?.unit_kerja,
+  };
+}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const STATUS_CONFIG: Record<string, {
@@ -87,13 +107,59 @@ function StatusBadge({ status }: { status: string }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function Absensi() {
-  const { pegawai, absensi, addAbsensi, updateAbsensi, deleteAbsensi } = useAppContext();
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+
+  // Real pegawai list for dropdown in modal
+  const { data: pegawaiRaw = [] } = usePegawai();
+  const pegawai = Array.isArray(pegawaiRaw) ? pegawaiRaw : (pegawaiRaw as any)?.data ?? [];
+
+  // Real daily absensi
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
+  const { data: harianRaw = [], isLoading: harianLoading } = useQuery({
+    queryKey: ['absensi-harian', selectedDate],
+    queryFn: () => absensiApi.getHarian({ tanggal: selectedDate }),
+    staleTime: 30_000,
+  });
+  const absensi: AbsensiRecord[] = useMemo(
+    () => (Array.isArray(harianRaw) ? harianRaw : []).map(mapRecord),
+    [harianRaw],
+  );
+
+  // Real monthly rekap
+  const [rekapMonth, setRekapMonth] = useState(new Date().getMonth());
+  const [rekapYear, setRekapYear] = useState(new Date().getFullYear());
+  const { data: rekapRaw = [], isLoading: rekapLoading } = useQuery({
+    queryKey: ['absensi-rekap', rekapMonth + 1, rekapYear],
+    queryFn: () => absensiApi.getAll({ bulan: rekapMonth + 1, tahun: rekapYear }),
+    staleTime: 60_000,
+  });
+
+  // CRUD mutations
+  const createMut = useMutation({
+    mutationFn: (d: any) => absensiApi.create(d),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['absensi-harian'] }); toast.success('Data kehadiran berhasil ditambahkan'); },
+    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Gagal menyimpan'),
+  });
+  const updateMut = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => absensiApi.update(id, data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['absensi-harian'] }); toast.success('Data kehadiran berhasil diperbarui'); },
+    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Gagal memperbarui'),
+  });
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => absensiApi.remove(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['absensi-harian'] }); toast.success('Data kehadiran berhasil dihapus'); },
+    onError: () => toast.error('Gagal menghapus'),
+  });
+
+  const addAbsensi    = (d: Omit<AbsensiRecord, 'id'>) => createMut.mutate({ pegawai_id: d.pegawaiId, tanggal: d.tanggal, status: d.status, jam_masuk: d.jamMasuk, jam_keluar: d.jamKeluar, keterangan: d.keterangan });
+  const updateAbsensi = (d: AbsensiRecord) => updateMut.mutate({ id: d.id, data: { status: d.status, jam_masuk: d.jamMasuk, jam_keluar: d.jamKeluar, keterangan: d.keterangan } });
+  const deleteAbsensi = (id: string) => { deleteMut.mutate(id); setDeleteConfirmId(null); };
 
   // ── Tab ──
   const [activeTab, setActiveTab] = useState<TabType>('harian');
 
-  // ── Data Harian ──
-  const [selectedDate, setSelectedDate] = useState('2026-03-05');
+  // ── Filters (harian) ──
   const [filterUnit, setFilterUnit] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -103,42 +169,38 @@ export default function Absensi() {
   const [editingRecord, setEditingRecord] = useState<AbsensiRecord | null>(null);
   const [detailRecord, setDetailRecord] = useState<AbsensiRecord | null>(null);
   const [modalForm, setModalForm] = useState<ModalForm>({
-    pegawaiId: '', tanggal: '2026-03-05', status: 'Hadir',
+    pegawaiId: '', tanggal: new Date().toISOString().slice(0, 10), status: 'Hadir',
     jamMasuk: '07:30', jamKeluar: '16:00', keterangan: '',
   });
 
-  // ── Rekap ──
-  const [rekapMonth, setRekapMonth] = useState(2);
-  const [rekapYear, setRekapYear] = useState(2026);
+  // ── Rekap filters ──
   const [rekapUnit, setRekapUnit] = useState('');
   const [rekapSearch, setRekapSearch] = useState('');
 
-  // ── Computed: Data Harian ──
-  const dateRecords = useMemo(() =>
-    absensi.filter(a => a.tanggal === selectedDate),
-    [absensi, selectedDate]
-  );
+  // ── Computed: Data Harian ── (absensi is already filtered for selectedDate from API)
+  const dateRecords = useMemo(() => absensi, [absensi]);
 
+  // filteredRecords uses nested pegawai info from harian API response (fallback to pegawai list)
   const filteredRecords = useMemo(() => {
     return dateRecords
       .filter(a => {
-        const p = pegawai.find(px => px.id === a.pegawaiId);
-        return (!filterUnit || p?.unitKerja === filterUnit) &&
-          (!filterStatus || a.status === filterStatus);
+        const rec = a as any;
+        const unitKerja = rec.pegawaiUnitKerja ?? pegawai.find((px: any) => String(px.id) === a.pegawaiId)?.unitKerja;
+        return (!filterUnit || unitKerja === filterUnit) && (!filterStatus || a.status === filterStatus);
       })
       .sort((a, b) => {
-        const pa = pegawai.find(p => p.id === a.pegawaiId);
-        const pb = pegawai.find(p => p.id === b.pegawaiId);
-        return (pa?.nama || '').localeCompare(pb?.nama || '');
+        const na = (a as any).pegawaiNama ?? pegawai.find((p: any) => String(p.id) === a.pegawaiId)?.nama ?? '';
+        const nb = (b as any).pegawaiNama ?? pegawai.find((p: any) => String(p.id) === b.pegawaiId)?.nama ?? '';
+        return na.localeCompare(nb);
       });
   }, [dateRecords, pegawai, filterUnit, filterStatus]);
 
   const dateStats = useMemo(() => ({
-    hadir: dateRecords.filter(a => a.status === 'Hadir').length,
-    sakit: dateRecords.filter(a => a.status === 'Sakit').length,
-    izin: dateRecords.filter(a => a.status === 'Izin').length,
-    cuti: dateRecords.filter(a => a.status === 'Cuti').length,
-    alpha: dateRecords.filter(a => a.status === 'Alpha').length,
+    hadir:     dateRecords.filter(a => a.status === 'Hadir').length,
+    sakit:     dateRecords.filter(a => a.status === 'Sakit').length,
+    izin:      dateRecords.filter(a => a.status === 'Izin').length,
+    cuti:      dateRecords.filter(a => a.status === 'Cuti').length,
+    alpha:     dateRecords.filter(a => a.status === 'Alpha').length,
     dinasLuar: dateRecords.filter(a => a.status === 'Dinas Luar').length,
     terlambat: dateRecords.filter(a => a.status === 'Hadir' && isLate(a.jamMasuk)).length,
   }), [dateRecords]);
@@ -154,33 +216,34 @@ export default function Absensi() {
     return c;
   }, [rekapMonth, rekapYear]);
 
+  // Rekap data comes from API already aggregated per pegawai
   const rekapData = useMemo(() => {
-    let list = rekapUnit ? pegawai.filter(p => p.unitKerja === rekapUnit) : [...pegawai];
+    const raw: any[] = Array.isArray(rekapRaw) ? rekapRaw : (rekapRaw as any)?.data ?? [];
+    let list = raw;
+    if (rekapUnit) list = list.filter((r: any) => r.unit_kerja === rekapUnit);
     if (rekapSearch) {
       const q = rekapSearch.toLowerCase();
-      list = list.filter(p => p.nama.toLowerCase().includes(q) || p.nip.includes(q));
+      list = list.filter((r: any) => r.nama?.toLowerCase().includes(q) || r.nip?.includes(q));
     }
-    const monthAbs = absensi.filter(a => {
-      const d = new Date(a.tanggal + 'T00:00:00');
-      return d.getMonth() === rekapMonth && d.getFullYear() === rekapYear && a.status !== 'Libur';
-    });
-    return list.map(p => {
-      const recs = monthAbs.filter(a => a.pegawaiId === p.id);
-      const hadir = recs.filter(a => a.status === 'Hadir').length;
-      const sakit = recs.filter(a => a.status === 'Sakit').length;
-      const izin = recs.filter(a => a.status === 'Izin').length;
-      const cuti = recs.filter(a => a.status === 'Cuti').length;
-      const alpha = recs.filter(a => a.status === 'Alpha').length;
-      const dinasLuar = recs.filter(a => a.status === 'Dinas Luar').length;
-      const terlambat = recs.filter(a => a.status === 'Hadir' && isLate(a.jamMasuk)).length;
-      const hadirEfektif = hadir + dinasLuar;
-      const persen = workDaysCount > 0 ? Math.round((hadirEfektif / workDaysCount) * 100) : 0;
-      return { ...p, hadir, sakit, izin, cuti, alpha, dinasLuar, terlambat, hadirEfektif, persen };
-    }).sort((a, b) => b.hadirEfektif - a.hadirEfektif);
-  }, [pegawai, absensi, rekapMonth, rekapYear, rekapUnit, rekapSearch, workDaysCount]);
+    return list.map((r: any) => ({
+      id: String(r.pegawai_id ?? r.id),
+      nama: r.nama ?? '',
+      unitKerja: r.unit_kerja ?? '',
+      nip: r.nip ?? '',
+      hadir:       r.hadir      ?? 0,
+      sakit:       r.sakit      ?? 0,
+      izin:        r.izin       ?? 0,
+      cuti:        r.cuti       ?? 0,
+      alpha:       r.alpha      ?? 0,
+      dinasLuar:   r.dinas_luar ?? 0,
+      terlambat:   r.terlambat  ?? 0,
+      hadirEfektif:(r.hadir ?? 0) + (r.dinas_luar ?? 0),
+      persen:      r.persen_kehadiran ?? (workDaysCount > 0 ? Math.round(((r.hadir ?? 0) + (r.dinas_luar ?? 0)) / workDaysCount * 100) : 0),
+    })).sort((a: any, b: any) => b.hadirEfektif - a.hadirEfektif);
+  }, [rekapRaw, rekapUnit, rekapSearch, workDaysCount]);
 
   const uniqueUnits = useMemo(() =>
-    [...new Set(pegawai.map(p => p.unitKerja))].sort(),
+    [...new Set(pegawai.map((p: any) => p.unit_kerja ?? p.unitKerja).filter(Boolean))].sort() as string[],
     [pegawai]
   );
 
@@ -226,31 +289,20 @@ export default function Absensi() {
       pegawaiId: modalForm.pegawaiId,
       tanggal: modalForm.tanggal,
       status: modalForm.status,
-      jamMasuk: needsTime && modalForm.jamMasuk ? modalForm.jamMasuk : undefined,
+      jamMasuk:  needsTime && modalForm.jamMasuk  ? modalForm.jamMasuk  : undefined,
       jamKeluar: needsTime && modalForm.jamKeluar ? modalForm.jamKeluar : undefined,
       keterangan: modalForm.keterangan || undefined,
     };
     if (editingRecord) {
       updateAbsensi({ ...payload, id: editingRecord.id });
-      toast.success('Data kehadiran berhasil diperbarui');
     } else {
-      const existing = absensi.find(a => a.pegawaiId === modalForm.pegawaiId && a.tanggal === modalForm.tanggal);
-      if (existing) {
-        updateAbsensi({ ...payload, id: existing.id });
-        toast.success('Data kehadiran berhasil diperbarui');
-      } else {
-        addAbsensi(payload);
-        toast.success('Data kehadiran berhasil ditambahkan');
-      }
+      // server does upsert, so just create
+      addAbsensi(payload);
     }
     setShowModal(false);
   };
 
-  const handleDelete = (id: string) => {
-    deleteAbsensi(id);
-    setDeleteConfirmId(null);
-    toast.success('Data kehadiran berhasil dihapus');
-  };
+  const handleDelete = (id: string) => deleteAbsensi(id);
 
   const setModalStatus = (s: AbsensiRecord['status']) => {
     setModalForm(f => ({
@@ -280,11 +332,25 @@ export default function Absensi() {
         <div>
           <h1 className="text-gray-800">Presensi & Absensi</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {formatDateLong('2026-03-05')} · Human Capital Management System
+            {formatDateLong(selectedDate)} · Human Capital Management System
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+          <button
+            onClick={() => navigate('/import-absensi')}
+            className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            <Upload className="w-4 h-4" /> Import Mesin
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                const res = await laporanBKDApi.rekapAbsensi(rekapMonth + 1, rekapYear);
+                downloadBlob(res.data, `rekap-absensi-${MONTH_NAMES[rekapMonth]}-${rekapYear}.xlsx`);
+              } catch { toast.error('Gagal export rekap'); }
+            }}
+            className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+          >
             <Download className="w-4 h-4" /> Export Rekap
           </button>
         </div>
@@ -379,7 +445,12 @@ export default function Absensi() {
 
           {/* Table / Card View */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            {filteredRecords.length === 0 ? (
+            {harianLoading ? (
+              <div className="flex items-center justify-center py-16">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+                <span className="ml-3 text-sm text-gray-500">Memuat data kehadiran...</span>
+              </div>
+            ) : filteredRecords.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center px-4">
                 <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
                   <Calendar className="w-8 h-8 text-gray-400" />
@@ -410,7 +481,11 @@ export default function Absensi() {
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                       {filteredRecords.map((rec, i) => {
-                        const p = pegawai.find(px => px.id === rec.pegawaiId);
+                        const r = rec as any;
+                        const pFull: any = pegawai.find((px: any) => String(px.id) === rec.pegawaiId);
+                        const nama = r.pegawaiNama ?? pFull?.nama ?? '';
+                        const jabatan = r.pegawaiJabatan ?? pFull?.jabatan ?? pFull?.jabatan_fungsional ?? '';
+                        const unitKerja = r.pegawaiUnitKerja ?? pFull?.unit_kerja ?? pFull?.unitKerja ?? '';
                         return (
                           <tr
                             key={rec.id}
@@ -421,18 +496,16 @@ export default function Absensi() {
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-2.5">
                                 <div className={`w-8 h-8 rounded-full ${getAvatarColor(rec.pegawaiId)} flex items-center justify-center flex-shrink-0`}>
-                                  <span className="text-white text-xs font-semibold">{getInitials(p?.nama || '?')}</span>
+                                  <span className="text-white text-xs font-semibold">{getInitials(nama || '?')}</span>
                                 </div>
                                 <div className="min-w-0">
-                                  <p className="text-sm font-medium text-gray-800 leading-tight truncate max-w-44">
-                                    {p?.gelarDepan || ''} {p?.nama}{p?.gelarBelakang ? `, ${p.gelarBelakang}` : ''}
-                                  </p>
-                                  <p className="text-xs text-gray-400 truncate max-w-44">{p?.jabatan}</p>
+                                  <p className="text-sm font-medium text-gray-800 leading-tight truncate max-w-44">{nama}</p>
+                                  <p className="text-xs text-gray-400 truncate max-w-44">{jabatan}</p>
                                 </div>
                               </div>
                             </td>
                             <td className="px-4 py-3 hidden md:table-cell">
-                              <p className="text-xs text-gray-500 max-w-36 truncate">{p?.unitKerja}</p>
+                              <p className="text-xs text-gray-500 max-w-36 truncate">{unitKerja}</p>
                             </td>
                             <td className="px-4 py-3 text-center">
                               <div className="flex flex-col items-center gap-0.5">
@@ -507,7 +580,10 @@ export default function Absensi() {
                 {/* Mobile Card View */}
                 <div className="md:hidden divide-y divide-gray-100">
                   {filteredRecords.map((rec, i) => {
-                    const p = pegawai.find(px => px.id === rec.pegawaiId);
+                    const r = rec as any;
+                    const pFull: any = pegawai.find((px: any) => String(px.id) === rec.pegawaiId);
+                    const nama = r.pegawaiNama ?? pFull?.nama ?? '';
+                    const unitKerja = r.pegawaiUnitKerja ?? pFull?.unit_kerja ?? pFull?.unitKerja ?? '';
                     return (
                       <div
                         key={rec.id}
@@ -517,13 +593,11 @@ export default function Absensi() {
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-full ${getAvatarColor(rec.pegawaiId)} flex items-center justify-center flex-shrink-0`}>
-                              <span className="text-white text-sm font-semibold">{getInitials(p?.nama || '?')}</span>
+                              <span className="text-white text-sm font-semibold">{getInitials(nama || '?')}</span>
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-800 leading-tight">
-                                {p?.gelarDepan || ''} {p?.nama}{p?.gelarBelakang ? `, ${p.gelarBelakang}` : ''}
-                              </p>
-                              <p className="text-xs text-gray-400 mt-0.5">{p?.unitKerja}</p>
+                              <p className="text-sm font-medium text-gray-800 leading-tight">{nama}</p>
+                              <p className="text-xs text-gray-400 mt-0.5">{unitKerja}</p>
                             </div>
                           </div>
                           <StatusBadge status={rec.status} />
@@ -779,9 +853,9 @@ export default function Absensi() {
                   className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
                 >
                   <option value="">— Pilih Pegawai —</option>
-                  {pegawai.map(p => (
-                    <option key={p.id} value={p.id}>
-                      {p.gelarDepan || ''} {p.nama}{p.gelarBelakang ? `, ${p.gelarBelakang}` : ''} · {shortUnit(p.unitKerja)}
+                  {pegawai.map((p: any) => (
+                    <option key={p.id} value={String(p.id)}>
+                      {p.gelar_depan || p.gelarDepan || ''} {p.nama}{(p.gelar_belakang || p.gelarBelakang) ? `, ${p.gelar_belakang ?? p.gelarBelakang}` : ''} · {shortUnit(p.unit_kerja ?? p.unitKerja ?? '')}
                     </option>
                   ))}
                 </select>
@@ -894,7 +968,11 @@ export default function Absensi() {
 
       {/* ── Detail Record Modal ── */}
       {detailRecord && (() => {
-        const p = pegawai.find(px => px.id === detailRecord.pegawaiId);
+        const dr = detailRecord as any;
+        const pFull: any = pegawai.find((px: any) => String(px.id) === detailRecord.pegawaiId);
+        const detailNama = dr.pegawaiNama ?? pFull?.nama ?? '';
+        const detailJabatan = dr.pegawaiJabatan ?? pFull?.jabatan ?? '';
+        const detailUnit = dr.pegawaiUnitKerja ?? pFull?.unit_kerja ?? pFull?.unitKerja ?? '';
         const cfg = STATUS_CONFIG[detailRecord.status] || STATUS_CONFIG['Alpha'];
         const late = isLate(detailRecord.jamMasuk);
         const earlyLeave = detailRecord.status === 'Hadir' && isEarlyLeave(detailRecord.jamKeluar);
@@ -916,14 +994,12 @@ export default function Absensi() {
               <div className="p-6 space-y-4">
                 <div className="bg-gray-50 rounded-xl p-4 flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-full ${getAvatarColor(detailRecord.pegawaiId)} flex items-center justify-center text-white font-semibold flex-shrink-0`}>
-                    {getInitials(p?.nama || '?')}
+                    {getInitials(detailNama || '?')}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-800 text-sm">
-                      {p?.gelarDepan || ''} {p?.nama}{p?.gelarBelakang ? `, ${p.gelarBelakang}` : ''}
-                    </p>
-                    <p className="text-xs text-gray-500">{p?.jabatan}</p>
-                    <p className="text-xs text-gray-400">{p?.unitKerja}</p>
+                    <p className="font-semibold text-gray-800 text-sm">{detailNama}</p>
+                    <p className="text-xs text-gray-500">{detailJabatan}</p>
+                    <p className="text-xs text-gray-400">{detailUnit}</p>
                   </div>
                 </div>
                 <div className="space-y-2.5">

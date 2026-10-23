@@ -2,9 +2,10 @@ import React, { useState, useRef, useCallback, useEffect, createContext, useCont
 import {
   Users, ZoomIn, ZoomOut, RotateCcw, ChevronDown, ChevronRight,
   User, Building2, Info, X, Search, Maximize2, Minimize2,
-  Briefcase, Award, AlertCircle, Plus, GitBranch,
+  Briefcase, Award, AlertCircle, Plus, GitBranch, Loader2,
 } from 'lucide-react';
-import { useAppContext } from '../context/AppContext';
+import { useQuery } from '@tanstack/react-query';
+import { pegawaiApi } from '../data/api';
 import type { Pegawai } from '../types';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -836,9 +837,16 @@ function DetailPanel({ node, pegawai, onClose }: { node: OrgNode; pegawai: Pegaw
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function OrganisasiTree() {
-  const { pegawai } = useAppContext();
+  // Reuse the same query key as AppContext so it shares the cache
+  const { data: pegawaiRaw, isLoading: pegawaiLoading } = useQuery({
+    queryKey: ['pegawai'],
+    queryFn: pegawaiApi.getAll,
+    staleTime: 300_000,
+  });
 
-  // Org tree data (mutable state)
+  const pegawai: Pegawai[] = (pegawaiRaw as Pegawai[] | undefined) ?? [];
+
+  // Org tree data (mutable state — starts with static ORG_DATA, enriched from DB if available)
   const [orgData, setOrgData] = useState<OrgNode>(ORG_DATA);
 
   // Zoom & pan
@@ -860,10 +868,11 @@ export default function OrganisasiTree() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [addParentId, setAddParentId] = useState('');
 
-  // Stats
+  // Stats (real-time from API)
   const totalPNS = pegawai.filter(p => p.statusPegawai === 'PNS').length;
   const totalPPPK = pegawai.filter(p => p.statusPegawai === 'PPPK').length;
   const totalHonorer = pegawai.filter(p => p.statusPegawai === 'Honorer').length;
+  const totalAktif = pegawai.filter(p => p.statusAktif === 'Aktif').length;
 
   const allNodes = getAllNodes(orgData);
 
@@ -975,16 +984,27 @@ export default function OrganisasiTree() {
         <div className="flex items-center gap-2 flex-wrap">
           {/* Stats pills */}
           <div className="flex items-center gap-2 mr-2">
-            <span className="text-xs bg-green-50 text-green-700 px-2.5 py-1 rounded-full font-medium border border-green-100">
-              PNS: {totalPNS}
-            </span>
-            <span className="text-xs bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full font-medium border border-amber-100">
-              PPPK: {totalPPPK}
-            </span>
-            {totalHonorer > 0 && (
-              <span className="text-xs bg-gray-50 text-gray-600 px-2.5 py-1 rounded-full font-medium border border-gray-200">
-                Honorer: {totalHonorer}
+            {pegawaiLoading ? (
+              <span className="flex items-center gap-1.5 text-xs text-gray-400">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Memuat data...
               </span>
+            ) : (
+              <>
+                <span className="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-medium border border-blue-100">
+                  Total: {totalAktif}
+                </span>
+                <span className="text-xs bg-green-50 text-green-700 px-2.5 py-1 rounded-full font-medium border border-green-100">
+                  PNS: {totalPNS}
+                </span>
+                <span className="text-xs bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full font-medium border border-amber-100">
+                  PPPK: {totalPPPK}
+                </span>
+                {totalHonorer > 0 && (
+                  <span className="text-xs bg-gray-50 text-gray-600 px-2.5 py-1 rounded-full font-medium border border-gray-200">
+                    Honorer: {totalHonorer}
+                  </span>
+                )}
+              </>
             )}
           </div>
 

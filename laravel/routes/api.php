@@ -29,6 +29,10 @@ use App\Http\Controllers\KenaikanPangkatController;
 use App\Http\Controllers\SKPController;
 use App\Http\Controllers\DisiplinController;
 use App\Http\Controllers\KontrakController;
+use App\Http\Controllers\HubunganIndustrialController;
+use App\Http\Controllers\PenghargaanController;
+use App\Http\Controllers\PenjadwalanController;
+use App\Http\Controllers\KomiteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -123,6 +127,10 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::post('absensi/check-in', [AbsensiController::class, 'checkIn']);
     Route::post('absensi/check-out', [AbsensiController::class, 'checkOut']);
     Route::get('absensi/rekap-bulanan', [AbsensiController::class, 'rekapBulanan']);
+    Route::get('absensi/harian', [AbsensiController::class, 'harian']);
+    Route::post('absensi', [AbsensiController::class, 'store']);
+    Route::put('absensi/{absensi}', [AbsensiController::class, 'update']);
+    Route::delete('absensi/{absensi}', [AbsensiController::class, 'destroy']);
 
     // 4. Credentialing & Lisensi Nakes
     Route::get('credentialing', [CredentialingController::class, 'index']);
@@ -443,6 +451,33 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('/sk-disiplin',  [DisiplinController::class, 'generateSKDisiplin']);
     });
 
+    // 38. Penjadwalan Shift
+    Route::prefix('jadwal')->group(function () {
+        Route::get('/rekap',       [PenjadwalanController::class, 'rekap']);
+        Route::get('/',            [PenjadwalanController::class, 'index']);
+        Route::post('/bulk',       [PenjadwalanController::class, 'bulkStore']);
+        Route::post('/swap',       [PenjadwalanController::class, 'swap']);
+        Route::post('/',           [PenjadwalanController::class, 'store']);
+        Route::put('/{jadwal}',    [PenjadwalanController::class, 'update']);
+        Route::delete('/{jadwal}', [PenjadwalanController::class, 'destroy']);
+    });
+
+    // 39. Komite Rumah Sakit
+    Route::prefix('komite')->group(function () {
+        Route::get('/anggota',                 [KomiteController::class, 'indexAnggota']);
+        Route::post('/anggota',                [KomiteController::class, 'storeAnggota']);
+        Route::put('/anggota/{anggota}',       [KomiteController::class, 'updateAnggota']);
+        Route::delete('/anggota/{anggota}',    [KomiteController::class, 'destroyAnggota']);
+        Route::get('/kegiatan',                [KomiteController::class, 'indexKegiatan']);
+        Route::post('/kegiatan',               [KomiteController::class, 'storeKegiatan']);
+        Route::put('/kegiatan/{kegiatan}',     [KomiteController::class, 'updateKegiatan']);
+        Route::delete('/kegiatan/{kegiatan}',  [KomiteController::class, 'destroyKegiatan']);
+        Route::get('/',                        [KomiteController::class, 'indexKomite']);
+        Route::post('/',                       [KomiteController::class, 'storeKomite']);
+        Route::put('/{komite}',                [KomiteController::class, 'updateKomite']);
+        Route::delete('/{komite}',             [KomiteController::class, 'destroyKomite']);
+    });
+
     // 35. Kontrak Pegawai + Expiry Alerts
     Route::prefix('kontrak')->group(function () {
         Route::get('/',                       [KontrakController::class, 'index']);
@@ -474,6 +509,63 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::delete('/mcu/{mcu}', [\App\Http\Controllers\K3RSController::class, 'destroyMCU']);
     });
 
+    // 38. Organisasi & Unit Kerja
+    Route::prefix('organisasi')->group(function () {
+        Route::get('tree', function () {
+            $rows = \Illuminate\Support\Facades\DB::table('m_unit_kerja as u')
+                ->leftJoin('m_pegawai as p', 'p.id', '=', 'u.kepala_id')
+                ->select('u.*',
+                    'p.nama as nama_kepala',
+                    'p.jabatan as jabatan_kepala',
+                    \Illuminate\Support\Facades\DB::raw(
+                        '(SELECT COUNT(*) FROM m_pegawai WHERE unit_kerja = u.nama_unit AND status_aktif = "Aktif") as jumlah_pegawai'
+                    ))
+                ->orderBy('u.level')->orderBy('u.nama_unit')
+                ->get();
+
+            // Convert to keyed array of arrays for easy tree assembly
+            $byId = [];
+            foreach ($rows as $row) {
+                $byId[$row->id] = (array) $row;
+                $byId[$row->id]['children'] = [];
+            }
+            $tree = [];
+            foreach ($byId as $id => &$node) {
+                if ($node['parent_id'] && isset($byId[$node['parent_id']])) {
+                    $byId[$node['parent_id']]['children'][] = &$node;
+                } else {
+                    $tree[] = &$node;
+                }
+            }
+            unset($node);
+
+            return response()->json(['status' => 'success', 'data' => array_values($tree)]);
+        });
+
+        Route::get('units', function () {
+            $units = \Illuminate\Support\Facades\DB::table('m_unit_kerja')->orderBy('nama_unit')->get();
+            return response()->json(['status' => 'success', 'data' => $units]);
+        });
+
+        Route::post('units', function (\Illuminate\Http\Request $request) {
+            $request->validate([
+                'nama_unit' => 'required|string|max:150',
+                'kode_unit' => 'nullable|string|max:20',
+                'parent_id' => 'nullable|exists:m_unit_kerja,id',
+                'kepala_id' => 'nullable|exists:m_pegawai,id',
+                'level'     => 'required|integer|min:1',
+            ]);
+            abort_unless(auth()->user()->hasRole('admin'), 403);
+            $id = \Illuminate\Support\Facades\DB::table('m_unit_kerja')->insertGetId(
+                array_merge(
+                    $request->only(['nama_unit', 'kode_unit', 'parent_id', 'kepala_id', 'level']),
+                    ['created_at' => now(), 'updated_at' => now()]
+                )
+            );
+            return response()->json(['status' => 'success', 'data' => ['id' => $id]], 201);
+        });
+    });
+
     // 37. Angka Kredit JFT (Jabatan Fungsional Tertentu)
     Route::prefix('angka-kredit')->group(function () {
         Route::get('/rekap',            [\App\Http\Controllers\AngkaKreditController::class, 'rekap']);
@@ -484,6 +576,27 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::post('/ajukan',          [\App\Http\Controllers\AngkaKreditController::class, 'ajukan']);
         Route::post('/{id}/verifikasi', [\App\Http\Controllers\AngkaKreditController::class, 'verifikasi']);
         Route::post('/{id}/setujui',    [\App\Http\Controllers\AngkaKreditController::class, 'setujui']);
+    });
+
+    // 38. Hubungan Industrial (Grievance & PHK)
+    Route::prefix('hubungan-industrial')->group(function () {
+        Route::get('/grievance/stats',        [HubunganIndustrialController::class, 'statsGrievance']);
+        Route::get('/grievance',              [HubunganIndustrialController::class, 'indexGrievance']);
+        Route::post('/grievance',             [HubunganIndustrialController::class, 'storeGrievance']);
+        Route::put('/grievance/{grievance}',  [HubunganIndustrialController::class, 'updateGrievance']);
+        Route::get('/phk',                    [HubunganIndustrialController::class, 'indexPHK']);
+        Route::post('/phk',                   [HubunganIndustrialController::class, 'storePHK']);
+        Route::post('/phk/surat',             [HubunganIndustrialController::class, 'generateSuratPHK']);
+    });
+
+    // 39. Penghargaan Pegawai
+    Route::prefix('penghargaan')->group(function () {
+        Route::get('/stats',                       [PenghargaanController::class, 'stats']);
+        Route::get('/',                            [PenghargaanController::class, 'index']);
+        Route::post('/',                           [PenghargaanController::class, 'store']);
+        Route::put('/{penghargaan}',               [PenghargaanController::class, 'update']);
+        Route::delete('/{penghargaan}',            [PenghargaanController::class, 'destroy']);
+        Route::post('/{penghargaan}/sertifikat',   [PenghargaanController::class, 'uploadSertifikat']);
     });
 });
 

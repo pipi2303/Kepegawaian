@@ -49,6 +49,14 @@ export const cutiApi = {
 export const absensiApi = {
   getAll: (params?: Record<string, any>) =>
     http.get('/absensi/rekap-bulanan', { params }).then(r => r.data.data),
+  getHarian: (params?: Record<string, any>) =>
+    http.get('/absensi/harian', { params }).then(r => r.data.data),
+  create: (data: any) =>
+    http.post('/absensi', data).then(r => r.data.data),
+  update: (id: number | string, data: any) =>
+    http.put(`/absensi/${id}`, data).then(r => r.data.data),
+  remove: (id: number | string) =>
+    http.delete(`/absensi/${id}`).then(r => r.data),
   checkIn: (pegawai_id: number | string) =>
     http.post('/absensi/check-in', { pegawai_id }).then(r => r.data),
   checkOut: (pegawai_id: number | string) =>
@@ -163,6 +171,22 @@ export const laporanBKDApi = {
   bezetting: () => http.get('/laporan-bkd/bezetting', { responseType: 'blob' }),
   rekapAbsensi: (bulan: number, tahun: number) =>
     http.get('/laporan-bkd/rekap-absensi', { params: { bulan, tahun }, responseType: 'blob' }),
+};
+
+// LAPORAN
+export const laporanApi = {
+  kepatuhanKARS: () => http.get('/laporan/kepatuhan-kars').then(r => r.data.data),
+  absensiTahunan: (tahun: number) => http.get('/laporan/absensi-tahunan', { params: { tahun } }).then(r => r.data.data),
+  turnoverPegawai: (tahun: number) => http.get('/laporan/turnover', { params: { tahun } }).then(r => r.data.data),
+  rekapPayroll: (bulan: number, tahun: number) =>
+    http.get('/laporan/rekap-payroll', { params: { bulan, tahun } }).then(r => r.data),
+};
+
+// ORGANISASI & UNIT KERJA
+export const organisasiApi = {
+  tree: () => http.get('/organisasi/tree').then(r => r.data.data),
+  units: () => http.get('/organisasi/units').then(r => r.data.data),
+  addUnit: (d: any) => http.post('/organisasi/units', d).then(r => r.data),
 };
 
 // KGB (Kenaikan Gaji Berkala)
@@ -351,6 +375,33 @@ export const k3rsApi = {
   mcuSummary:     ()                   => http.get('/k3rs/mcu/summary').then(r => r.data),
 };
 
+// JADWAL SHIFT
+export const jadwalApi = {
+  getAll:     (p?: any)              => http.get('/jadwal', { params: p }).then(r => r.data),
+  create:     (d: any)               => http.post('/jadwal', d).then(r => r.data),
+  bulkCreate: (d: any[])             => http.post('/jadwal/bulk', { shifts: d }).then(r => r.data),
+  update:     (id: number, d: any)   => http.put(`/jadwal/${id}`, d).then(r => r.data),
+  remove:     (id: number)           => http.delete(`/jadwal/${id}`).then(r => r.data),
+  swap:       (a: number, b: number) => http.post('/jadwal/swap', { jadwal_a_id: a, jadwal_b_id: b }).then(r => r.data),
+  rekap:      (p?: any)              => http.get('/jadwal/rekap', { params: p }).then(r => r.data),
+};
+
+// KOMITE RS
+export const komiteApi = {
+  getAll:         ()                    => http.get('/komite').then(r => r.data),
+  create:         (d: any)              => http.post('/komite', d).then(r => r.data),
+  update:         (id: number, d: any)  => http.put(`/komite/${id}`, d).then(r => r.data),
+  remove:         (id: number)          => http.delete(`/komite/${id}`).then(r => r.data),
+  getAnggota:     (p?: any)             => http.get('/komite/anggota', { params: p }).then(r => r.data),
+  addAnggota:     (d: any)              => http.post('/komite/anggota', d).then(r => r.data),
+  updateAnggota:  (id: number, d: any)  => http.put(`/komite/anggota/${id}`, d).then(r => r.data),
+  removeAnggota:  (id: number)          => http.delete(`/komite/anggota/${id}`).then(r => r.data),
+  getKegiatan:    (p?: any)             => http.get('/komite/kegiatan', { params: p }).then(r => r.data),
+  addKegiatan:    (d: any)              => http.post('/komite/kegiatan', d).then(r => r.data),
+  updateKegiatan: (id: number, d: any)  => http.put(`/komite/kegiatan/${id}`, d).then(r => r.data),
+  removeKegiatan: (id: number)          => http.delete(`/komite/kegiatan/${id}`).then(r => r.data),
+};
+
 // ANGKA KREDIT JFT
 export const angkaKreditApi = {
   getAll:     (p?: any)                                                      => http.get('/angka-kredit', { params: p }).then(r => r.data),
@@ -361,4 +412,29 @@ export const angkaKreditApi = {
   rekap:      (p?: any)                                                      => http.get('/angka-kredit/rekap', { params: p }).then(r => r.data),
   target:     ()                                                             => http.get('/angka-kredit/target').then(r => r.data),
   storeTarget:(d: any)                                                       => http.post('/angka-kredit/target', d).then(r => r.data),
+};
+
+// HUBUNGAN INDUSTRIAL (Grievance & PHK)
+export const hubunganIndustrialApi = {
+  getGrievance:    (p?: any)             => http.get('/hubungan-industrial/grievance', { params: p }).then(r => r.data),
+  addGrievance:    (d: any)              => http.post('/hubungan-industrial/grievance', d).then(r => r.data),
+  updateGrievance: (id: number, d: any)  => http.put(`/hubungan-industrial/grievance/${id}`, d).then(r => r.data),
+  statsGrievance:  ()                    => http.get('/hubungan-industrial/grievance/stats').then(r => r.data),
+  getPHK:          (p?: any)             => http.get('/hubungan-industrial/phk', { params: p }).then(r => r.data),
+  addPHK:          (d: any)              => http.post('/hubungan-industrial/phk', d).then(r => r.data),
+  suratPHK:        (phk_id: number)      => http.post('/hubungan-industrial/phk/surat', { phk_id }, { responseType: 'blob' }),
+};
+
+// PENGHARGAAN PEGAWAI
+export const penghargaanApi = {
+  getAll:           (p?: any)            => http.get('/penghargaan', { params: p }).then(r => r.data),
+  create:           (d: any)             => http.post('/penghargaan', d).then(r => r.data),
+  update:           (id: number, d: any) => http.put(`/penghargaan/${id}`, d).then(r => r.data),
+  remove:           (id: number)         => http.delete(`/penghargaan/${id}`).then(r => r.data),
+  stats:            ()                   => http.get('/penghargaan/stats').then(r => r.data),
+  uploadSertifikat: (id: number, file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return http.post(`/penghargaan/${id}/sertifikat`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
 };

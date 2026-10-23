@@ -3,15 +3,18 @@ import {
   FileBarChart2, Download, Printer, Calendar, Users, TrendingUp, Target,
   Clock, Award, AlertTriangle, Shield, DollarSign, BookOpen,
   Activity, ChevronUp, ChevronDown, Minus, Bell, CheckCircle,
-  XCircle, RefreshCw, Star, Zap, Heart, BarChart2,
+  XCircle, RefreshCw, Star, Zap, Heart, BarChart2, Loader2,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line,
   AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from 'recharts';
+import { useQuery } from '@tanstack/react-query';
 import { chartGolongan, chartUnitKerja } from '../data/mockData';
 import { useAppContext } from '../context/AppContext';
+import { laporanApi, laporanBKDApi } from '../data/api';
+import { downloadBlob } from '../lib/downloadBlob';
 import { C, CHART_COLORS } from '../components/colors';
 
 // ─── Colour Palettes ──────────────────────────────────────────────────────────
@@ -395,6 +398,14 @@ const TABS = [
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function Laporan() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [bkdBulan, setBkdBulan] = useState(new Date().getMonth() + 1);
+  const [bkdTahun, setBkdTahun] = useState(new Date().getFullYear());
+  const [payrollBulan, setPayrollBulan] = useState(new Date().getMonth() + 1);
+  const [payrollTahun, setPayrollTahun] = useState(new Date().getFullYear());
+  const [downloadingDuk, setDownloadingDuk] = useState(false);
+  const [downloadingBez, setDownloadingBez] = useState(false);
+  const [downloadingRekap, setDownloadingRekap] = useState(false);
+
   const {
     pegawai, cuti, absensi, skp, diklat, disiplin,
     str, sip, insidenK3RS, vaksinasi, mcu,
@@ -402,6 +413,58 @@ export default function Laporan() {
   } = useAppContext();
 
   const TODAY = new Date('2026-03-08');
+
+  // ── Real API queries ─────────────────────────────────────────────────────────
+  const tahunNow = TODAY.getFullYear();
+  const { data: karsData, isLoading: karsLoading } = useQuery({
+    queryKey: ['laporan-kars'],
+    queryFn: laporanApi.kepatuhanKARS,
+    staleTime: 300_000,
+  });
+
+  const { data: absensiTahunan, isLoading: absensiLoading } = useQuery({
+    queryKey: ['laporan-absensi', tahunNow],
+    queryFn: () => laporanApi.absensiTahunan(tahunNow),
+    staleTime: 300_000,
+  });
+
+  const { data: turnoverData } = useQuery({
+    queryKey: ['laporan-turnover'],
+    queryFn: () => laporanApi.turnoverPegawai(tahunNow),
+    staleTime: 300_000,
+  });
+
+  const { data: payrollData, isLoading: payrollLoading } = useQuery({
+    queryKey: ['laporan-payroll', payrollBulan, payrollTahun],
+    queryFn: () => laporanApi.rekapPayroll(payrollBulan, payrollTahun),
+    enabled: activeTab === 'gaji',
+    staleTime: 300_000,
+  });
+
+  // ── BKD download helpers ─────────────────────────────────────────────────────
+  async function handleDownloadDuk() {
+    setDownloadingDuk(true);
+    try {
+      const res = await laporanBKDApi.duk();
+      downloadBlob(res.data as Blob, `DUK_${tahunNow}.xlsx`);
+    } finally { setDownloadingDuk(false); }
+  }
+
+  async function handleDownloadBezetting() {
+    setDownloadingBez(true);
+    try {
+      const res = await laporanBKDApi.bezetting();
+      downloadBlob(res.data as Blob, `Bezetting_${tahunNow}.xlsx`);
+    } finally { setDownloadingBez(false); }
+  }
+
+  async function handleDownloadRekap() {
+    setDownloadingRekap(true);
+    try {
+      const res = await laporanBKDApi.rekapAbsensi(bkdBulan, bkdTahun);
+      downloadBlob(res.data as Blob, `Rekap_Absensi_${bkdBulan}_${bkdTahun}.xlsx`);
+    } finally { setDownloadingRekap(false); }
+  }
 
   // ── Workforce stats ──────────────────────────────────────────────────────────
   const stats = useMemo(() => {
@@ -846,6 +909,108 @@ export default function Laporan() {
       ════════════════════════════════════════════════════════════════════════ */}
       {activeTab === 'absensi' && (
         <div className="space-y-5">
+          {/* BKD Download Panel */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-gray-800">Laporan BKD Resmi</h3>
+                <p className="text-xs text-gray-400 mt-0.5">DUK · Bezetting · Rekap Absensi</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={handleDownloadDuk}
+                  disabled={downloadingDuk}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 disabled:opacity-60 transition-colors"
+                >
+                  {downloadingDuk ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                  DUK {tahunNow}
+                </button>
+                <button
+                  onClick={handleDownloadBezetting}
+                  disabled={downloadingBez}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 disabled:opacity-60 transition-colors"
+                >
+                  {downloadingBez ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                  Bezetting
+                </button>
+                <div className="flex items-center gap-1.5">
+                  <select
+                    value={bkdBulan}
+                    onChange={e => setBkdBulan(Number(e.target.value))}
+                    className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
+                  >
+                    {['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'].map((m, i) => (
+                      <option key={m} value={i + 1}>{m}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    value={bkdTahun}
+                    onChange={e => setBkdTahun(Number(e.target.value))}
+                    className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 w-20 bg-white"
+                  />
+                  <button
+                    onClick={handleDownloadRekap}
+                    disabled={downloadingRekap}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-teal-600 text-white text-xs rounded-lg hover:bg-teal-700 disabled:opacity-60 transition-colors"
+                  >
+                    {downloadingRekap ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                    Rekap Absensi
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Real API: monthly attendance stats */}
+          {absensiLoading ? (
+            <div className="flex items-center justify-center py-8 text-gray-400 gap-2">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span className="text-sm">Memuat data kehadiran...</span>
+            </div>
+          ) : absensiTahunan && absensiTahunan.length > 0 ? (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <SectionHeader title={`Rekap Kehadiran Bulanan ${tahunNow}`} sub="Sumber: data absensi real-time" />
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      {['Bulan','Hari Kerja','Tingkat Hadir (%)','Terlambat','Alpha'].map(h => (
+                        <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {(absensiTahunan as any[]).map((row: any) => (
+                      <tr key={row.bulan} className="hover:bg-gray-50/60">
+                        <td className="px-4 py-3 text-xs font-medium text-gray-800">
+                          {['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][row.bulan - 1]}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-gray-600">{row.total_hari_kerja}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 bg-gray-100 rounded-full h-1.5 min-w-16">
+                              <div className="h-1.5 rounded-full bg-emerald-500" style={{ width: `${row.rata_kehadiran}%` }} />
+                            </div>
+                            <span className={`text-xs font-semibold ${Number(row.rata_kehadiran) >= 90 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                              {row.rata_kehadiran}%
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-xs text-amber-600 font-medium">{row.total_terlambat}</td>
+                        <td className="px-4 py-3 text-xs text-red-600 font-medium">{row.total_alpha}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 text-center text-gray-400 text-sm">
+              Data kehadiran tahun {tahunNow} belum tersedia.
+            </div>
+          )}
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: 'Tingkat Kehadiran', value: `${stats.hadirRate}%`, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', icon: CheckCircle },
@@ -1088,6 +1253,50 @@ export default function Laporan() {
       ════════════════════════════════════════════════════════════════════════ */}
       {activeTab === 'k3rs' && (
         <div className="space-y-5">
+          {/* Real API: KARS compliance panel */}
+          {karsLoading ? (
+            <div className="flex items-center justify-center py-8 text-gray-400 gap-2">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span className="text-sm">Memuat data kepatuhan KARS...</span>
+            </div>
+          ) : karsData ? (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <SectionHeader title="Kepatuhan KARS / JCI — Credentialing & K3" sub="Data real-time dari sistem" />
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                {[
+                  { label: 'Kelengkapan STR', value: `${karsData.str_completeness}%`, color: Number(karsData.str_completeness) >= 90 ? 'text-emerald-600' : 'text-amber-600', bg: 'bg-emerald-50' },
+                  { label: 'Kelengkapan SIP', value: `${karsData.sip_completeness}%`, color: Number(karsData.sip_completeness) >= 90 ? 'text-emerald-600' : 'text-amber-600', bg: 'bg-emerald-50' },
+                  { label: 'Cakupan MCU', value: `${karsData.mcu_coverage}%`, color: Number(karsData.mcu_coverage) >= 80 ? 'text-emerald-600' : 'text-amber-600', bg: 'bg-blue-50' },
+                  { label: 'Cakupan Vaksinasi', value: `${karsData.vaksinasi_coverage}%`, color: 'text-blue-600', bg: 'bg-blue-50' },
+                  { label: 'SPK/Credentialing Aktif', value: karsData.credentialing_active, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                  { label: 'Total Nakes Aktif', value: karsData.total_nakes, color: 'text-gray-700', bg: 'bg-gray-50' },
+                ].map(s => (
+                  <div key={s.label} className={`${s.bg} rounded-xl p-3 text-center`}>
+                    <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
+                    <p className="text-[11px] text-gray-500 mt-1 leading-tight">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+              {karsData.insiden_ytd && Object.keys(karsData.insiden_ytd).length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <p className="text-xs font-semibold text-gray-500 mb-2">Insiden K3RS YTD per Tingkat Keparahan</p>
+                  <div className="flex flex-wrap gap-3">
+                    {Object.entries(karsData.insiden_ytd).map(([k, v]) => (
+                      <div key={k} className="flex items-center gap-1.5">
+                        <div className={`w-2 h-2 rounded-full ${k === 'Berat' ? 'bg-red-500' : k === 'Sedang' ? 'bg-amber-400' : 'bg-emerald-400'}`} />
+                        <span className="text-xs text-gray-600">{k}: <strong>{String(v)}</strong></span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 text-center text-gray-400 text-sm">
+              Data kepatuhan KARS tidak tersedia saat ini.
+            </div>
+          )}
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: 'Total Insiden YTD',      value: stats.insidenYTD,   color: 'text-red-600 bg-red-50 border-red-100',     icon: AlertTriangle },
@@ -1224,6 +1433,84 @@ export default function Laporan() {
       ════════════════════════════════════════════════════════════════════════ */}
       {activeTab === 'gaji' && (
         <div className="space-y-5">
+          {/* Real API: rekap payroll */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-gray-800">Rekap Payroll per Periode</h3>
+                <p className="text-xs text-gray-400 mt-0.5">Pilih bulan dan tahun</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={payrollBulan}
+                  onChange={e => setPayrollBulan(Number(e.target.value))}
+                  className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
+                >
+                  {['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'].map((m, i) => (
+                    <option key={m} value={i + 1}>{m}</option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  value={payrollTahun}
+                  onChange={e => setPayrollTahun(Number(e.target.value))}
+                  className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 w-20 bg-white"
+                />
+              </div>
+            </div>
+            {payrollLoading ? (
+              <div className="flex items-center justify-center py-8 text-gray-400 gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span className="text-sm">Memuat rekap payroll...</span>
+              </div>
+            ) : payrollData?.totals ? (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  {[
+                    { label: 'Pegawai Digaji', value: payrollData.totals.total_pegawai_digaji, color: 'bg-blue-600' },
+                    { label: 'Total Bruto', value: fmtM(payrollData.totals.total_bruto), color: 'bg-indigo-600' },
+                    { label: 'Total Potongan', value: fmtM(payrollData.totals.total_potongan), color: 'bg-amber-500' },
+                    { label: 'Total Netto', value: fmtM(payrollData.totals.total_netto), color: 'bg-emerald-600' },
+                  ].map(s => (
+                    <div key={s.label} className="bg-gray-50 rounded-xl p-3">
+                      <div className={`w-8 h-1 rounded-full ${s.color} mb-2`} />
+                      <p className="text-lg font-bold text-gray-800">{typeof s.value === 'number' ? fmt(s.value) : s.value}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+                {payrollData.data && payrollData.data.length > 0 && (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          {['Status Pegawai','Jumlah','Total Bruto','Total Potongan','Total Netto'].map(h => (
+                            <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500">{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {(payrollData.data as any[]).map((row: any) => (
+                          <tr key={row.status_pegawai} className="hover:bg-gray-50/60">
+                            <td className="px-4 py-3 text-xs font-medium text-gray-800">{row.status_pegawai || '-'}</td>
+                            <td className="px-4 py-3 text-xs text-gray-600">{row.jumlah_pegawai}</td>
+                            <td className="px-4 py-3 text-xs font-semibold text-gray-700">{fmtM(row.total_bruto)}</td>
+                            <td className="px-4 py-3 text-xs text-amber-600">{fmtM(row.total_potongan)}</td>
+                            <td className="px-4 py-3 text-xs font-bold text-emerald-700">{fmtM(row.total_netto)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-6 text-gray-400 text-sm">
+                Belum ada data payroll untuk {['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][payrollBulan - 1]} {payrollTahun}.
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: 'Total Belanja Gaji (kumulatif)', value: fmtM(stats.totalBruto), icon: DollarSign, color: 'bg-blue-600' },

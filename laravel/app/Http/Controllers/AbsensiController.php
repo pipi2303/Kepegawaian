@@ -124,4 +124,74 @@ class AbsensiController extends Controller
             'data' => $rekap,
         ]);
     }
+
+    /**
+     * Data Absensi Harian (by tanggal, optional unit_kerja filter)
+     */
+    public function harian(Request $request): JsonResponse
+    {
+        $tanggal   = $request->input('tanggal', now()->toDateString());
+        $unitKerja = $request->input('unit_kerja');
+
+        $query = Absensi::with('pegawai:id,nip,nama,unit_kerja,jabatan,foto')
+            ->whereDate('tanggal', $tanggal);
+
+        if ($unitKerja) {
+            $query->whereHas('pegawai', fn($q) => $q->where('unit_kerja', $unitKerja));
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => $query->get(),
+        ]);
+    }
+
+    /**
+     * Tambah record absensi manual (admin)
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'pegawai_id' => 'required|exists:m_pegawai,id',
+            'tanggal'    => 'required|date',
+            'status'     => 'required|string',
+            'jam_masuk'  => 'nullable|string',
+            'jam_keluar' => 'nullable|string',
+            'keterangan' => 'nullable|string|max:255',
+        ]);
+
+        // Upsert: update if exists, create otherwise
+        $absensi = Absensi::updateOrCreate(
+            ['pegawai_id' => $data['pegawai_id'], 'tanggal' => $data['tanggal']],
+            $data
+        );
+
+        return response()->json(['status' => 'success', 'data' => $absensi], 201);
+    }
+
+    /**
+     * Update record absensi (admin)
+     */
+    public function update(Request $request, Absensi $absensi): JsonResponse
+    {
+        $data = $request->validate([
+            'status'     => 'sometimes|string',
+            'jam_masuk'  => 'nullable|string',
+            'jam_keluar' => 'nullable|string',
+            'keterangan' => 'nullable|string|max:255',
+        ]);
+
+        $absensi->update($data);
+
+        return response()->json(['status' => 'success', 'data' => $absensi]);
+    }
+
+    /**
+     * Hapus record absensi (admin)
+     */
+    public function destroy(Absensi $absensi): JsonResponse
+    {
+        $absensi->delete();
+        return response()->json(['status' => 'success']);
+    }
 }

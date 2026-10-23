@@ -22,7 +22,7 @@ import type {
   IntegrationWeights, BSCPerspektiveName, OKRStatus,
 } from '../types';
 import { toast } from 'sonner';
-import { useAppContext } from '../context/AppContext';
+import { useDashboardSummary, usePegawai as usePegawaiQuery } from '../hooks';
 import { KPIMatrixTab } from '../components/KPIMatrixTab';
 import { StrategicReviewTab } from '../components/StrategicReviewTab';
 
@@ -119,26 +119,26 @@ const ProgressBar = ({ value, size = 'md', showLabel = true }: { value: number; 
 // ─── BSC DASHBOARD TAB ────────────────────────────────────────────────────────
 const BSCTab = () => {
   const [expandedPerspektif, setExpandedPerspektif] = useState<BSCPerspektiveName | null>('Financial');
-  const { absensi: allAbsensi } = useAppContext();
+  const { data: dashSummary } = useDashboardSummary();
 
-  // ── Live Attendance KPI dari data absensi nyata ────────────────────────────
+  // ── Live Attendance KPI dari dashboard API ────────────────────────────────
   const liveAttendance = useMemo(() => {
-    const workRecords = allAbsensi.filter(a => a.status !== 'Libur');
-    const total   = workRecords.length;
-    const hadir   = allAbsensi.filter(a => a.status === 'Hadir' || a.status === 'Dinas Luar').length;
-    const alpha   = allAbsensi.filter(a => a.status === 'Alpha').length;
-    const sakit   = allAbsensi.filter(a => a.status === 'Sakit').length;
-    const izin    = allAbsensi.filter(a => a.status === 'Izin').length;
-    const rate    = total > 0 ? Math.round((hadir / total) * 100) : 0;
-    const uniquePegawai = new Set(allAbsensi.map(a => a.pegawaiId)).size;
-    const target  = 95;
+    const hadir  = dashSummary?.hadir_hari_ini      ?? 0;
+    const total  = dashSummary?.total_pegawai        ?? 0;
+    const rate   = dashSummary?.persentase_kehadiran ?? (total > 0 ? Math.round((hadir / total) * 100) : 0);
+    const target = 95;
     const status: BSCObjective['status'] =
-      rate >= target       ? 'Achieved'
-      : rate >= target - 5 ? 'On Track'
+      rate >= target        ? 'Achieved'
+      : rate >= target - 5  ? 'On Track'
       : rate >= target - 10 ? 'At Risk'
       : 'Behind';
-    return { rate, target, hadir, alpha, sakit, izin, total, uniquePegawai, status, isReal: total > 0 };
-  }, [allAbsensi]);
+    return {
+      rate, target, hadir,
+      alpha: 0, sakit: 0, izin: 0,
+      total, uniquePegawai: total,
+      status, isReal: total > 0,
+    };
+  }, [dashSummary]);
 
   const perspektifSummary = useMemo(() => {
     const names: BSCPerspektiveName[] = ['Financial', 'Customer', 'Internal Process', 'Learning & Growth'];
@@ -765,7 +765,8 @@ const AnalyticsTab = () => (
 
 // ─── REVIEW & FEEDBACK TAB ────────────────────────────────────────────────────
 const ReviewTab = () => {
-  const { pegawai } = useAppContext();
+  const { data: pegawaiRaw } = usePegawaiQuery();
+  const pegawai: any[] = Array.isArray(pegawaiRaw) ? pegawaiRaw : (pegawaiRaw as any)?.data ?? [];
   const [reviews, setReviews] = useState<PerformanceReview[]>(performanceReviews);
   const [showForm, setShowForm] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -775,13 +776,14 @@ const ReviewTab = () => {
 
   const handleSave = () => {
     if (!form.revieweeId) { toast.error('Pilih pegawai'); return; }
-    const pg = pegawai.find(p => p.id === form.revieweeId);
+    const pg = pegawai.find((p: any) => String(p.id) === form.revieweeId);
     const bscW = 0.6, okrW = 0.4;
     const final = Math.round((form.bscScore! * bscW) + (form.okrScore! * okrW));
+    const pgName = pg ? `${pg.gelar_depan ?? pg.gelarDepan ?? ''} ${pg.nama}${(pg.gelar_belakang ?? pg.gelarBelakang) ? ', ' + (pg.gelar_belakang ?? pg.gelarBelakang) : ''}`.trim() : '';
     const newRev: PerformanceReview = {
       id: `rev-${Date.now()}`,
       revieweeId: form.revieweeId!,
-      revieweeName: pg ? `${pg.gelarDepan ? pg.gelarDepan + ' ' : ''}${pg.nama}${pg.gelarBelakang ? ', ' + pg.gelarBelakang : ''}` : '',
+      revieweeName: pgName,
       reviewerName: 'Anda (Admin HR)',
       period: form.period!,
       bscScore: form.bscScore!,
@@ -872,7 +874,7 @@ const ReviewTab = () => {
                 <select value={form.revieweeId || ''} onChange={e => setForm(f => ({ ...f, revieweeId: e.target.value }))}
                   className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="">-- Pilih Pegawai --</option>
-                  {pegawai.slice(0, 30).map(p => <option key={p.id} value={p.id}>{p.nama}</option>)}
+                  {pegawai.slice(0, 30).map((p: any) => <option key={p.id} value={String(p.id)}>{p.nama}</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-3 gap-3">
@@ -1076,7 +1078,7 @@ const SettingsTab = () => {
 export default function PerformanceManagement() {
   const [activeTab, setActiveTab] = useState<TabId>('bsc');
   const [pdfLoading, setPdfLoading] = useState(false);
-  const { absensi: allAbsensi } = useAppContext();
+  const { data: dashSummary } = useDashboardSummary();
 
   // Quick stats for header
   const orgAvgScore = Math.round(
@@ -1086,12 +1088,8 @@ export default function PerformanceManagement() {
   const avgOKRProg  = Math.round(okrObjectives.reduce((s, o) => s + okrProgress(o), 0) / okrObjectives.length);
   const achievedBSC = bscObjectives.filter(o => o.status === 'Achieved').length;
 
-  // Attendance rate dari data nyata (untuk PDF)
-  const attendanceRate = useMemo(() => {
-    const work  = allAbsensi.filter(a => a.status !== 'Libur');
-    const hadir = allAbsensi.filter(a => a.status === 'Hadir' || a.status === 'Dinas Luar').length;
-    return work.length > 0 ? Math.round((hadir / work.length) * 100) : 85;
-  }, [allAbsensi]);
+  // Attendance rate from dashboard API
+  const attendanceRate = dashSummary?.persentase_kehadiran ?? 85;
 
   // ─── PDF Export ───────────────────────────────────────────────────────────
   const handleExportPDF = async () => {
@@ -1165,7 +1163,7 @@ export default function PerformanceManagement() {
       const ac: RGB = attendanceRate>=95?[5,150,105]:attendanceRate>=85?[245,158,11]:[220,38,38];
       tx(`${attendanceRate}%  (Target: 95%)`, PW-MR-3, y+5, 8.5, 'bold', ac, 'right');
       miniBar(ML+3, y+8, CW-60, attendanceRate, ac);
-      tx(`Sumber: ${allAbsensi.length} record absensi · Diperbarui otomatis`, ML+3, y+10.5, 7, 'normal', [100,130,180]);
+      tx(`Sumber: Dashboard API · Diperbarui otomatis`, ML+3, y+10.5, 7, 'normal', [100,130,180]);
       y += 16;
 
       // B. BSC 4 Perspektif
