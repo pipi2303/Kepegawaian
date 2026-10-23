@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     libicu-dev \
     unzip \
     git \
+    default-mysql-client \
     && docker-php-ext-install \
         pdo_mysql \
         mbstring \
@@ -25,8 +26,14 @@ WORKDIR /var/www/html
 
 COPY laravel/ .
 
-RUN composer install --no-dev --optimize-autoloader --no-interaction \
-    && php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache \
+# Install dependencies only (no artisan commands — need .env at runtime)
+RUN COMPOSER_AUDIT_ABANDONED=report composer install \
+    --no-dev --optimize-autoloader --no-interaction \
     && chown -R www-data:www-data storage bootstrap/cache
+
+# Entrypoint script untuk setup saat container start
+COPY docker/php/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["php-fpm"]
