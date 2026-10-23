@@ -40,6 +40,13 @@ class CekLisensiEkspiryNakes extends Command
 
                 Mail::to($pegawai->email)->queue(new LisensiKadaluarsaSoon($pegawai, $hariTersisa));
 
+                if ($pegawai->no_telp) {
+                    \App\Services\WhatsAppService::send(
+                        $pegawai->no_telp,
+                        \App\Services\WhatsAppService::msgLisensiExpiry($pegawai->nama, $type, $record->tanggal_expired, $hariTersisa)
+                    );
+                }
+
                 Cache::put($cacheKey, true, 86400);
 
                 ActivityLog::record(

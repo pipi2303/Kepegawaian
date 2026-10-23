@@ -151,3 +151,40 @@ export const aiApi = {
   chat: (message: string, context?: Record<string, any>) =>
     http.post('/ai/chat', { message, context }).then(r => r.data),
 };
+
+// LAPORAN BKD
+export const laporanBKDApi = {
+  duk: () => http.get('/laporan-bkd/duk', { responseType: 'blob' }),
+  bezetting: () => http.get('/laporan-bkd/bezetting', { responseType: 'blob' }),
+  rekapAbsensi: (bulan: number, tahun: number) =>
+    http.get('/laporan-bkd/rekap-absensi', { params: { bulan, tahun }, responseType: 'blob' }),
+};
+
+// KGB (Kenaikan Gaji Berkala)
+export const kgbApi = {
+  getAll: (params?: Record<string, any>) => http.get('/kgb', { params }).then(r => r.data),
+  update: (id: number, tmt: string) => http.put(`/kgb/${id}`, { tmt_gaji_berkala: tmt }).then(r => r.data),
+  bulkCalculate: () => http.post('/kgb/bulk-calculate').then(r => r.data),
+};
+
+// IMPORT ABSENSI MESIN
+export const absensiImportApi = {
+  template: () => http.get('/import/absensi/template', { responseType: 'blob' }),
+  upload: (file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return http.post('/import/absensi', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+};
+
+// GENERATOR SURAT KEPEGAWAIAN
+export const suratApi = {
+  keteranganBekerja: (pegawai_id: number, tujuan: string) =>
+    http.post('/surat/keterangan-bekerja', { pegawai_id, tujuan }, { responseType: 'blob' }),
+  suratTugas: (data: { pegawai_id: number; tugas: string; tempat: string; tanggal_mulai: string; tanggal_selesai: string }) =>
+    http.post('/surat/surat-tugas', data, { responseType: 'blob' }),
+  suratCuti: (cuti_id: number) =>
+    http.post('/surat/surat-cuti', { cuti_id }, { responseType: 'blob' }),
+  kontrakPPPK: (pegawai_id: number) =>
+    http.post('/surat/kontrak-pppk', { pegawai_id }, { responseType: 'blob' }),
+};

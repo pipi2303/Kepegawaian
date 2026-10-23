@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   FileText, TrendingUp, TrendingDown, RefreshCw, AlertTriangle,
   UserMinus, ShieldOff, Printer, Eye, X, ChevronRight,
@@ -7,6 +7,7 @@ import {
 import { useAppContext } from '../context/AppContext';
 import type { Pegawai } from '../types';
 import { toast } from 'sonner';
+import { suratApi, cutiApi } from '../data/api';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 type TemplateSurat =
@@ -537,6 +538,180 @@ const LetterFooter = ({ form, isLetter }: { form: SuratForm; isLetter: boolean }
   </div>
 );
 
+// ─── PDF Download Helper ──────────────────────────────────────────────────
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ─── PDF Generator Section ────────────────────────────────────────────────
+function PdfGeneratorSection({ pegawaiList }: { pegawaiList: Pegawai[] }) {
+  const [loading, setLoading] = useState<string | null>(null);
+
+  // Keterangan Bekerja
+  const [skbPegawai, setSkbPegawai] = useState('');
+  const [skbTujuan, setSkbTujuan] = useState('');
+
+  // Surat Tugas
+  const [stPegawai, setStPegawai] = useState('');
+  const [stTugas, setStTugas] = useState('');
+  const [stTempat, setStTempat] = useState('');
+  const [stMulai, setStMulai] = useState('');
+  const [stSelesai, setStSelesai] = useState('');
+
+  // Surat Cuti
+  const [cutiId, setCutiId] = useState('');
+  const [cutiList, setCutiList] = useState<any[]>([]);
+  const [cutiLoading, setCutiLoading] = useState(false);
+
+  // Kontrak PPPK
+  const [pppkPegawai, setPppkPegawai] = useState('');
+
+  const loadCuti = async (pegId: string) => {
+    if (!pegId) return;
+    setCutiLoading(true);
+    try {
+      const data = await cutiApi.getAll({ pegawai_id: pegId, status: 'Disetujui' });
+      setCutiList(Array.isArray(data) ? data : []);
+    } catch { setCutiList([]); }
+    finally { setCutiLoading(false); }
+  };
+
+  const inp = "w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500";
+  const lbl = "text-xs font-semibold text-gray-700 mb-1 block";
+
+  const btnGen = (key: string) => (
+    `flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-opacity ${
+      loading === key ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-emerald-600 text-white hover:opacity-90'
+    }`
+  );
+
+  const gen = async (key: string, fn: () => Promise<any>, filename: string) => {
+    setLoading(key);
+    try {
+      const res = await fn();
+      downloadBlob(res.data, filename);
+      toast.success('PDF berhasil diunduh');
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? 'Gagal generate PDF');
+    } finally { setLoading(null); }
+  };
+
+  const pppkList = pegawaiList.filter(p => ['PPPK', 'Honorer'].includes(p.statusPegawai ?? ''));
+
+  return (
+    <div className="mt-8 space-y-4">
+      <div className="flex items-center gap-2 mb-2">
+        <Download className="w-5 h-5 text-emerald-600" />
+        <h2 className="text-base font-semibold text-gray-800">Generator Surat PDF (Server)</h2>
+        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">PDF langsung</span>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Keterangan Bekerja */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-3">
+          <p className="font-semibold text-sm text-gray-700 flex items-center gap-2"><FileText className="w-4 h-4 text-blue-500" /> Surat Keterangan Bekerja</p>
+          <div>
+            <label className={lbl}>Pegawai *</label>
+            <select value={skbPegawai} onChange={e => setSkbPegawai(e.target.value)} className={inp}>
+              <option value="">— Pilih Pegawai —</option>
+              {pegawaiList.filter(p => p.statusAktif === 'Aktif').map(p => <option key={p.id} value={String(p.id)}>{p.nama} — {p.jabatan}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={lbl}>Tujuan Surat *</label>
+            <input type="text" value={skbTujuan} onChange={e => setSkbTujuan(e.target.value)} placeholder="Pengajuan kredit / beasiswa / keperluan lainnya" className={inp} />
+          </div>
+          <button onClick={() => gen('skb', () => suratApi.keteranganBekerja(Number(skbPegawai), skbTujuan), `SKB-${skbPegawai}.pdf`)}
+            disabled={!skbPegawai || !skbTujuan || loading === 'skb'} className={btnGen('skb')}>
+            <Download className="w-4 h-4" /> {loading === 'skb' ? 'Generating...' : 'Generate PDF'}
+          </button>
+        </div>
+
+        {/* Surat Tugas */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-3">
+          <p className="font-semibold text-sm text-gray-700 flex items-center gap-2"><Calendar className="w-4 h-4 text-orange-500" /> Surat Tugas</p>
+          <div>
+            <label className={lbl}>Pegawai *</label>
+            <select value={stPegawai} onChange={e => setStPegawai(e.target.value)} className={inp}>
+              <option value="">— Pilih Pegawai —</option>
+              {pegawaiList.filter(p => p.statusAktif === 'Aktif').map(p => <option key={p.id} value={String(p.id)}>{p.nama} — {p.jabatan}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={lbl}>Deskripsi Tugas *</label>
+            <input type="text" value={stTugas} onChange={e => setStTugas(e.target.value)} placeholder="Mengikuti pelatihan / rapat koordinasi / dll" className={inp} />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className={lbl}>Tempat *</label>
+              <input type="text" value={stTempat} onChange={e => setStTempat(e.target.value)} placeholder="Kota/Instansi" className={inp} />
+            </div>
+            <div></div>
+            <div>
+              <label className={lbl}>Tanggal Mulai *</label>
+              <input type="date" value={stMulai} onChange={e => setStMulai(e.target.value)} className={inp} />
+            </div>
+            <div>
+              <label className={lbl}>Tanggal Selesai *</label>
+              <input type="date" value={stSelesai} onChange={e => setStSelesai(e.target.value)} className={inp} />
+            </div>
+          </div>
+          <button onClick={() => gen('st', () => suratApi.suratTugas({ pegawai_id: Number(stPegawai), tugas: stTugas, tempat: stTempat, tanggal_mulai: stMulai, tanggal_selesai: stSelesai }), `ST-${stPegawai}.pdf`)}
+            disabled={!stPegawai || !stTugas || !stTempat || !stMulai || !stSelesai || loading === 'st'} className={btnGen('st')}>
+            <Download className="w-4 h-4" /> {loading === 'st' ? 'Generating...' : 'Generate PDF'}
+          </button>
+        </div>
+
+        {/* Surat Cuti */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-3">
+          <p className="font-semibold text-sm text-gray-700 flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Surat Izin Cuti</p>
+          <div>
+            <label className={lbl}>Pilih Pegawai (untuk filter cuti)</label>
+            <select onChange={e => loadCuti(e.target.value)} className={inp}>
+              <option value="">— Pilih Pegawai —</option>
+              {pegawaiList.filter(p => p.statusAktif === 'Aktif').map(p => <option key={p.id} value={String(p.id)}>{p.nama}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={lbl}>Pilih Pengajuan Cuti (Disetujui) *</label>
+            <select value={cutiId} onChange={e => setCutiId(e.target.value)} className={inp} disabled={cutiLoading}>
+              <option value="">{cutiLoading ? 'Memuat...' : '— Pilih Cuti —'}</option>
+              {cutiList.map((c: any) => <option key={c.id} value={String(c.id)}>{c.jenis_cuti} — {c.tanggal_mulai} s/d {c.tanggal_selesai} ({c.jumlah_hari} hari)</option>)}
+            </select>
+          </div>
+          <button onClick={() => gen('sc', () => suratApi.suratCuti(Number(cutiId)), `SC-${cutiId}.pdf`)}
+            disabled={!cutiId || loading === 'sc'} className={btnGen('sc')}>
+            <Download className="w-4 h-4" /> {loading === 'sc' ? 'Generating...' : 'Generate PDF'}
+          </button>
+        </div>
+
+        {/* Kontrak PPPK */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-3">
+          <p className="font-semibold text-sm text-gray-700 flex items-center gap-2"><Building className="w-4 h-4 text-purple-500" /> Kontrak PPPK</p>
+          <div className="text-xs text-gray-500 bg-purple-50 border border-purple-100 rounded-lg p-2">
+            Hanya untuk pegawai berstatus PPPK atau Honorer.
+          </div>
+          <div>
+            <label className={lbl}>Pegawai PPPK/Honorer *</label>
+            <select value={pppkPegawai} onChange={e => setPppkPegawai(e.target.value)} className={inp}>
+              <option value="">— Pilih Pegawai —</option>
+              {pppkList.map(p => <option key={p.id} value={String(p.id)}>{p.nama} — {p.jabatan} ({p.statusPegawai})</option>)}
+            </select>
+            {pppkList.length === 0 && <p className="text-xs text-gray-400 mt-1">Tidak ada pegawai PPPK/Honorer aktif.</p>}
+          </div>
+          <button onClick={() => gen('pppk', () => suratApi.kontrakPPPK(Number(pppkPegawai)), `KontrakPPPK-${pppkPegawai}.pdf`)}
+            disabled={!pppkPegawai || loading === 'pppk'} className={btnGen('pppk')}>
+            <Download className="w-4 h-4" /> {loading === 'pppk' ? 'Generating...' : 'Generate PDF'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────
 export default function SuratKepegawaian() {
   const { pegawai } = useAppContext();
@@ -615,6 +790,7 @@ export default function SuratKepegawaian() {
         <h1 className="text-gray-800">Format Surat Kepegawaian</h1>
         <p className="text-sm text-gray-500 mt-0.5">Generator surat resmi kepegawaian sesuai UU No. 5/2014 & PP No. 94/2021</p>
       </div>
+      <PdfGeneratorSection pegawaiList={pegawai} />
 
       <div className="flex flex-col xl:flex-row gap-5">
         {/* ─── Left: Template Selector ─── */}

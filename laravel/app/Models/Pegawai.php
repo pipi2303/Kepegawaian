@@ -47,6 +47,9 @@ class Pegawai extends Authenticatable
         'batas_pensiun',
         'masa_kerja',
         'eselon',
+        'tmt_gaji_berkala',
+        'kgb_berikutnya',
+        'masa_kerja_golongan',
         'badge',
         'foto',
         'sertifikat',
@@ -59,6 +62,8 @@ class Pegawai extends Authenticatable
         'tmt_jabatan' => 'date',
         'tanggal_masuk' => 'date',
         'batas_pensiun' => 'date',
+        'tmt_gaji_berkala' => 'date',
+        'kgb_berikutnya' => 'date',
         'sertifikat' => 'array',
     ];
 

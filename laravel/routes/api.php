@@ -14,6 +14,10 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\LicenseController;
 use App\Http\Controllers\IntegrationController;
 use App\Http\Controllers\SlipGajiPdfController;
+use App\Http\Controllers\LaporanBKDController;
+use App\Http\Controllers\KGBController;
+use App\Http\Controllers\ImportAbsensiController;
+use App\Http\Controllers\SuratController;
 
 /*
 |--------------------------------------------------------------------------
@@ -290,6 +294,14 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         ]);
     });
 
+    // 18. WhatsApp test (admin only)
+    Route::post('whatsapp/test', function (\Illuminate\Http\Request $request) {
+        $request->validate(['phone' => 'required|string', 'message' => 'required|string|max:500']);
+        abort_unless(auth()->user()->hasRole('admin'), 403);
+        $sent = \App\Services\WhatsAppService::send($request->phone, $request->message);
+        return response()->json(['status' => $sent ? 'success' : 'failed', 'enabled' => config('whatsapp.enabled')]);
+    });
+
     // 16. Government Integrations
     Route::prefix('integration')->group(function () {
         Route::get('status', [IntegrationController::class, 'status']);
@@ -297,6 +309,30 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::get('satusehat/practitioner', [IntegrationController::class, 'satusehatPractitioner']);
         Route::post('siasn/sync', [IntegrationController::class, 'siasnSync']);
         Route::get('logs', [IntegrationController::class, 'integrationLogs']);
+    });
+
+    // 21. Laporan BKD Format Resmi
+    Route::prefix('laporan-bkd')->group(function () {
+        Route::get('duk',           [LaporanBKDController::class, 'duk']);
+        Route::get('bezetting',     [LaporanBKDController::class, 'bezetting']);
+        Route::get('rekap-absensi', [LaporanBKDController::class, 'rekapAbsensi']);
+    });
+
+    // 22. KGB (Kenaikan Gaji Berkala)
+    Route::post('kgb/bulk-calculate', [KGBController::class, 'bulkCalculate']);
+    Route::get('kgb',               [KGBController::class, 'index']);
+    Route::put('kgb/{pegawai}',     [KGBController::class, 'update']);
+
+    // 23. Import Absensi Mesin Fingerprint
+    Route::get('import/absensi/template', [ImportAbsensiController::class, 'template']);
+    Route::post('import/absensi', [ImportAbsensiController::class, 'store']);
+
+    // 24. Generator Surat Kepegawaian
+    Route::prefix('surat')->group(function () {
+        Route::post('keterangan-bekerja', [SuratController::class, 'keteranganBekerja']);
+        Route::post('surat-tugas', [SuratController::class, 'suratTugas']);
+        Route::post('surat-cuti', [SuratController::class, 'suratCuti']);
+        Route::post('kontrak-pppk', [SuratController::class, 'kontrakPPPK']);
     });
 });
 

@@ -22,16 +22,21 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\ValidateLicense::class,
         ]);
     })
+    ->withProviders([
+        \App\Providers\EventServiceProvider::class,
+    ])
     ->withCommands([
         \App\Console\Commands\GenerateLicense::class,
         \App\Console\Commands\CekLisensiEkspiryNakes::class,
         \App\Console\Commands\GenerateSlipGajiBulanan::class,
         \App\Console\Commands\BackupDatabase::class,
+        \App\Console\Commands\CekKGBOtomatis::class,
     ])
     ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
         $schedule->command('hcms:cek-lisensi-nakes')->dailyAt('07:00');
         $schedule->command('hcms:backup-db')->dailyAt('02:00');
         $schedule->command('hcms:generate-slip-gaji')->monthlyOn(25, '06:00');
+        $schedule->command('hcms:cek-kgb')->weeklyOn(1, '08:00'); // Senin 08:00 WIB
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->report(function (\Throwable $e) {

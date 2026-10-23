@@ -40,6 +40,7 @@ const MyPayroll              = lazy(() => import('./pages/MyPayroll'));
 const ActivityLog            = lazy(() => import('./pages/ActivityLog'));
 const AdminSettings          = lazy(() => import('./pages/AdminSettings'));
 const ImportPegawai          = lazy(() => import('./pages/ImportPegawai'));
+const ImportAbsensi          = lazy(() => import('./pages/ImportAbsensi'));
 const Integrasi              = lazy(() => import('./pages/Integrasi'));
 
 // ─── Router Singleton ─────────────────────────────────────────────────────────
@@ -141,6 +142,10 @@ function buildRouter(): RouterType {
             {
               path: 'import',
               element: <ProtectedRoute roles={['admin']}><ImportPegawai /></ProtectedRoute>
+            },
+            {
+              path: 'import-absensi',
+              element: <ProtectedRoute roles={['admin']}><ImportAbsensi /></ProtectedRoute>
             },
             {
               path: 'integrasi',

@@ -133,6 +133,17 @@ class PayrollController extends Controller
 
         $this->payroll->markDibayar($gaji);
 
+        $gaji->load('pegawai');
+        if ($gaji->pegawai?->no_telp) {
+            \App\Services\WhatsAppService::send(
+                $gaji->pegawai->no_telp,
+                \App\Services\WhatsAppService::msgSlipGajiTersedia(
+                    $gaji->pegawai->nama,
+                    $gaji->nama_bulan . ' ' . $gaji->tahun
+                )
+            );
+        }
+
         return response()->json(['status' => 'success', 'message' => 'Slip gaji ditandai dibayarkan.']);
     }
 }
