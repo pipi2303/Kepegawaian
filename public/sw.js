@@ -18,6 +18,9 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const { url } = e.request;
 
+  // Skip non-http(s) schemes (chrome-extension, data, etc.)
+  if (!url.startsWith('http://') && !url.startsWith('https://')) return;
+
   // Network-first for API calls
   if (url.includes('/api/')) {
     e.respondWith(
@@ -26,14 +29,16 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Cache-first for static assets
+  // Cache-first for static assets — only cache successful same-origin responses
   e.respondWith(
     caches.match(e.request).then(
       (cached) => cached || fetch(e.request).then((res) => {
-        const clone = res.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, clone));
+        if (res.ok && res.type === 'basic') {
+          const clone = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, clone));
+        }
         return res;
-      })
+      }).catch(() => cached)
     )
   );
 });
