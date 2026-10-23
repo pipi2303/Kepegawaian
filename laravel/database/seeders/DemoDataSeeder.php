@@ -109,7 +109,7 @@ class DemoDataSeeder extends Seeder
             $tm      = Carbon::parse($tglMasuk);
             $jkDigit = ($jk === 'L') ? '1' : '2';
             return sprintf(
-                '%s%s%s%s%03d',
+                '%s%s%s%03d',
                 $tl->format('Ymd'),
                 $jkDigit,
                 $tm->format('Ym'),
