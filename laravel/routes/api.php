@@ -22,6 +22,10 @@ use App\Http\Controllers\TPPController;
 use App\Http\Controllers\DiklatController;
 use App\Http\Controllers\BPJSController;
 use App\Http\Controllers\RekrutmenController;
+use App\Http\Controllers\RBKController;
+use App\Http\Controllers\PensiunController;
+use App\Http\Controllers\MutasiController;
+use App\Http\Controllers\KenaikanPangkatController;
 
 /*
 |--------------------------------------------------------------------------
@@ -375,6 +379,42 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::get('export-tk',        [BPJSController::class, 'exportTK']);
         Route::get('export-kesehatan', [BPJSController::class, 'exportKesehatan']);
         Route::get('summary',          [BPJSController::class, 'summary']);
+    });
+
+    // 29. RBK (Remunerasi Berbasis Kinerja) — wajib RS BLUD
+    Route::prefix('rbk')->group(function () {
+        Route::get('/',                   [RBKController::class, 'index']);
+        Route::post('/generate',          [RBKController::class, 'store']);
+        Route::post('/bulk-generate',     [RBKController::class, 'bulkGenerate']);
+        Route::post('/{rbk}/approve',     [RBKController::class, 'approve']);
+        Route::post('/{rbk}/bayar',       [RBKController::class, 'bayar']);
+        Route::get('/export',             [RBKController::class, 'export']);
+        Route::get('/indeks',             [RBKController::class, 'indeks']);
+        Route::post('/indeks',            [RBKController::class, 'storeIndeks']);
+        Route::delete('/indeks/{indeks}', [RBKController::class, 'destroyIndeks']);
+    });
+
+    // 30. Pensiun Tracker
+    Route::prefix('pensiun')->group(function () {
+        Route::get('/',                 [PensiunController::class, 'index']);
+        Route::get('/stats',            [PensiunController::class, 'stats']);
+        Route::post('/surat-pengantar', [PensiunController::class, 'generateSuratPengantar']);
+    });
+
+    // 31. Mutasi Jabatan
+    Route::prefix('mutasi')->group(function () {
+        Route::get('/',                  [MutasiController::class, 'index']);
+        Route::post('/',                 [MutasiController::class, 'store']);
+        Route::post('/surat-mutasi',     [MutasiController::class, 'generateSuratMutasi']);
+        Route::get('/riwayat/{pegawai}', [MutasiController::class, 'riwayat']);
+    });
+
+    // 32. Kenaikan Pangkat
+    Route::prefix('kenaikan-pangkat')->group(function () {
+        Route::get('/',               [KenaikanPangkatController::class, 'index']);
+        Route::post('/',              [KenaikanPangkatController::class, 'store']);
+        Route::put('/{id}/status',    [KenaikanPangkatController::class, 'updateStatus']);
+        Route::post('/surat-usulan',  [KenaikanPangkatController::class, 'generateSuratUsulan']);
     });
 });
 

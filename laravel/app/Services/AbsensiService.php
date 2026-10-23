@@ -16,7 +16,7 @@ class AbsensiService
     /**
      * Catat Check-In Masuk Presensi
      */
-    public function recordCheckIn(Pegawai $pegawai, ?string $lokasi = null, ?string $foto = null): Absensi
+    public function recordCheckIn(Pegawai $pegawai, ?string $lokasi = null, ?string $foto = null, ?array $gps = null): Absensi
     {
         $now = Carbon::now('Asia/Jakarta');
         $today = $now->toDateString();
@@ -40,12 +40,14 @@ class AbsensiService
                 'tanggal' => $today,
             ],
             [
-                'jam_masuk' => $now->toTimeString(),
-                'status' => $isLate ? 'Terlambat' : 'Hadir',
+                'jam_masuk'     => $now->toTimeString(),
+                'status'        => $isLate ? 'Terlambat' : 'Hadir',
                 'menit_terlambat' => $menitTerlambat,
-                'jenis_shift' => $jenisShift,
-                'lokasi' => $lokasi ?: 'Mesin Fingerprint Utama / App',
-                'bukti_foto' => $foto,
+                'jenis_shift'   => $jenisShift,
+                'lokasi'        => $lokasi ?: 'Mesin Fingerprint Utama / App',
+                'bukti_foto'    => $foto,
+                'lokasi_valid'  => $gps['valid']  ?? null,
+                'jarak_dari_rs' => $gps['jarak']  ?? null,
             ]
         );
     }
@@ -53,7 +55,7 @@ class AbsensiService
     /**
      * Catat Check-Out Pulang Presensi
      */
-    public function recordCheckOut(Pegawai $pegawai): Absensi
+    public function recordCheckOut(Pegawai $pegawai, ?array $gps = null): Absensi
     {
         $now = Carbon::now('Asia/Jakarta');
         $today = $now->toDateString();

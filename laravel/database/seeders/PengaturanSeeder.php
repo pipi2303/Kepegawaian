@@ -18,7 +18,11 @@ class PengaturanSeeder extends Seeder
             'alamat_rs'   => '',
             'no_telp_rs'  => '',
             'email_rs'    => '',
-            'direktur_rs' => '',
+            'direktur_rs'  => '',
+            'lat_rs'       => env('LAT_RS', '-5.3971'),
+            'lng_rs'       => env('LNG_RS', '105.2668'),
+            'radius_meter' => env('RADIUS_ABSENSI', '200'),
+            'gps_wajib'    => env('GPS_WAJIB', 'false'),
         ];
 
         foreach ($defaults as $key => $value) {

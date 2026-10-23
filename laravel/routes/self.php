@@ -23,4 +23,9 @@ Route::prefix('api/v1/self')->middleware(['auth:sanctum', 'throttle:60,1'])->gro
     // Credential upload
     Route::post('str-renewal', [SelfProfileController::class, 'uploadStr']);
     Route::post('sip-renewal', [SelfProfileController::class, 'uploadSip']);
+
+    // Absensi self-service (GPS + selfie)
+    Route::post('checkin',  [\App\Http\Controllers\Self\SelfAbsensiController::class, 'checkIn']);
+    Route::post('checkout', [\App\Http\Controllers\Self\SelfAbsensiController::class, 'checkOut']);
+    Route::get('absensi',   [\App\Http\Controllers\Self\SelfAbsensiController::class, 'riwayat']);
 });

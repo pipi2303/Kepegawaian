@@ -14,6 +14,7 @@ const AKREDITASI = ['KARS', 'JCI', 'Paripurna', 'Madya', 'Dasar', 'Belum Terakre
 const EMPTY = {
   nama_rs: '', kota_rs: '', kelas_rs: '', akreditasi_rs: '',
   alamat_rs: '', no_telp_rs: '', email_rs: '', direktur_rs: '', logo_rs: '',
+  lat_rs: '', lng_rs: '', radius_meter: '',
 };
 
 export default function AdminSettings() {
@@ -128,6 +129,21 @@ export default function AdminSettings() {
                 <div>
                   <label className={labelCls}>Email RS</label>
                   <input type="email" value={form.email_rs} onChange={e => field('email_rs', e.target.value)} className={inputCls} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className={labelCls}>Latitude RS</label>
+                  <input type="number" step="0.0001" value={form.lat_rs} onChange={e => field('lat_rs', e.target.value)} className={inputCls} placeholder="-5.3971" />
+                </div>
+                <div>
+                  <label className={labelCls}>Longitude RS</label>
+                  <input type="number" step="0.0001" value={form.lng_rs} onChange={e => field('lng_rs', e.target.value)} className={inputCls} placeholder="105.2668" />
+                </div>
+                <div>
+                  <label className={labelCls}>Radius Absensi (meter)</label>
+                  <input type="number" min="50" value={form.radius_meter} onChange={e => field('radius_meter', e.target.value)} className={inputCls} placeholder="200" />
                 </div>
               </div>
 

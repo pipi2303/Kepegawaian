@@ -37,17 +37,20 @@ const PerformanceManagement = lazy(() => import('./pages/PerformanceManagement')
 const MyProfile              = lazy(() => import('./pages/MyProfile'));
 const MyCuti                 = lazy(() => import('./pages/MyCuti'));
 const MyPayroll              = lazy(() => import('./pages/MyPayroll'));
+const MyAbsensi              = lazy(() => import('./pages/MyAbsensi'));
 const ActivityLog            = lazy(() => import('./pages/ActivityLog'));
 const AdminSettings          = lazy(() => import('./pages/AdminSettings'));
 const ImportPegawai          = lazy(() => import('./pages/ImportPegawai'));
 const ImportAbsensi          = lazy(() => import('./pages/ImportAbsensi'));
 const Integrasi              = lazy(() => import('./pages/Integrasi'));
 const TPP                    = lazy(() => import('./pages/TPP'));
+const RBK                    = lazy(() => import('./pages/RBK'));
 const Rekrutmen              = lazy(() => import('./pages/Rekrutmen'));
 const PortalLamaran          = lazy(() => import('./pages/PortalLamaran'));
+const PensiunTracker         = lazy(() => import('./pages/PensiunTracker'));
 
 // ─── Router Singleton ─────────────────────────────────────────────────────────
-const ROUTER_KEY = '__hrAppRouter_v10';
+const ROUTER_KEY = '__hrAppRouter_v11';
 type RouterType = ReturnType<typeof createHashRouter>;
 
 function buildRouter(): RouterType {
@@ -101,6 +104,10 @@ function buildRouter(): RouterType {
               path: 'tpp',
               element: <ProtectedRoute roles={['admin', 'direktur']}><TPP /></ProtectedRoute>
             },
+            {
+              path: 'rbk',
+              element: <ProtectedRoute roles={['admin', 'direktur']}><RBK /></ProtectedRoute>
+            },
             { 
               path: 'penjadwalan',              
               element: <ProtectedRoute roles={['admin', 'kepala_unit']}><Penjadwalan /></ProtectedRoute>
@@ -117,9 +124,13 @@ function buildRouter(): RouterType {
               path: 'penghargaan',              
               element: <ProtectedRoute roles={['admin']}><Penghargaan /></ProtectedRoute>
             },
-            { 
-              path: 'mutasi',                   
+            {
+              path: 'mutasi',
               element: <ProtectedRoute roles={['admin']}><Mutasi /></ProtectedRoute>
+            },
+            {
+              path: 'pensiun-tracker',
+              element: <ProtectedRoute roles={['admin', 'direktur']}><PensiunTracker /></ProtectedRoute>
             },
             { 
               path: 'komite-rs',                
@@ -168,6 +179,7 @@ function buildRouter(): RouterType {
             { path: 'my/profile',               Component: MyProfile },
             { path: 'my/cuti',                  Component: MyCuti },
             { path: 'my/payroll',               Component: MyPayroll },
+            { path: 'my/absensi',               Component: MyAbsensi },
             { path: '*',                        Component: NotFound },
           ],
         },
@@ -178,7 +190,7 @@ function buildRouter(): RouterType {
 }
 
 // Bersihkan cache router versi lama
-(['__hrAppRouter_v3', '__hrAppRouter_v4', '__hrAppRouter_v5', '__hrAppRouter_v6', '__hrAppRouter_v7', '__hrAppRouter_v8', '__hrAppRouter_v9'] as string[]).forEach(key => {
+(['__hrAppRouter_v3', '__hrAppRouter_v4', '__hrAppRouter_v5', '__hrAppRouter_v6', '__hrAppRouter_v7', '__hrAppRouter_v8', '__hrAppRouter_v9', '__hrAppRouter_v10'] as string[]).forEach(key => {
   delete (globalThis as Record<string, unknown>)[key];
 });
 

@@ -236,6 +236,15 @@ export const diklatApi = {
   },
 };
 
+// ABSENSI SELF-SERVICE (GPS + Selfie)
+export const selfAbsensiApi = {
+  checkIn: (d: { latitude: number; longitude: number; foto_selfie?: string }) =>
+    http.post('/self/checkin', d).then(r => r.data),
+  checkOut: (d: { latitude: number; longitude: number }) =>
+    http.post('/self/checkout', d).then(r => r.data),
+  riwayat: () => http.get('/self/absensi').then(r => r.data),
+};
+
 // BPJS e-REPORTING
 export const bpjsApi = {
   exportTK: (bulan: number, tahun: number) =>
@@ -243,4 +252,44 @@ export const bpjsApi = {
   exportKesehatan: (bulan: number, tahun: number) =>
     http.get('/bpjs/export-kesehatan', { params: { bulan, tahun }, responseType: 'blob' }),
   summary: () => http.get('/bpjs/summary').then(r => r.data),
+};
+
+// RBK (Remunerasi Berbasis Kinerja)
+export const rbkApi = {
+  getAll:       (p?: any)             => http.get('/rbk', { params: p }).then(r => r.data),
+  generate:     (d: any)              => http.post('/rbk/generate', d).then(r => r.data),
+  bulkGenerate: (b: number, t: number)=> http.post('/rbk/bulk-generate', { bulan: b, tahun: t }).then(r => r.data),
+  approve:      (id: number)          => http.post(`/rbk/${id}/approve`).then(r => r.data),
+  bayar:        (id: number)          => http.post(`/rbk/${id}/bayar`).then(r => r.data),
+  export:       (b: number, t: number)=> http.get('/rbk/export', { params: { bulan: b, tahun: t }, responseType: 'blob' }),
+  indeks:       ()                    => http.get('/rbk/indeks').then(r => r.data),
+  storeIndeks:  (d: any)              => http.post('/rbk/indeks', d).then(r => r.data),
+  deleteIndeks: (id: number)          => http.delete(`/rbk/indeks/${id}`).then(r => r.data),
+};
+
+// PENSIUN TRACKER
+export const pensiunApi = {
+  getAll: (hari?: number) => http.get('/pensiun', { params: { hari } }).then(r => r.data),
+  stats: () => http.get('/pensiun/stats').then(r => r.data),
+  suratPengantar: (pegawai_id: number) =>
+    http.post('/pensiun/surat-pengantar', { pegawai_id }, { responseType: 'blob' }),
+};
+
+// MUTASI JABATAN
+export const mutasiApi = {
+  getAll: (p?: any) => http.get('/mutasi', { params: p }).then(r => r.data),
+  create: (d: any) => http.post('/mutasi', d).then(r => r.data),
+  suratMutasi: (d: { pegawai_id: number; riwayat_id: number }) =>
+    http.post('/mutasi/surat-mutasi', d, { responseType: 'blob' }),
+  riwayat: (id: number) => http.get(`/mutasi/riwayat/${id}`).then(r => r.data),
+};
+
+// KENAIKAN PANGKAT
+export const kenaikanPangkatApi = {
+  getAll: (p?: any) => http.get('/kenaikan-pangkat', { params: p }).then(r => r.data),
+  create: (d: any) => http.post('/kenaikan-pangkat', d).then(r => r.data),
+  updateStatus: (id: number, d: any) =>
+    http.put(`/kenaikan-pangkat/${id}/status`, d).then(r => r.data),
+  suratUsulan: (d: { pegawai_id: number; kp_id: number }) =>
+    http.post('/kenaikan-pangkat/surat-usulan', d, { responseType: 'blob' }),
 };

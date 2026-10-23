@@ -45,6 +45,7 @@ const menuItems: MenuSection[] = [
       { path: '/pegawai', label: 'Data Pegawai', icon: Users },
       { path: '/organisasi', label: 'Struktur Organisasi', icon: Network },
       { path: '/mutasi', label: 'Mutasi & Rotasi', icon: ArrowRightLeft, roles: ['admin'] },
+      { path: '/pensiun-tracker', label: 'Tracker Pensiun', icon: CalendarDays, roles: ['admin', 'direktur'] },
       { path: '/penghargaan', label: 'Penghargaan', icon: Award, roles: ['admin'] },
     ],
   },
