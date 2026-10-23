@@ -60,8 +60,32 @@
             "php-http/discovery": true
         },
         "audit": {
-            "abandoned": "report",
-            "blocked": false
+            "abandoned": "report"
+        }
+    },
+    "policy": {
+        "advisories": {
+            "ignore-id": [
+                "PKSA-cv56-2228-pzr6",
+                "PKSA-6r8f-nxsb-67bq",
+                "PKSA-gh7h-hhy4-byg7",
+                "PKSA-mwt3-h9tv-kx78",
+                "PKSA-hp6n-n4kz-21wk",
+                "PKSA-mckv-s5hg-868k",
+                "PKSA-7ztm-rpt3-qqzk",
+                "PKSA-2kw5-jd8w-5mvh",
+                "PKSA-4jrs-y99s-q8j6",
+                "PKSA-hbk6-2vfz-8f8n",
+                "PKSA-d5tc-s1qs-h781",
+                "PKSA-m5cs-t1y6-qpcs",
+                "PKSA-3r5d-mb8f-1qw9",
+                "PKSA-mdq4-51ck-6kdq",
+                "PKSA-8qx3-n5y5-vvnd",
+                "PKSA-q46n-4fdk-zjr4",
+                "PKSA-qzrn-rnz3-85w1",
+                "PKSA-w7xr-vk7n-rstm",
+                "PKSA-njrm-6dtg-m2pc"
+            ]
         }
     },
     "minimum-stability": "stable",
