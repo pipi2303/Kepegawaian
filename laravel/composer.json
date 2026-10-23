@@ -60,7 +60,8 @@
             "php-http/discovery": true
         },
         "audit": {
-            "abandoned": "report"
+            "abandoned": "report",
+            "blocked": "report"
         }
     },
     "minimum-stability": "stable",
