@@ -1,5 +1,7 @@
 import React, { memo, useState, Suspense, useEffect, useMemo } from 'react';
-import { NavLink, Outlet, Navigate, useNavigate } from 'react-router';
+import { NavLink, Outlet, Navigate, useNavigate, useLocation } from 'react-router';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import http from '../lib/http';
 import {
   LayoutDashboard, Users, Clock, CalendarDays, Briefcase,
   TrendingUp, Target, FileBarChart2, LogOut,
@@ -9,7 +11,6 @@ import {
   FileSignature, Award, ArrowRightLeft, Users2, Scale, Network, Gauge,
   ReceiptText, Star, UserPlus, Activity,
 } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useAppContext } from '../context/AppContext';
 import { useNotifications } from '../hooks';
 import { toast } from 'sonner';
@@ -284,8 +285,27 @@ function Layout() {
     navigate('/login', { replace: true });
   };
 
+  // Onboarding guard — admin only, run once per session (staleTime 5 min)
+  const { data: onboardingStatus } = useQuery({
+    queryKey: ['onboarding-status'],
+    queryFn: () => http.get('/api/v1/onboarding/status').then(r => r.data.data),
+    staleTime: 300_000,
+    enabled: isLoggedIn && currentUser?.role === 'admin',
+  });
+
+  const location = useLocation();
+
   // Redirect via React Router — tidak memerlukan window.location (tidak ada full reload)
   if (!isLoggedIn) return <Navigate to="/login" replace />;
+
+  if (
+    currentUser?.role === 'admin' &&
+    onboardingStatus &&
+    !onboardingStatus.completed &&
+    location.pathname !== '/onboarding'
+  ) {
+    return <Navigate to="/onboarding" replace />;
+  }
 
   const initials = currentUser?.nama
     ? currentUser.nama.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase()

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Shield, Search, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { useActivityLog } from '../hooks';
+import { PrintButton } from '../components/PrintButton';
 
 function fmtDate(iso: string) {
   if (!iso) return '-';
@@ -90,13 +91,14 @@ export default function ActivityLog() {
             <p className="text-sm text-gray-500">Semua aktivitas sistem tercatat secara otomatis</p>
           </div>
         </div>
-        {/* Stat pills */}
-        <div className="flex flex-wrap gap-2">
+        {/* Stat pills + Print */}
+        <div className="flex flex-wrap items-center gap-2">
           {statPills.map(p => (
             <span key={p.label} className={`text-xs font-semibold px-3 py-1.5 rounded-full ${p.cls}`}>
               {p.label}: {p.val}
             </span>
           ))}
+          <PrintButton />
         </div>
       </div>
 

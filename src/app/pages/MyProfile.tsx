@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { User, Phone, Mail, MapPin, Upload, Award, Save, Loader2, CheckCircle } from 'lucide-react';
-import { selfApi } from '../data/api';
+import { User, Phone, Mail, MapPin, Upload, Award, Save, Loader2, CheckCircle, Bell } from 'lucide-react';
+import { selfApi, notifPrefApi } from '../data/api';
 import { toast } from 'sonner';
 
 export default function MyProfile() {
@@ -49,6 +49,33 @@ export default function MyProfile() {
     onSuccess: () => toast.success('Berkas SIP berhasil diunggah, menunggu proses HR'),
     onError: (e: any) => toast.error(e.response?.data?.message || 'Gagal unggah SIP'),
   });
+
+  const { data: notifPref } = useQuery({
+    queryKey: ['notif-pref'],
+    queryFn: notifPrefApi.get,
+  });
+
+  const [notifForm, setNotifForm] = useState<Record<string, boolean>>({});
+  const [notifEdited, setNotifEdited] = useState(false);
+
+  React.useEffect(() => {
+    if (notifPref && !notifEdited) setNotifForm(notifPref);
+  }, [notifPref, notifEdited]);
+
+  const notifMut = useMutation({
+    mutationFn: notifPrefApi.update,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['notif-pref'] });
+      toast.success('Preferensi notifikasi disimpan');
+      setNotifEdited(false);
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'Gagal menyimpan preferensi'),
+  });
+
+  const toggleNotif = (key: string) => {
+    setNotifForm(f => ({ ...f, [key]: !f[key] }));
+    setNotifEdited(true);
+  };
 
   const handleChange = (field: string, value: string) => {
     setForm(f => ({ ...f, [field]: value }));
@@ -187,6 +214,67 @@ export default function MyProfile() {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Notification Preferences */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+        <h2 className="font-medium text-gray-700 text-sm uppercase tracking-wide flex items-center gap-1.5">
+          <Bell className="w-3.5 h-3.5" /> Preferensi Notifikasi
+        </h2>
+
+        {([
+          { label: 'Cuti', items: [
+            { key: 'notif_cuti_email', label: 'Email' },
+            { key: 'notif_cuti_wa',    label: 'WhatsApp' },
+          ]},
+          { label: 'STR/SIP Kadaluarsa', items: [
+            { key: 'notif_str_expiry_email', label: 'Email' },
+            { key: 'notif_str_expiry_wa',    label: 'WhatsApp' },
+          ]},
+          { label: 'Slip Gaji', items: [
+            { key: 'notif_slip_gaji_wa', label: 'WhatsApp' },
+          ]},
+          { label: 'Kontrak', items: [
+            { key: 'notif_kontrak_expiry_wa', label: 'WhatsApp' },
+          ]},
+          { label: 'Pensiun', items: [
+            { key: 'notif_pensiun_wa', label: 'WhatsApp' },
+          ]},
+          { label: 'KGB', items: [
+            { key: 'notif_kgb_wa', label: 'WhatsApp' },
+          ]},
+        ] as { label: string; items: { key: string; label: string }[] }[]).map(group => (
+          <div key={group.label}>
+            <p className="text-xs font-semibold text-gray-500 mb-1.5">{group.label}</p>
+            <div className="flex flex-wrap gap-4">
+              {group.items.map(({ key, label }) => (
+                <label key={key} className="flex items-center gap-2 cursor-pointer select-none">
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={!!notifForm[key]}
+                    onClick={() => toggleNotif(key)}
+                    className={`relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-[#013E37]/30 ${notifForm[key] ? 'bg-[#013E37]' : 'bg-gray-200'}`}
+                  >
+                    <span className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow ring-0 transition-transform ${notifForm[key] ? 'translate-x-4' : 'translate-x-0'}`} />
+                  </button>
+                  <span className="text-sm text-gray-700">{label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        {notifEdited && (
+          <button
+            onClick={() => notifMut.mutate(notifForm)}
+            disabled={notifMut.isPending}
+            className="flex items-center gap-2 px-4 py-2 bg-[#013E37] text-white text-sm rounded-lg hover:bg-[#025046] disabled:opacity-50 transition-colors"
+          >
+            {notifMut.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            Simpan Preferensi
+          </button>
+        )}
       </div>
 
       {/* Read-only fields */}

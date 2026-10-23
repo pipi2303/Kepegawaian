@@ -12,7 +12,18 @@
       <meta name="description" content="Sistem Informasi Manajemen Sumber Daya Manusia dan Kepegawaian Rumah Sakit Terintegrasi (HCMS)" />
       <meta property="og:title" content="HCMS - Kepegawaian Rumah Sakit" />
       <meta property="og:description" content="Sistem Informasi Manajemen Sumber Daya Manusia dan Kepegawaian Rumah Sakit Terintegrasi (HCMS)" />
-      <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
+      <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }
+      @media print {
+        nav, aside, .sidebar, button, .no-print, header { display: none !important; }
+        main, .main-content { width: 100% !important; margin: 0 !important; padding: 0 !important; }
+        .page-break { page-break-before: always; }
+        .avoid-break { page-break-inside: avoid; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 4px 8px; font-size: 10pt; }
+        thead { background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; }
+        * { box-shadow: none !important; }
+      }
+      </style>
     </head>
 
     <body>

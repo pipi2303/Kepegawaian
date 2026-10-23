@@ -631,7 +631,7 @@ export default function Laporan() {
             <p className="text-blue-200 text-sm mt-1">Periode: Maret 2026 · Data terupdate hari ini</p>
           </div>
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-sm text-white hover:bg-white/20 transition-colors">
+            <button onClick={() => window.print()} className="flex items-center gap-2 px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-sm text-white hover:bg-white/20 transition-colors print:hidden">
               <Printer className="w-4 h-4" /> Cetak
             </button>
             <button className="flex items-center gap-2 px-4 py-2 bg-white text-blue-700 rounded-xl text-sm font-semibold hover:bg-blue-50 transition-colors shadow">

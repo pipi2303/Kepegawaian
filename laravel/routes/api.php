@@ -33,6 +33,7 @@ use App\Http\Controllers\HubunganIndustrialController;
 use App\Http\Controllers\PenghargaanController;
 use App\Http\Controllers\PenjadwalanController;
 use App\Http\Controllers\KomiteController;
+use App\Http\Controllers\NotifPreferenceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -174,30 +175,53 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         ]);
     });
 
-    // 6. Backup — admin only; implementasi nyata di Sprint 3 (ops)
+    // 6. Backup — admin only
     Route::middleware('can:backup.manage')->group(function () {
         Route::get('settings/backup/history', function () {
-            // ponytail: return empty until real backup system is implemented (Sprint 3)
+            $dir     = storage_path('backups');
+            $backups = [];
+            if (is_dir($dir)) {
+                $files = glob("{$dir}/backup_*.sql*") ?: [];
+                rsort($files);
+                foreach (array_slice($files, 20) as $f) {
+                    $bytes = filesize($f);
+                    $backups[] = [
+                        'filename'       => basename($f),
+                        'created_at'     => date('c', filemtime($f)),
+                        'size_bytes'     => $bytes,
+                        'size_formatted' => round($bytes / 1024 / 1024, 1) . ' MB',
+                        'type'           => 'Auto',
+                        'status'         => 'COMPLETED',
+                    ];
+                }
+            }
             return response()->json([
                 'status'  => 'success',
-                'data'    => [],
-                'message' => 'Sistem backup belum dikonfigurasi. Hubungi tim IT.',
+                'data'    => $backups,
+                'summary' => [
+                    'total_backups' => count($backups),
+                    'database_name' => config('database.connections.mysql.database'),
+                    'last_backup'   => $backups[0]['created_at'] ?? null,
+                ],
             ]);
         });
 
         Route::post('settings/backup/trigger', function (\Illuminate\Http\Request $request) {
+            abort_unless(auth()->user()->hasRole('admin'), 403);
+            \Artisan::call('hcms:backup-db');
+            $output = trim(\Artisan::output());
             \App\Models\ActivityLog::record(
                 action: 'EXPORT',
                 severity: 'warning',
                 targetType: 'Database',
-                targetLabel: 'Backup trigger manual',
-                description: 'Permintaan backup manual dicatat. Sistem backup belum dikonfigurasi.',
+                targetLabel: 'Manual backup',
+                description: 'Backup manual dipicu via UI.',
                 request: $request,
             );
             return response()->json([
-                'status'  => 'error',
-                'message' => 'Sistem backup belum dikonfigurasi. Hubungi tim IT untuk setup mysqldump/cron.',
-            ], 501);
+                'status'  => 'success',
+                'message' => $output ?: 'Backup berhasil dijalankan.',
+            ]);
         });
     });
 
@@ -598,5 +622,78 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
         Route::delete('/{penghargaan}',            [PenghargaanController::class, 'destroy']);
         Route::post('/{penghargaan}/sertifikat',   [PenghargaanController::class, 'uploadSertifikat']);
     });
+
+    // 40. Onboarding
+    Route::get('onboarding/status', function () {
+        return response()->json([
+            'status' => 'success',
+            'data'   => [
+                'completed' => \App\Models\Pengaturan::get('onboarding_completed', 'false') === 'true',
+                'step'      => (int) \App\Models\Pengaturan::get('onboarding_step', '1'),
+            ],
+        ]);
+    });
+
+    Route::post('onboarding/complete', function () {
+        abort_unless(auth()->user()->hasRole('admin'), 403);
+        \App\Models\Pengaturan::set('onboarding_completed', 'true');
+        \App\Models\Pengaturan::set('onboarding_step', '6');
+        \App\Models\ActivityLog::record(action: 'UPDATE', targetType: 'Pengaturan', targetLabel: 'Onboarding selesai', description: 'Setup awal HCMS selesai dilakukan.');
+        return response()->json(['status' => 'success', 'message' => 'Setup selesai.']);
+    });
+
+    Route::post('onboarding/step', function (\Illuminate\Http\Request $request) {
+        $request->validate(['step' => 'required|integer|between:1,6']);
+        abort_unless(auth()->user()->hasRole('admin'), 403);
+        \App\Models\Pengaturan::set('onboarding_step', (string) $request->step);
+        return response()->json(['status' => 'success']);
+    });
+
+    // ── Bulk Operations ───────────────────────────────────────────────────────────
+    Route::post('cuti/bulk-approve', function (\Illuminate\Http\Request $request) {
+        $request->validate(['ids' => 'required|array|min:1', 'ids.*' => 'integer|exists:t_cuti,id']);
+        abort_unless(auth()->user()->can('cuti.approve-unit'), 403);
+        $approver = auth()->user();
+        $count = 0;
+        foreach ($request->ids as $id) {
+            $cuti = \App\Models\Cuti::find($id);
+            if ($cuti && $cuti->status === 'Pending') {
+                app(\App\Services\CutiService::class)->approve($cuti, $approver, 'Bulk approve');
+                $count++;
+            }
+        }
+        \App\Models\ActivityLog::record(action:'APPROVE', targetType:'Cuti (Bulk)',
+            targetLabel:"Bulk approve {$count} pengajuan cuti", description:'Bulk approval oleh '.auth()->user()->nama, request:$request);
+        return response()->json(['status' => 'success', 'message' => "{$count} cuti berhasil disetujui."]);
+    });
+
+    Route::post('cuti/bulk-reject', function (\Illuminate\Http\Request $request) {
+        $request->validate(['ids' => 'required|array|min:1', 'ids.*' => 'integer|exists:t_cuti,id', 'alasan' => 'required|string|max:500']);
+        abort_unless(auth()->user()->can('cuti.approve-unit'), 403);
+        $approver = auth()->user();
+        $count = 0;
+        foreach ($request->ids as $id) {
+            $cuti = \App\Models\Cuti::find($id);
+            if ($cuti && $cuti->status === 'Pending') {
+                app(\App\Services\CutiService::class)->reject($cuti, $approver, $request->alasan);
+                $count++;
+            }
+        }
+        return response()->json(['status' => 'success', 'message' => "{$count} cuti berhasil ditolak."]);
+    });
+
+    Route::post('pegawai/bulk-status', function (\Illuminate\Http\Request $request) {
+        $request->validate(['ids' => 'required|array|min:1', 'ids.*' => 'integer|exists:m_pegawai,id', 'status_aktif' => 'required|in:Aktif,Pensiun,Diberhentikan']);
+        abort_unless(auth()->user()->can('pegawai.edit'), 403);
+        \App\Models\Pegawai::whereIn('id', $request->ids)->update(['status_aktif' => $request->status_aktif]);
+        \App\Models\ActivityLog::record(action:'UPDATE', severity:'warning', targetType:'Pegawai (Bulk)',
+            targetLabel:'Bulk update '.count($request->ids).' pegawai → '.$request->status_aktif, description:'Bulk status update.', request:$request);
+        return response()->json(['status' => 'success', 'message' => count($request->ids).' pegawai diperbarui.']);
+    });
+
+    // 41. Notification Preferences
+    Route::get('notif-preferences',       [NotifPreferenceController::class, 'get']);
+    Route::put('notif-preferences',       [NotifPreferenceController::class, 'update']);
+    Route::get('notif-preferences/admin', [NotifPreferenceController::class, 'adminGet']);
 });
 

@@ -3,6 +3,7 @@ import { CalendarDays, FileText, Loader2, AlertTriangle, Clock, Info } from 'luc
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { pensiunApi } from '../data/api';
+import { PrintButton } from '../components/PrintButton';
 
 const fmtDate = (d?: string) =>
   d ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
@@ -67,14 +68,17 @@ export default function PensiunTracker() {
   return (
     <div className="p-4 lg:p-6 space-y-5">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
-          <CalendarDays className="w-5 h-5 text-orange-600" />
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+            <CalendarDays className="w-5 h-5 text-orange-600" />
+          </div>
+          <div>
+            <h1 className="text-xl font-semibold text-gray-900">Tracker Pensiun</h1>
+            <p className="text-sm text-gray-500">Monitoring pegawai mendekati masa purnabakti</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl font-semibold text-gray-900">Tracker Pensiun</h1>
-          <p className="text-sm text-gray-500">Monitoring pegawai mendekati masa purnabakti</p>
-        </div>
+        <PrintButton />
       </div>
 
       {/* Stats */}

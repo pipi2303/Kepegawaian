@@ -35,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\CekKGBOtomatis::class,
         \App\Console\Commands\CekPensiunOtomatis::class,
         \App\Console\Commands\CekKontrakExpiry::class,
+        \App\Console\Commands\SeedDemoData::class,
     ])
     ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
         $schedule->command('hcms:cek-lisensi-nakes')->dailyAt('07:00');

@@ -1,9 +1,11 @@
-import React, { lazy } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { createHashRouter } from 'react-router';
 import Layout from './components/Layout';
 import Root   from './components/Root';
 import NotFound from './components/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
+import { Loader2 } from 'lucide-react';
 // Dashboard di-import langsung (bukan lazy) untuk mencegah
 // "Failed to fetch dynamically imported module" pada file berukuran besar
 // di lingkungan Figma Make dev server.
@@ -12,6 +14,14 @@ import Penggajian from './pages/Penggajian';
 import Absensi from './pages/Absensi';
 import DataPegawai from './pages/DataPegawai';
 import OrganisasiTree from './pages/OrganisasiTree';
+
+const PageWrapper = ({ children }: { children: React.ReactNode }) => (
+  <ErrorBoundary>
+    <Suspense fallback={<div className="flex items-center justify-center h-48"><Loader2 className="animate-spin text-blue-600 w-6 h-6" /></div>}>
+      {children}
+    </Suspense>
+  </ErrorBoundary>
+);
 
 // Semua halaman lain tetap lazy-loaded untuk performa optimal.
 const Login              = lazy(() => import('./pages/Login'));
@@ -49,9 +59,10 @@ const Rekrutmen              = lazy(() => import('./pages/Rekrutmen'));
 const PortalLamaran          = lazy(() => import('./pages/PortalLamaran'));
 const PensiunTracker         = lazy(() => import('./pages/PensiunTracker'));
 const AngkaKredit            = lazy(() => import('./pages/AngkaKredit'));
+const Onboarding             = lazy(() => import('./pages/Onboarding'));
 
 // ─── Router Singleton ─────────────────────────────────────────────────────────
-const ROUTER_KEY = '__hrAppRouter_v11';
+const ROUTER_KEY = '__hrAppRouter_v12';
 type RouterType = ReturnType<typeof createHashRouter>;
 
 function buildRouter(): RouterType {
@@ -70,119 +81,120 @@ function buildRouter(): RouterType {
               path: 'pegawai',                  
               element: <ProtectedRoute roles={['admin', 'direktur', 'kepala_unit']}><DataPegawai /></ProtectedRoute> 
             },
-            { path: 'pegawai/:id',              Component: DetailPegawai },
+            { path: 'pegawai/:id',              element: <PageWrapper><DetailPegawai /></PageWrapper> },
             { path: 'absensi',                  Component: Absensi },
-            { path: 'cuti',                     Component: Cuti },
-            { path: 'riwayat-jabatan',          Component: RiwayatJabatan },
-            { 
-              path: 'kenaikan-pangkat',         
-              element: <ProtectedRoute roles={['admin']}><KenaikanPangkat /></ProtectedRoute>
+            { path: 'cuti',                     element: <PageWrapper><Cuti /></PageWrapper> },
+            { path: 'riwayat-jabatan',          element: <PageWrapper><RiwayatJabatan /></PageWrapper> },
+            {
+              path: 'kenaikan-pangkat',
+              element: <ProtectedRoute roles={['admin']}><PageWrapper><KenaikanPangkat /></PageWrapper></ProtectedRoute>
             },
-            { path: 'skp',                      Component: SKP },
-            { 
-              path: 'laporan',                  
-              element: <ProtectedRoute roles={['admin', 'direktur']}><Laporan /></ProtectedRoute>
+            { path: 'skp',                      element: <PageWrapper><SKP /></PageWrapper> },
+            {
+              path: 'laporan',
+              element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><Laporan /></PageWrapper></ProtectedRoute>
             },
-            { 
-              path: 'disiplin',                 
-              element: <ProtectedRoute roles={['admin', 'direktur']}><Disiplin /></ProtectedRoute>
+            {
+              path: 'disiplin',
+              element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><Disiplin /></PageWrapper></ProtectedRoute>
             },
-            { path: 'diklat',                   Component: Diklat },
-            { 
-              path: 'surat-kepegawaian',        
-              element: <ProtectedRoute roles={['admin', 'direktur']}><SuratKepegawaian /></ProtectedRoute> 
+            { path: 'diklat',                   element: <PageWrapper><Diklat /></PageWrapper> },
+            {
+              path: 'surat-kepegawaian',
+              element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><SuratKepegawaian /></PageWrapper></ProtectedRoute>
             },
-            { 
-              path: 'credentialing',            
-              element: <ProtectedRoute roles={['admin', 'kepala_unit']}><Credentialing /></ProtectedRoute>
+            {
+              path: 'credentialing',
+              element: <ProtectedRoute roles={['admin', 'kepala_unit']}><PageWrapper><Credentialing /></PageWrapper></ProtectedRoute>
             },
-            { path: 'k3rs',                     Component: K3RS },
+            { path: 'k3rs',                     element: <PageWrapper><K3RS /></PageWrapper> },
             {
               path: 'penggajian',
               element: <ProtectedRoute roles={['admin', 'direktur']}><Penggajian /></ProtectedRoute>
             },
             {
               path: 'tpp',
-              element: <ProtectedRoute roles={['admin', 'direktur']}><TPP /></ProtectedRoute>
+              element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><TPP /></PageWrapper></ProtectedRoute>
             },
             {
               path: 'rbk',
-              element: <ProtectedRoute roles={['admin', 'direktur']}><RBK /></ProtectedRoute>
+              element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><RBK /></PageWrapper></ProtectedRoute>
             },
-            { 
-              path: 'penjadwalan',              
-              element: <ProtectedRoute roles={['admin', 'kepala_unit']}><Penjadwalan /></ProtectedRoute>
+            {
+              path: 'penjadwalan',
+              element: <ProtectedRoute roles={['admin', 'kepala_unit']}><PageWrapper><Penjadwalan /></PageWrapper></ProtectedRoute>
             },
-            { 
-              path: 'bpjs',                     
-              element: <ProtectedRoute roles={['admin', 'direktur']}><BPJS /></ProtectedRoute>
+            {
+              path: 'bpjs',
+              element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><BPJS /></PageWrapper></ProtectedRoute>
             },
-            { 
-              path: 'kontrak',                  
-              element: <ProtectedRoute roles={['admin', 'direktur']}><Kontrak /></ProtectedRoute>
+            {
+              path: 'kontrak',
+              element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><Kontrak /></PageWrapper></ProtectedRoute>
             },
-            { 
-              path: 'penghargaan',              
-              element: <ProtectedRoute roles={['admin']}><Penghargaan /></ProtectedRoute>
+            {
+              path: 'penghargaan',
+              element: <ProtectedRoute roles={['admin']}><PageWrapper><Penghargaan /></PageWrapper></ProtectedRoute>
             },
             {
               path: 'mutasi',
-              element: <ProtectedRoute roles={['admin']}><Mutasi /></ProtectedRoute>
+              element: <ProtectedRoute roles={['admin']}><PageWrapper><Mutasi /></PageWrapper></ProtectedRoute>
             },
             {
               path: 'pensiun-tracker',
-              element: <ProtectedRoute roles={['admin', 'direktur']}><PensiunTracker /></ProtectedRoute>
+              element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><PensiunTracker /></PageWrapper></ProtectedRoute>
             },
-            { 
-              path: 'komite-rs',                
-              element: <ProtectedRoute roles={['admin', 'direktur']}><KomiteRS /></ProtectedRoute>
+            {
+              path: 'komite-rs',
+              element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><KomiteRS /></PageWrapper></ProtectedRoute>
             },
-            { 
-              path: 'hubungan-industrial',      
-              element: <ProtectedRoute roles={['admin', 'direktur']}><HubunganIndustrial /></ProtectedRoute>
+            {
+              path: 'hubungan-industrial',
+              element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><HubunganIndustrial /></PageWrapper></ProtectedRoute>
             },
-            { 
-              path: 'organisasi',               
+            {
+              path: 'organisasi',
               element: <ProtectedRoute roles={['admin', 'direktur', 'kepala_unit']}><OrganisasiTree /></ProtectedRoute>
             },
-            { 
-              path: 'performance',              
-              element: <ProtectedRoute roles={['admin', 'direktur']}><PerformanceManagement /></ProtectedRoute>
+            {
+              path: 'performance',
+              element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><PerformanceManagement /></PageWrapper></ProtectedRoute>
             },
             // Admin pages
             {
               path: 'activity-log',
-              element: <ProtectedRoute roles={['admin', 'direktur']}><ActivityLog /></ProtectedRoute>
+              element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><ActivityLog /></PageWrapper></ProtectedRoute>
             },
             {
               path: 'settings',
-              element: <ProtectedRoute roles={['admin']}><AdminSettings /></ProtectedRoute>
+              element: <ProtectedRoute roles={['admin']}><PageWrapper><AdminSettings /></PageWrapper></ProtectedRoute>
             },
             // Import & Integrasi
             {
               path: 'import',
-              element: <ProtectedRoute roles={['admin']}><ImportPegawai /></ProtectedRoute>
+              element: <ProtectedRoute roles={['admin']}><PageWrapper><ImportPegawai /></PageWrapper></ProtectedRoute>
             },
             {
               path: 'import-absensi',
-              element: <ProtectedRoute roles={['admin']}><ImportAbsensi /></ProtectedRoute>
+              element: <ProtectedRoute roles={['admin']}><PageWrapper><ImportAbsensi /></PageWrapper></ProtectedRoute>
             },
             {
               path: 'integrasi',
-              element: <ProtectedRoute roles={['admin']}><Integrasi /></ProtectedRoute>
+              element: <ProtectedRoute roles={['admin']}><PageWrapper><Integrasi /></PageWrapper></ProtectedRoute>
             },
             // Rekrutmen PPPK/Honorer (admin)
             {
               path: 'rekrutmen',
-              element: <ProtectedRoute roles={['admin', 'direktur']}><Rekrutmen /></ProtectedRoute>
+              element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><Rekrutmen /></PageWrapper></ProtectedRoute>
             },
             // Angka Kredit JFT
-            { path: 'angka-kredit', Component: AngkaKredit },
+            { path: 'angka-kredit', element: <PageWrapper><AngkaKredit /></PageWrapper> },
+            { path: 'onboarding',   element: <PageWrapper><Onboarding /></PageWrapper> },
             // Self-service portal
-            { path: 'my/profile',               Component: MyProfile },
-            { path: 'my/cuti',                  Component: MyCuti },
-            { path: 'my/payroll',               Component: MyPayroll },
-            { path: 'my/absensi',               Component: MyAbsensi },
+            { path: 'my/profile',               element: <PageWrapper><MyProfile /></PageWrapper> },
+            { path: 'my/cuti',                  element: <PageWrapper><MyCuti /></PageWrapper> },
+            { path: 'my/payroll',               element: <PageWrapper><MyPayroll /></PageWrapper> },
+            { path: 'my/absensi',               element: <PageWrapper><MyAbsensi /></PageWrapper> },
             { path: '*',                        Component: NotFound },
           ],
         },
@@ -193,7 +205,7 @@ function buildRouter(): RouterType {
 }
 
 // Bersihkan cache router versi lama
-(['__hrAppRouter_v3', '__hrAppRouter_v4', '__hrAppRouter_v5', '__hrAppRouter_v6', '__hrAppRouter_v7', '__hrAppRouter_v8', '__hrAppRouter_v9', '__hrAppRouter_v10'] as string[]).forEach(key => {
+(['__hrAppRouter_v3', '__hrAppRouter_v4', '__hrAppRouter_v5', '__hrAppRouter_v6', '__hrAppRouter_v7', '__hrAppRouter_v8', '__hrAppRouter_v9', '__hrAppRouter_v10', '__hrAppRouter_v11'] as string[]).forEach(key => {
   delete (globalThis as Record<string, unknown>)[key];
 });
 

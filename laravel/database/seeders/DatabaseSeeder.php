@@ -18,5 +18,8 @@ class DatabaseSeeder extends Seeder
             JadwalShiftDanAbsensiSeeder::class,
             PengaturanSeeder::class,
         ]);
+        // Demo data — only run manually: php artisan db:seed --class=DemoDataSeeder
+        // Or via: php artisan hcms:demo-seed
+        // DO NOT add DemoDataSeeder to the $this->call() array above.
     }
 }

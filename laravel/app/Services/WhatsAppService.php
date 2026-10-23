@@ -65,4 +65,16 @@ class WhatsAppService
     {
         return "💰 *Slip Gaji Tersedia*\n\nYth. {$nama},\n\nSlip gaji periode *{$periode}* sudah dapat diunduh di portal HCMS.\n\n_HCMS RSUDAM_";
     }
+
+    /**
+     * Check if a pegawai has WA notifications enabled for a given type.
+     * Usage: if (WhatsAppService::pegawaiWantsWA($pegawai->id, 'cuti')) { ... }
+     * Valid types: cuti, str_expiry, slip_gaji, kontrak_expiry, pensiun, kgb
+     */
+    public static function pegawaiWantsWA(int $pegawaiId, string $type): bool
+    {
+        if (!config('whatsapp.enabled')) return false;
+        $pref = \App\Models\NotifPreference::forPegawai($pegawaiId);
+        return (bool) ($pref->{"notif_{$type}_wa"} ?? true);
+    }
 }

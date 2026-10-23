@@ -13,52 +13,58 @@ class BackupDatabase extends Command
     public function handle(): int
     {
         $dir = storage_path('backups');
+        if (!is_dir($dir)) mkdir($dir, 0755, true);
 
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
+        $timestamp = now()->format('Y-m-d_His');
+        $filename  = "backup_{$timestamp}.sql";
+        $filepath  = "{$dir}/{$filename}";
+        $gzpath    = "{$filepath}.gz";
 
-        $filename = 'backup_' . now()->format('Y-m-d_His') . '.sql';
-        $path     = $dir . '/' . $filename;
+        $host   = config('database.connections.mysql.host');
+        $port   = config('database.connections.mysql.port', '3306');
+        $user   = config('database.connections.mysql.username');
+        $pass   = config('database.connections.mysql.password');
+        $dbname = config('database.connections.mysql.database');
 
-        $host     = config('database.connections.mysql.host');
-        $port     = config('database.connections.mysql.port', 3306);
-        $user     = config('database.connections.mysql.username');
-        $pass     = config('database.connections.mysql.password');
-        $db       = config('database.connections.mysql.database');
+        // --single-transaction: consistent InnoDB snapshot without table locks
+        // ponytail: shell exec for simplicity; swap to Spatie Backup if S3/multi-DB needed
+        $cmd = "mysqldump --single-transaction --quick --no-tablespaces "
+             . "-h" . escapeshellarg($host)
+             . " -P" . escapeshellarg((string) $port)
+             . " -u" . escapeshellarg($user)
+             . ($pass ? " -p" . escapeshellarg($pass) : "")
+             . " " . escapeshellarg($dbname)
+             . " > " . escapeshellarg($filepath) . " 2>&1";
 
-        // ponytail: shell_exec for simplicity; swap to Spatie Backup if multi-DB or S3 needed
-        $dumpCmd = "mysqldump -h{$host} -P{$port} -u{$user} " .
-                   ($pass ? "-p" . escapeshellarg($pass) . " " : "") .
-                   escapeshellarg($db) . " > " . escapeshellarg($path);
+        exec($cmd, $out, $ret);
 
-        shell_exec($dumpCmd);
-
-        if (!file_exists($path) || filesize($path) === 0) {
-            $this->error('Backup gagal: file kosong atau tidak terbuat.');
+        if ($ret !== 0 || !file_exists($filepath) || filesize($filepath) === 0) {
+            $this->error('mysqldump failed: ' . implode("\n", $out));
             return self::FAILURE;
         }
 
-        shell_exec('gzip ' . escapeshellarg($path));
-        $gzFile = $filename . '.gz';
+        exec("gzip -f " . escapeshellarg($filepath), $gout, $gret);
+        $finalPath = file_exists($gzpath) ? $gzpath : $filepath;
+        $finalName = basename($finalPath);
 
-        // Keep only the 30 most recent backups
-        $files = glob($dir . '/backup_*.sql.gz');
-        if ($files && count($files) > 30) {
-            sort($files);
-            foreach (array_slice($files, 0, count($files) - 30) as $old) {
-                unlink($old);
-            }
+        // Keep only last 30 backups
+        $files = glob("{$dir}/backup_*.sql*");
+        if ($files) {
+            rsort($files);
+            foreach (array_slice($files, 30) as $old) unlink($old);
         }
+
+        $size = round(filesize($finalPath) / 1024, 1) . ' KB';
 
         ActivityLog::record(
             action: 'EXPORT',
+            severity: 'info',
             targetType: 'Database',
-            targetLabel: $gzFile,
-            description: 'Backup otomatis harian.',
+            targetLabel: $finalName,
+            description: "Backup otomatis berhasil: {$size}",
         );
 
-        $this->info("Backup selesai: {$gzFile}");
+        $this->info("Backup berhasil: {$finalPath} ({$size})");
 
         return self::SUCCESS;
     }

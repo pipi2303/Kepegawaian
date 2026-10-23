@@ -6,6 +6,7 @@ import { useAppContext } from '../context/AppContext';
 import { JENIS_CUTI } from '../data/constants';
 import { toast } from 'sonner';
 import http from '../lib/http';
+import { bulkApi } from '../data/api';
 
 const statusConfig: Record<string, { color: string; bg: string; label: string }> = {
   'Pending': { color: 'text-yellow-700', bg: 'bg-yellow-100', label: 'Menunggu Persetujuan' },
@@ -45,6 +46,9 @@ export default function Cuti() {
   const [filterJenis, setFilterJenis] = useState('');
   const [search, setSearch] = useState('');
   const [form, setForm] = useState({ ...EMPTY_FORM });
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [showBulkRejectModal, setShowBulkRejectModal] = useState(false);
+  const [bulkRejectAlasan, setBulkRejectAlasan] = useState('');
 
   // ── Queries ──────────────────────────────────────────────────────────────────
 
@@ -101,6 +105,28 @@ export default function Cuti() {
       setRejectCatatan('');
     },
     onError: (e: any) => toast.error(e.response?.data?.message || 'Gagal menolak cuti'),
+  });
+
+  const bulkApproveMutation = useMutation({
+    mutationFn: (ids: number[]) => bulkApi.approveCuti(ids),
+    onSuccess: (data: any) => {
+      qc.invalidateQueries({ queryKey: ['cuti'] });
+      setSelectedIds([]);
+      toast.success(data.message || 'Cuti berhasil disetujui');
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'Gagal bulk approve'),
+  });
+
+  const bulkRejectMutation = useMutation({
+    mutationFn: ({ ids, alasan }: { ids: number[]; alasan: string }) => bulkApi.rejectCuti(ids, alasan),
+    onSuccess: (data: any) => {
+      qc.invalidateQueries({ queryKey: ['cuti'] });
+      setSelectedIds([]);
+      setShowBulkRejectModal(false);
+      setBulkRejectAlasan('');
+      toast.warning(data.message || 'Cuti berhasil ditolak');
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'Gagal bulk reject'),
   });
 
   // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -236,18 +262,57 @@ export default function Cuti() {
               </div>
             ) : (
               <div className="space-y-4">
+                {/* Bulk action header */}
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      checked={selectedIds.length === pendingCuti.length && pendingCuti.length > 0}
+                      onChange={e => setSelectedIds(e.target.checked ? pendingCuti.map((c: any) => c.id) : [])}
+                    />
+                    Pilih Semua Pending
+                  </label>
+                  {selectedIds.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">{selectedIds.length} dipilih</span>
+                      <button
+                        onClick={() => bulkApproveMutation.mutate(selectedIds)}
+                        disabled={bulkApproveMutation.isPending}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 disabled:opacity-60"
+                      >
+                        <Check className="w-3.5 h-3.5" /> Setujui Semua ({selectedIds.length})
+                      </button>
+                      <button
+                        onClick={() => setShowBulkRejectModal(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 text-xs rounded-lg hover:bg-red-100"
+                      >
+                        <X className="w-3.5 h-3.5" /> Tolak Semua
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 {pendingCuti.map(c => {
                   const pegId = c.pegawaiId || c.pegawai_id;
                   const p = getPegawai(pegId);
                   const levels = c.approvalLevels || c.approval_levels || [];
                   const currentLevel = c.currentLevel ?? c.current_level ?? 1;
                   return (
-                    <div key={c.id} className="border border-gray-200 rounded-xl overflow-hidden cursor-pointer" onClick={() => openDetail(c)}>
+                    <div key={c.id} className={`border rounded-xl overflow-hidden ${selectedIds.includes(c.id) ? 'border-blue-400 bg-blue-50/30' : 'border-gray-200'}`}>
                       <div className="flex items-start gap-4 p-5">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-semibold flex-shrink-0">
+                        <div className="flex-shrink-0 pt-1" onClick={e => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            checked={selectedIds.includes(c.id)}
+                            onChange={e => setSelectedIds(prev => e.target.checked ? [...prev, c.id] : prev.filter(id => id !== c.id))}
+                          />
+                        </div>
+                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-semibold flex-shrink-0 cursor-pointer" onClick={() => openDetail(c)}>
                           {(p?.nama || '?').charAt(0)}
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => openDetail(c)}>
                           <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
                             <div>
                               <p className="font-medium text-gray-800">{getFullName(pegId)}</p>
@@ -851,6 +916,33 @@ export default function Cuti() {
                 <Edit2 className="w-4 h-4" /> Edit
               </button>
               <button onClick={() => setShowDetailModal(false)} className="px-4 py-2 text-sm bg-gray-800 text-white rounded-lg hover:bg-gray-900">Tutup</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Bulk Reject Modal ─── */}
+      {showBulkRejectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowBulkRejectModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <XCircle className="w-6 h-6 text-red-600" />
+            </div>
+            <h3 className="text-center font-semibold text-gray-800 mb-1">Tolak {selectedIds.length} Pengajuan Cuti</h3>
+            <p className="text-center text-sm text-gray-500 mb-4">Alasan wajib diisi untuk penolakan massal</p>
+            <textarea rows={3} value={bulkRejectAlasan} onChange={e => setBulkRejectAlasan(e.target.value)}
+              placeholder="Alasan penolakan..."
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 mb-4 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none" />
+            <div className="flex gap-3">
+              <button onClick={() => setShowBulkRejectModal(false)} className="flex-1 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">Batal</button>
+              <button
+                onClick={() => bulkRejectMutation.mutate({ ids: selectedIds, alasan: bulkRejectAlasan })}
+                disabled={bulkRejectMutation.isPending || !bulkRejectAlasan.trim()}
+                className="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 disabled:opacity-60"
+              >
+                {bulkRejectMutation.isPending ? 'Memproses...' : 'Tolak Semua'}
+              </button>
             </div>
           </div>
         </div>

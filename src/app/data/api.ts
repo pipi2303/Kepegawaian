@@ -429,6 +429,13 @@ export const hubunganIndustrialApi = {
   suratPHK:        (phk_id: number)      => http.post('/hubungan-industrial/phk/surat', { phk_id }, { responseType: 'blob' }),
 };
 
+// BULK OPERATIONS
+export const bulkApi = {
+  approveCuti: (ids: number[]) => http.post('/cuti/bulk-approve', { ids }).then(r => r.data),
+  rejectCuti: (ids: number[], alasan: string) => http.post('/cuti/bulk-reject', { ids, alasan }).then(r => r.data),
+  updatePegawaiStatus: (ids: number[], status_aktif: string) => http.post('/pegawai/bulk-status', { ids, status_aktif }).then(r => r.data),
+};
+
 // PENGHARGAAN PEGAWAI
 export const penghargaanApi = {
   getAll:           (p?: any)            => http.get('/penghargaan', { params: p }).then(r => r.data),
@@ -441,4 +448,10 @@ export const penghargaanApi = {
     fd.append('file', file);
     return http.post(`/penghargaan/${id}/sertifikat`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
   },
+};
+
+// NOTIF PREFERENCES
+export const notifPrefApi = {
+  get: () => http.get('/notif-preferences').then(r => r.data.data),
+  update: (d: Record<string, boolean>) => http.put('/notif-preferences', d).then(r => r.data),
 };

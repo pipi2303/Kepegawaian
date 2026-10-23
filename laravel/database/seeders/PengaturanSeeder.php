@@ -25,6 +25,8 @@ class PengaturanSeeder extends Seeder
             'gps_wajib'           => env('GPS_WAJIB', 'false'),
             'total_tempat_tidur'  => env('TOTAL_TT', '200'),
             'bor_manual'          => '0',
+            'onboarding_completed' => env('ONBOARDING_COMPLETED', 'false'),
+            'onboarding_step'      => '1',
         ];
 
         foreach ($defaults as $key => $value) {
