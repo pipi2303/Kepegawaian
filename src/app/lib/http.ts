@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+// VITE_API_URL=https://hcms.raksadigital.com untuk production
+// Kosong = relative URL (dev + server yang sama origin)
+const API_BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api/v1`
+  : '/api/v1';
+
 const http = axios.create({
-  baseURL: '/api/v1',
+  baseURL: API_BASE,
   withCredentials: true,
   headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
 });
