@@ -3,14 +3,82 @@ name: Deploy
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
-  # Vercel deployment is handled automatically via Vercel GitHub integration
-  # This workflow is a placeholder for future server deployment
-  # To enable: add SSH_HOST, SSH_USER, SSH_KEY, SSH_PORT to GitHub Secrets
-
-  notify:
+  build-frontend:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy triggered
-        run: echo "Push to main detected. Vercel will auto-deploy the frontend."
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install & build frontend
+        run: |
+          bun install
+          bun run build
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: dist/
+          retention-days: 1
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build-frontend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download frontend dist
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: dist/
+
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            cd /var/www/hcms
+
+            echo "=== Git pull ==="
+            git pull origin main
+
+            echo "=== Copy frontend dist ==="
+            # dist/ sudah di-upload ke artifacts, tapi kita pakai hasil build di server
+            docker run --rm -v /var/www/hcms:/app -w /app oven/bun:latest sh -c \
+              'bun install --frozen-lockfile 2>/dev/null; bun run build' 2>&1 | tail -5
+
+            echo "=== Rebuild & restart containers ==="
+            docker compose -f docker-compose.prod.yml build --no-cache app
+            docker compose -f docker-compose.prod.yml down
+            docker compose -f docker-compose.prod.yml up -d
+
+            echo "=== Wait for healthy ==="
+            sleep 20
+            docker compose -f docker-compose.prod.yml ps
+
+            echo "=== Fix storage permissions ==="
+            docker exec hcms-app-1 sh -c '
+              chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+              chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+            '
+
+            echo "=== Reload config with correct env ==="
+            docker exec hcms-app-1 php artisan config:clear
+            docker exec hcms-app-1 php artisan config:cache
+            docker exec hcms-app-1 php artisan route:cache
+
+            echo "=== Connect nginx to proxy network ==="
+            docker network connect proxy-network hcms-nginx-1 2>/dev/null || true
+
+            echo "=== Deploy complete ==="
+            curl -s -o /dev/null -w "Frontend: %{http_code}" http://localhost:8020/
+            echo ""
