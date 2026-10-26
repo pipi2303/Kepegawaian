@@ -44,6 +44,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
+          command_timeout: 30m
           script: |
             set -e
             cd /var/www/hcms
@@ -51,34 +52,37 @@ jobs:
             echo "=== Git pull ==="
             git pull origin main
 
-            echo "=== Copy frontend dist ==="
-            # dist/ sudah di-upload ke artifacts, tapi kita pakai hasil build di server
+            echo "=== Build frontend ==="
             docker run --rm -v /var/www/hcms:/app -w /app oven/bun:latest sh -c \
               'bun install --frozen-lockfile 2>/dev/null; bun run build' 2>&1 | tail -5
 
-            echo "=== Rebuild & restart containers ==="
-            docker compose -f docker-compose.prod.yml build --no-cache app
+            echo "=== Rebuild app container (use cache when possible) ==="
+            docker compose -f docker-compose.prod.yml build app
             docker compose -f docker-compose.prod.yml down
             docker compose -f docker-compose.prod.yml up -d
 
-            echo "=== Wait for healthy ==="
-            sleep 20
+            echo "=== Wait for app to be ready ==="
+            for i in $(seq 1 12); do
+              STATUS=$(docker inspect --format='{{.State.Status}}' hcms-app-1 2>/dev/null || echo "not_found")
+              [ "$STATUS" = "running" ] && break
+              sleep 5
+            done
             docker compose -f docker-compose.prod.yml ps
 
             echo "=== Fix storage permissions ==="
             docker exec hcms-app-1 sh -c '
               chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
               chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-            '
+            ' 2>/dev/null || true
 
-            echo "=== Reload config with correct env ==="
+            echo "=== Reload config ==="
             docker exec hcms-app-1 php artisan config:clear
             docker exec hcms-app-1 php artisan config:cache
             docker exec hcms-app-1 php artisan route:cache
 
-            echo "=== Connect nginx to proxy network ==="
+            echo "=== Connect to proxy network ==="
             docker network connect proxy-network hcms-nginx-1 2>/dev/null || true
 
-            echo "=== Deploy complete ==="
-            curl -s -o /dev/null -w "Frontend: %{http_code}" http://localhost:8020/
+            echo "=== Deploy done ==="
+            curl -s -o /dev/null -w "HTTP %{http_code}" http://localhost:8020/
             echo ""
