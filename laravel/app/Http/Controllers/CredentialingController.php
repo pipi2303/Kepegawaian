@@ -146,6 +146,63 @@ class CredentialingController extends Controller
     }
 
     /**
+     * Clinical Privilege Matrix — pivot SPK aktif: privilege × dokter
+     */
+    public function privilegeMatrix(Request $request): JsonResponse
+    {
+        $query = Credentialing::where('status', 'SPK Diterbitkan')
+            ->with('pegawai:id,nama,jabatan,unit_kerja')
+            ->whereNotNull('rincian_kewenangan_klinis');
+
+        if ($unit = $request->input('unit_kerja')) {
+            $query->whereHas('pegawai', fn ($q) => $q->where('unit_kerja', $unit));
+        }
+
+        $records = $query->get();
+
+        $dokters      = [];
+        $privilegeMap = [];
+        $levels       = [];
+
+        foreach ($records as $rec) {
+            $p = $rec->pegawai;
+            if (!$p) continue;
+
+            $dokters[$p->id] = ['id' => $p->id, 'nama' => $p->nama, 'jabatan' => $p->jabatan];
+
+            foreach ($rec->rincian_kewenangan_klinis ?? [] as $kew) {
+                $kode = $kew['kode'] ?? null;
+                if (!$kode) continue;
+                $privilegeMap[$kode] ??= [
+                    'kode'     => $kode,
+                    'nama'     => $kew['namaKewenangan'] ?? $kode,
+                    'kategori' => $kew['kategori'] ?? '',
+                ];
+                $levels[$kode][$p->id] = $kew['level'] ?? null;
+            }
+        }
+
+        $privileges = collect($privilegeMap)
+            ->sortBy(['kategori', 'kode'])
+            ->map(fn ($p) => [...$p, 'levels' => $levels[$p['kode']] ?? []])
+            ->values();
+
+        $unitList = Credentialing::where('status', 'SPK Diterbitkan')
+            ->join('m_pegawai', 'm_pegawai.id', '=', 't_credentialing.pegawai_id')
+            ->pluck('m_pegawai.unit_kerja')
+            ->unique()->filter()->values();
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => [
+                'dokters'    => array_values($dokters),
+                'privileges' => $privileges,
+                'unit_list'  => $unitList,
+            ],
+        ]);
+    }
+
+    /**
      * Early Warning Lisensi STR/SIP Kedaluwarsa
      */
     public function licenseAlerts(): JsonResponse

@@ -35,6 +35,8 @@ const Disiplin           = lazy(() => import('./pages/Disiplin'));
 const Diklat             = lazy(() => import('./pages/Diklat'));
 const SuratKepegawaian   = lazy(() => import('./pages/SuratKepegawaian'));
 const Credentialing      = lazy(() => import('./pages/Credentialing'));
+const OPPE               = lazy(() => import('./pages/OPPE'));
+const WISN               = lazy(() => import('./pages/WISN'));
 const K3RS               = lazy(() => import('./pages/K3RS'));
 const Penjadwalan        = lazy(() => import('./pages/Penjadwalan'));
 const BPJS               = lazy(() => import('./pages/BPJS'));
@@ -106,6 +108,14 @@ function buildRouter(): RouterType {
             {
               path: 'credentialing',
               element: <ProtectedRoute roles={['admin', 'kepala_unit']}><PageWrapper><Credentialing /></PageWrapper></ProtectedRoute>
+            },
+            {
+              path: 'oppe',
+              element: <ProtectedRoute roles={['admin', 'direktur', 'kepala_unit']}><PageWrapper><OPPE /></PageWrapper></ProtectedRoute>
+            },
+            {
+              path: 'wisn',
+              element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><WISN /></PageWrapper></ProtectedRoute>
             },
             { path: 'k3rs',                     element: <PageWrapper><K3RS /></PageWrapper> },
             {

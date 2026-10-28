@@ -15,45 +15,53 @@ class CekLisensiEkspiryNakes extends Command
     protected $signature   = 'hcms:cek-lisensi-nakes';
     protected $description = 'Kirim notifikasi email pegawai yang STR/SIP akan kadaluarsa';
 
+    // Notify once per milestone, not once per day.
+    private const MILESTONES = [90, 60, 30, 14, 7];
+
     public function handle(): int
     {
-        $sent  = 0;
-        $today = now()->toDateString();
+        $sent = 0;
 
         foreach ([StrRecord::class => 'STR', SipRecord::class => 'SIP'] as $model => $type) {
             $records = $model::expiringWithin(90)->with('pegawai')->get();
 
             foreach ($records as $record) {
-                $pegawai = $record->pegawai;
+                $pegawai      = $record->pegawai;
+                $hariTersisa  = (int) now()->diffInDays($record->tanggal_expired);
+                $milestone    = collect(self::MILESTONES)->first(fn ($m) => $hariTersisa <= $m);
 
-                if (!$pegawai?->email) {
+                if (!$milestone) {
                     continue;
                 }
 
-                $cacheKey = "lisensi_notif_{$type}_{$record->id}_{$today}";
+                $cacheKey = "lisensi_notif_{$type}_{$record->id}_m{$milestone}";
 
                 if (Cache::has($cacheKey)) {
                     continue;
                 }
 
-                $hariTersisa = (int) now()->diffInDays($record->tanggal_expired);
+                Cache::put($cacheKey, true, now()->addYear());
 
-                Mail::to($pegawai->email)->queue(new LisensiKadaluarsaSoon($pegawai, $hariTersisa));
+                $pref      = \App\Models\NotifPreference::forPegawai($pegawai->id);
+                $prefEmail = $type === 'SIP' ? $pref->notif_sip_expiry_email : $pref->notif_str_expiry_email;
+                $prefWa    = $type === 'SIP' ? $pref->notif_sip_expiry_wa    : $pref->notif_str_expiry_wa;
 
-                if ($pegawai->no_telp) {
+                if ($pegawai->email && $prefEmail) {
+                    Mail::to($pegawai->email)->queue(new LisensiKadaluarsaSoon($pegawai, $hariTersisa));
+                }
+
+                if ($pegawai->no_telp && $prefWa) {
                     \App\Services\WhatsAppService::send(
                         $pegawai->no_telp,
                         \App\Services\WhatsAppService::msgLisensiExpiry($pegawai->nama, $type, $record->tanggal_expired, $hariTersisa)
                     );
                 }
 
-                Cache::put($cacheKey, true, 86400);
-
                 ActivityLog::record(
                     action: 'EMAIL',
                     targetType: $type,
                     targetLabel: "Nomor {$type}: " . ($record->{"nomor_" . strtolower($type)} ?? $record->id),
-                    description: "Notifikasi kadaluarsa {$type} dikirim ke {$pegawai->email} ({$hariTersisa} hari tersisa).",
+                    description: "Notifikasi kadaluarsa {$type} dikirim (H-{$milestone}, {$hariTersisa} hari tersisa).",
                     pegawaiId: $pegawai->id,
                 );
 
@@ -61,7 +69,7 @@ class CekLisensiEkspiryNakes extends Command
             }
         }
 
-        $this->info("Notifikasi lisensi terkirim: {$sent} email.");
+        $this->info("Notifikasi lisensi terkirim: {$sent}.");
 
         return self::SUCCESS;
     }

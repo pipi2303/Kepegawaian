@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import {
   Shield, Search, Plus, Eye, Edit2, Trash2, X, AlertTriangle, CheckCircle,
   Clock, FileText, Award, ChevronDown, ChevronUp, RefreshCw, Star,
-  AlertCircle, BookOpen, TrendingUp, Users, BadgeCheck, Activity,
+  AlertCircle, BookOpen, TrendingUp, Users, BadgeCheck, Activity, LayoutGrid,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppContext } from '../context/AppContext';
@@ -11,7 +11,7 @@ import { dataCPD as initialCPD } from '../data/mockDataRS';
 import { toast } from 'sonner';
 import http from '../lib/http';
 
-type TabType = 'str' | 'sip' | 'credentialing' | 'cpd';
+type TabType = 'str' | 'sip' | 'credentialing' | 'cpd' | 'matrix';
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 const statusConfig: Record<string, { bg: string; color: string; icon: React.ElementType }> = {
@@ -181,6 +181,14 @@ export default function Credentialing() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [expandedKew, setExpandedKew] = useState<string | null>(null);
   const [cpdFilter, setCpdFilter] = useState('');
+  const [matrixUnit, setMatrixUnit] = useState('');
+
+  const { data: matrixData, isLoading: matrixLoading } = useQuery({
+    queryKey: ['privilege-matrix', matrixUnit],
+    queryFn: () => http.get('/credentialing/privilege-matrix', { params: matrixUnit ? { unit_kerja: matrixUnit } : {} }).then(r => r.data.data),
+    staleTime: 300000,
+    enabled: activeTab === 'matrix',
+  });
 
   // Helpers
   const getFullName = (id: string) => {
@@ -356,6 +364,7 @@ export default function Credentialing() {
     { key: 'sip', label: 'SIP / SIK', count: sip.length, icon: FileText },
     { key: 'credentialing', label: 'Kredensial & Kewenangan Klinis', count: credentialing.length, icon: Shield },
     { key: 'cpd', label: 'CPD / SKP Profesi', count: allCPD.length, icon: BookOpen },
+    { key: 'matrix', label: 'Privilege Matrix', count: matrixData?.privileges?.length ?? 0, icon: LayoutGrid },
   ];
 
   // CPD per-pegawai summary
@@ -449,19 +458,29 @@ export default function Credentialing() {
 
         {/* Filters */}
         <div className="p-4 border-b border-gray-50 flex flex-wrap gap-3">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari nama, nomor..." className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
-          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">Semua Status</option>
-            {activeTab === 'credentialing'
-              ? ['Pengajuan','Verifikasi Dokumen','Peer Review','Komite Medik','Selesai','Ditolak'].map(s => <option key={s} value={s}>{s}</option>)
-              : activeTab === 'cpd'
-              ? ['Diverifikasi','Pending','Ditolak'].map(s => <option key={s} value={s}>{s}</option>)
-              : ['Aktif','Akan Expired','Expired'].map(s => <option key={s} value={s}>{s}</option>)
-            }
-          </select>
+          {activeTab !== 'matrix' && (
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari nama, nomor..." className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          )}
+          {activeTab !== 'matrix' && (
+            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Semua Status</option>
+              {activeTab === 'credentialing'
+                ? ['Pengajuan','Verifikasi Dokumen','Peer Review','Komite Medik','Selesai','Ditolak'].map(s => <option key={s} value={s}>{s}</option>)
+                : activeTab === 'cpd'
+                ? ['Diverifikasi','Pending','Ditolak'].map(s => <option key={s} value={s}>{s}</option>)
+                : ['Aktif','Akan Expired','Expired'].map(s => <option key={s} value={s}>{s}</option>)
+              }
+            </select>
+          )}
+          {activeTab === 'matrix' && (
+            <select value={matrixUnit} onChange={e => setMatrixUnit(e.target.value)} className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Semua SMF / Unit Kerja</option>
+              {(matrixData?.unit_list ?? []).map((u: string) => <option key={u} value={u}>{u}</option>)}
+            </select>
+          )}
           {activeTab === 'str' && (
             <select value={filterJenis} onChange={e => setFilterJenis(e.target.value)} className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="">Semua Jenis Tenaga</option>
@@ -727,6 +746,67 @@ export default function Credentialing() {
               </table>
             </div>
           </div>
+        )}
+
+        {/* ── TAB: PRIVILEGE MATRIX ── */}
+        {activeTab === 'matrix' && (
+          matrixLoading ? (
+            <div className="py-16 text-center text-gray-400 text-sm">Memuat privilege matrix...</div>
+          ) : !matrixData?.privileges?.length ? (
+            <div className="py-16 text-center text-gray-400 text-sm">
+              <LayoutGrid className="w-8 h-8 mx-auto mb-3 opacity-30" />
+              <p>Belum ada SPK yang diterbitkan{matrixUnit ? ` untuk ${matrixUnit}` : ''}.</p>
+              <p className="text-xs mt-1">Matrix dibangun dari data Surat Penugasan Klinis (SPK) aktif.</p>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-auto max-h-[600px]">
+                <table className="text-xs min-w-full">
+                  <thead className="sticky top-0 z-20">
+                    <tr className="bg-gray-50 border-b border-gray-100">
+                      <th className="text-left px-4 py-3 font-semibold text-gray-500 sticky left-0 bg-gray-50 z-30 min-w-[280px]">Kewenangan Klinis</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-500 min-w-[120px] hidden sm:table-cell">Kategori</th>
+                      {matrixData.dokters.map((d: any) => (
+                        <th key={d.id} className="text-center px-3 py-3 font-semibold text-gray-600 min-w-[130px]">
+                          <div className="leading-tight">{d.nama}</div>
+                          <div className="font-normal text-gray-400 text-[10px]">{d.jabatan}</div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {matrixData.privileges.map((p: any) => (
+                      <tr key={p.kode} className="hover:bg-gray-50/60">
+                        <td className="px-4 py-2.5 sticky left-0 bg-white z-10 border-r border-gray-50">
+                          <span className="font-mono text-gray-400 mr-2 text-[10px]">{p.kode}</span>
+                          <span className="text-gray-700">{p.nama}</span>
+                        </td>
+                        <td className="px-4 py-2.5 text-gray-500 hidden sm:table-cell">{p.kategori}</td>
+                        {matrixData.dokters.map((d: any) => {
+                          const lvl: string | undefined = p.levels[d.id];
+                          return (
+                            <td key={d.id} className="px-3 py-2.5 text-center">
+                              {lvl
+                                ? <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${levelColor[lvl]}`}>{lvl === 'Dengan Supervisi' ? 'Supervisi' : lvl}</span>
+                                : <span className="text-gray-200">—</span>
+                              }
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex flex-wrap gap-3 text-[11px]">
+                {['Mandiri','Dengan Supervisi','Tidak Berwenang'].map(l => (
+                  <span key={l} className={`px-2 py-0.5 rounded font-medium ${levelColor[l]}`}>{l}</span>
+                ))}
+                <span className="text-gray-400">· — = tidak ada kewenangan yang diajukan</span>
+                <span className="ml-auto text-gray-400">{matrixData.privileges.length} kewenangan · {matrixData.dokters.length} klinisi</span>
+              </div>
+            </>
+          )
         )}
       </div>
 

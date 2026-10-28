@@ -702,7 +702,7 @@ export default function Dashboard({ metrics: initialMetrics }: DashboardProps) {
             </div>
             <div className="mt-4">
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-red-600">{data.str_expiring_soon}</span>
+                <span className="text-3xl font-extrabold text-red-600">{(data.str_expiring_soon ?? 0) + (data.sip_expiring_soon ?? 0)}</span>
                 <span className="text-xs font-semibold text-red-700 bg-red-50 px-2 py-0.5 rounded-full">
                   Perlu Perpanjangan
                 </span>

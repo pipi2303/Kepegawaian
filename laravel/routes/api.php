@@ -139,8 +139,24 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::post('credentialing/{credentialing}/rekomendasi', [CredentialingController::class, 'submitRekomendasi']);
     Route::post('credentialing/{credentialing}/issue-spk', [CredentialingController::class, 'issueSpk']);
     Route::get('credentialing/license-alerts', [CredentialingController::class, 'licenseAlerts']);
+    Route::get('credentialing/privilege-matrix', [CredentialingController::class, 'privilegeMatrix']);
 
-    // 5. Audit Trail Log (dari DB nyata)
+    // 5. OPPE / FPPE
+    Route::get('oppe/summary', [\App\Http\Controllers\OppeFppeController::class, 'summary']);
+    Route::get('oppe',         [\App\Http\Controllers\OppeFppeController::class, 'index']);
+    Route::post('oppe',        [\App\Http\Controllers\OppeFppeController::class, 'store']);
+    Route::put('oppe/{oppe}',  [\App\Http\Controllers\OppeFppeController::class, 'update']);
+    Route::delete('oppe/{oppe}', [\App\Http\Controllers\OppeFppeController::class, 'destroy']);
+
+    // 6. WISN — Analisis Kebutuhan Tenaga
+    Route::get('wisn/summary',  [\App\Http\Controllers\WisnController::class, 'summary']);
+    Route::get('wisn/saran-wkt',[\App\Http\Controllers\WisnController::class, 'saranWkt']);
+    Route::get('wisn',          [\App\Http\Controllers\WisnController::class, 'index']);
+    Route::post('wisn',         [\App\Http\Controllers\WisnController::class, 'store']);
+    Route::put('wisn/{wisn}',   [\App\Http\Controllers\WisnController::class, 'update']);
+    Route::delete('wisn/{wisn}',[\App\Http\Controllers\WisnController::class, 'destroy']);
+
+    // 7. Audit Trail Log (dari DB nyata)
     Route::get('activity-logs', function (\Illuminate\Http\Request $request) {
         $query = \App\Models\ActivityLog::with('pegawai:id,nip,nama')
             ->latest('created_at');
@@ -477,8 +493,9 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
 
     // 38. Penjadwalan Shift
     Route::prefix('jadwal')->group(function () {
-        Route::get('/rekap',       [PenjadwalanController::class, 'rekap']);
-        Route::get('/',            [PenjadwalanController::class, 'index']);
+        Route::get('/rekap',         [PenjadwalanController::class, 'rekap']);
+        Route::post('/auto-generate',[PenjadwalanController::class, 'autoGenerate']);
+        Route::get('/',              [PenjadwalanController::class, 'index']);
         Route::post('/bulk',       [PenjadwalanController::class, 'bulkStore']);
         Route::post('/swap',       [PenjadwalanController::class, 'swap']);
         Route::post('/',           [PenjadwalanController::class, 'store']);

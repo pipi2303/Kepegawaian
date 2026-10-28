@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\JadwalShift;
+use App\Models\Pegawai;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class PenjadwalanController extends Controller
@@ -184,6 +186,128 @@ class PenjadwalanController extends Controller
         );
 
         return response()->json(['status' => 'success', 'message' => 'Shift berhasil ditukar']);
+    }
+
+    /**
+     * Generate jadwal shift otomatis dengan round-robin berkeadilan.
+     * Hanya mengembalikan preview — client memanggil /bulk untuk menyimpan.
+     */
+    public function autoGenerate(Request $request)
+    {
+        $request->validate([
+            'unit_kerja'      => 'required|string|max:150',
+            'tanggal_mulai'   => 'required|date',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+            'kebutuhan'       => 'required|array',
+            'kebutuhan.Pagi'  => 'integer|min:0',
+            'kebutuhan.Sore'  => 'integer|min:0',
+            'kebutuhan.Malam' => 'integer|min:0',
+        ]);
+
+        $unit      = $request->input('unit_kerja');
+        $start     = Carbon::parse($request->input('tanggal_mulai'));
+        $end       = Carbon::parse($request->input('tanggal_selesai'));
+        $kebutuhan = $request->input('kebutuhan');
+
+        if ($start->diffInDays($end) > 62) {
+            return response()->json(['status' => 'error', 'message' => 'Maksimal rentang 62 hari per generate.'], 422);
+        }
+
+        $pegawai = Pegawai::where('unit_kerja', $unit)
+            ->where('status_aktif', true)
+            ->get(['id', 'nama', 'jabatan']);
+
+        if ($pegawai->isEmpty()) {
+            return response()->json(['status' => 'error', 'message' => 'Tidak ada pegawai aktif di unit ini.'], 422);
+        }
+
+        $shiftCfg = [
+            'Pagi'  => ['jam_mulai' => '07:00', 'jam_selesai' => '14:00'],
+            'Sore'  => ['jam_mulai' => '14:00', 'jam_selesai' => '21:00'],
+            'Malam' => ['jam_mulai' => '21:00', 'jam_selesai' => '07:00'],
+            'Libur' => ['jam_mulai' => '00:00', 'jam_selesai' => '00:00'],
+        ];
+
+        // State per pegawai: total shift, hitungan per jenis, shift terakhir, malam berturut-turut
+        $state = [];
+        foreach ($pegawai as $p) {
+            $state[$p->id] = ['total' => 0, 'last' => null, 'malam_streak' => 0,
+                              'counts' => ['Pagi' => 0, 'Sore' => 0, 'Malam' => 0]];
+        }
+
+        $shifts    = [];
+        $pegawaiMap = $pegawai->keyBy('id');
+        $current   = $start->copy();
+
+        while ($current <= $end) {
+            $date         = $current->toDateString();
+            $assignedToday = [];
+
+            // Paksa istirahat: siapa pun yang shift Malam kemarin → Libur hari ini
+            foreach ($pegawai as $p) {
+                if ($state[$p->id]['last'] === 'Malam') {
+                    $shifts[] = ['pegawai_id' => $p->id, 'nama_pegawai' => $p->nama,
+                                 'tanggal' => $date, 'jenis_shift' => 'Libur',
+                                 'jam_mulai' => '00:00', 'jam_selesai' => '00:00', 'unit_kerja' => $unit];
+                    $state[$p->id]['last']         = 'Libur';
+                    $state[$p->id]['malam_streak'] = 0;
+                    $assignedToday[]               = $p->id;
+                }
+            }
+
+            // Assign Malam → Sore → Pagi (urutan prioritas istirahat)
+            foreach (['Malam', 'Sore', 'Pagi'] as $jenis) {
+                $need = (int) ($kebutuhan[$jenis] ?? 0);
+                if ($need <= 0) continue;
+
+                $available = $pegawai
+                    ->filter(fn ($p) => !in_array($p->id, $assignedToday))
+                    ->filter(fn ($p) => $jenis !== 'Malam' || $state[$p->id]['malam_streak'] < 3)
+                    ->sortBy(fn ($p) => $state[$p->id]['counts'][$jenis] ?? 0)
+                    ->take($need);
+
+                foreach ($available as $p) {
+                    $cfg = $shiftCfg[$jenis];
+                    $shifts[] = ['pegawai_id' => $p->id, 'nama_pegawai' => $p->nama,
+                                 'tanggal' => $date, 'jenis_shift' => $jenis,
+                                 'jam_mulai' => $cfg['jam_mulai'], 'jam_selesai' => $cfg['jam_selesai'],
+                                 'unit_kerja' => $unit];
+                    $state[$p->id]['total']++;
+                    $state[$p->id]['counts'][$jenis]++;
+                    $state[$p->id]['last']          = $jenis;
+                    $state[$p->id]['malam_streak']  = $jenis === 'Malam'
+                        ? $state[$p->id]['malam_streak'] + 1 : 0;
+                    $assignedToday[] = $p->id;
+                }
+            }
+
+            // Sisa pegawai yang belum terassign → Libur
+            foreach ($pegawai as $p) {
+                if (!in_array($p->id, $assignedToday)) {
+                    $shifts[] = ['pegawai_id' => $p->id, 'nama_pegawai' => $p->nama,
+                                 'tanggal' => $date, 'jenis_shift' => 'Libur',
+                                 'jam_mulai' => '00:00', 'jam_selesai' => '00:00', 'unit_kerja' => $unit];
+                    $state[$p->id]['last']         = 'Libur';
+                    $state[$p->id]['malam_streak'] = 0;
+                }
+            }
+
+            $current->addDay();
+        }
+
+        $hari = $start->diffInDays($end) + 1;
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => [
+                'shifts'   => $shifts,
+                'summary'  => [
+                    'total'          => count($shifts),
+                    'pegawai_count'  => $pegawai->count(),
+                    'hari'           => $hari,
+                ],
+            ],
+        ]);
     }
 
     public function rekap(Request $request)

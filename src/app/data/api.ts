@@ -387,7 +387,8 @@ export const jadwalApi = {
   update:     (id: number, d: any)   => http.put(`/jadwal/${id}`, d).then(r => r.data),
   remove:     (id: number)           => http.delete(`/jadwal/${id}`).then(r => r.data),
   swap:       (a: number, b: number) => http.post('/jadwal/swap', { jadwal_a_id: a, jadwal_b_id: b }).then(r => r.data),
-  rekap:      (p?: any)              => http.get('/jadwal/rekap', { params: p }).then(r => r.data),
+  rekap:        (p?: any)              => http.get('/jadwal/rekap', { params: p }).then(r => r.data),
+  autoGenerate: (d: any)               => http.post('/jadwal/auto-generate', d).then(r => r.data),
 };
 
 // KOMITE RS

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Calendar, Plus, X, Edit2, Trash2, ChevronLeft, ChevronRight, Users, Clock } from 'lucide-react';
+import { Calendar, Plus, X, Edit2, Trash2, ChevronLeft, ChevronRight, Users, Clock, Sparkles, CheckCircle } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { jadwalApi, pegawaiApi } from '../data/api';
 import { toast } from 'sonner';
@@ -43,6 +43,12 @@ export default function Penjadwalan() {
   const [swapB, setSwapB] = useState('');
   const [showRekap, setShowRekap] = useState(false);
   const [rekapFilter, setRekapFilter] = useState({ bulan: new Date().getMonth() + 1, tahun: new Date().getFullYear() });
+  const [showAutoGen, setShowAutoGen] = useState(false);
+  const [autoGenForm, setAutoGenForm] = useState({
+    unit_kerja: '', tanggal_mulai: '', tanggal_selesai: '',
+    kebutuhan: { Pagi: 2, Sore: 2, Malam: 1 },
+  });
+  const [autoGenResult, setAutoGenResult] = useState<any[] | null>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
 
   const weekDates = useMemo(() => getWeekDates(currentWeek), [currentWeek]);
@@ -94,6 +100,23 @@ export default function Penjadwalan() {
     onError: (e: any) => toast.error(e.response?.data?.message || 'Gagal menukar shift'),
   });
 
+  const autoGenMut = useMutation({
+    mutationFn: (d: any) => jadwalApi.autoGenerate(d),
+    onSuccess: (res) => setAutoGenResult(res.data.shifts ?? []),
+    onError: (e: any) => toast.error(e.response?.data?.message || 'Gagal generate jadwal'),
+  });
+
+  const bulkSaveMut = useMutation({
+    mutationFn: (shifts: any[]) => jadwalApi.bulkCreate(shifts.map(({ nama_pegawai: _, ...s }) => s)),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ['jadwal'] });
+      toast.success(`${res.data?.created ?? '?'} jadwal berhasil disimpan`);
+      setShowAutoGen(false);
+      setAutoGenResult(null);
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'Gagal menyimpan'),
+  });
+
   const units = useMemo(() => [...new Set(pegawai.map((p: any) => p.unit_kerja).filter(Boolean))].sort(), [pegawai]);
 
   const filteredPegawai = useMemo(() => {
@@ -143,6 +166,9 @@ export default function Penjadwalan() {
           </button>
           <button onClick={() => setShowSwap(true)} className="flex items-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm px-4 py-2 rounded-lg">
             <Users className="w-4 h-4" /> Tukar Shift
+          </button>
+          <button onClick={() => { setShowAutoGen(true); setAutoGenResult(null); }} className="flex items-center gap-2 border border-emerald-300 hover:bg-emerald-50 text-emerald-700 text-sm px-4 py-2 rounded-lg">
+            <Sparkles className="w-4 h-4" /> Generate Otomatis
           </button>
           <button onClick={() => { setEditId(null); setForm({ ...EMPTY_FORM }); setShowModal(true); }} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg">
             <Plus className="w-4 h-4" /> Tambah Jadwal
@@ -437,6 +463,123 @@ export default function Penjadwalan() {
             <div className="flex justify-end gap-3">
               <button onClick={() => setShowSwap(false)} className="px-4 py-2 text-sm border border-gray-200 rounded-lg">Batal</button>
               <button onClick={() => { if (!swapA || !swapB) { toast.error('Harap isi kedua ID jadwal'); return; } swapMut.mutate({ a: +swapA, b: +swapB }); }} disabled={swapMut.isPending} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60">Tukar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Generate Otomatis ── */}
+      {showAutoGen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => { setShowAutoGen(false); setAutoGenResult(null); }} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
+              <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-emerald-600" /> Generate Jadwal Shift Otomatis
+              </h2>
+              <button onClick={() => { setShowAutoGen(false); setAutoGenResult(null); }} className="p-1.5 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5 text-gray-500" /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              {!autoGenResult ? (
+                <>
+                  <p className="text-xs text-gray-500">Sistem akan mendistribusikan shift secara adil (round-robin) dengan memaksa hari istirahat setelah shift malam.</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <label className="text-xs font-medium text-gray-700 block mb-1.5">Unit Kerja <span className="text-red-500">*</span></label>
+                      <select value={autoGenForm.unit_kerja} onChange={e => setAutoGenForm(f => ({ ...f, unit_kerja: e.target.value }))} className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">-- Pilih Unit --</option>
+                        {units.map((u: string) => <option key={u} value={u}>{u}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-700 block mb-1.5">Tanggal Mulai <span className="text-red-500">*</span></label>
+                      <input type="date" value={autoGenForm.tanggal_mulai} onChange={e => setAutoGenForm(f => ({ ...f, tanggal_mulai: e.target.value }))} className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-700 block mb-1.5">Tanggal Selesai <span className="text-red-500">*</span></label>
+                      <input type="date" value={autoGenForm.tanggal_selesai} onChange={e => setAutoGenForm(f => ({ ...f, tanggal_selesai: e.target.value }))} className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-700 block mb-2">Kebutuhan per Shift per Hari</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {(['Pagi', 'Sore', 'Malam'] as const).map(jenis => (
+                        <div key={jenis} className={`rounded-lg border p-3 ${SHIFT_CONFIG[jenis]?.bg} ${SHIFT_CONFIG[jenis]?.border}`}>
+                          <p className={`text-xs font-semibold mb-2 ${SHIFT_CONFIG[jenis]?.text}`}>{jenis} <span className="font-normal opacity-70">{SHIFT_CONFIG[jenis]?.jam}</span></p>
+                          <input type="number" min="0" max="20" value={autoGenForm.kebutuhan[jenis]}
+                            onChange={e => setAutoGenForm(f => ({ ...f, kebutuhan: { ...f.kebutuhan, [jenis]: parseInt(e.target.value) || 0 } }))}
+                            className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 text-center focus:outline-none focus:ring-1 focus:ring-emerald-400 bg-white"
+                          />
+                          <p className="text-[10px] text-center opacity-60 mt-1">orang/hari</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-3 pt-2">
+                    <button onClick={() => setShowAutoGen(false)} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Batal</button>
+                    <button
+                      onClick={() => {
+                        if (!autoGenForm.unit_kerja || !autoGenForm.tanggal_mulai || !autoGenForm.tanggal_selesai) { toast.error('Lengkapi semua field'); return; }
+                        autoGenMut.mutate(autoGenForm);
+                      }}
+                      disabled={autoGenMut.isPending}
+                      className="px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2"
+                    >
+                      <Sparkles className="w-4 h-4" />{autoGenMut.isPending ? 'Generating...' : 'Generate Preview'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm text-emerald-700 font-medium">
+                      <CheckCircle className="w-4 h-4" /> {autoGenResult.length} jadwal berhasil digenerate
+                    </div>
+                    <button onClick={() => setAutoGenResult(null)} className="text-xs text-gray-500 hover:text-gray-700 underline">Ubah parameter</button>
+                  </div>
+                  <div className="overflow-auto max-h-64 border border-gray-100 rounded-xl">
+                    <table className="w-full text-xs">
+                      <thead className="sticky top-0 bg-gray-50">
+                        <tr>
+                          <th className="text-left px-3 py-2 font-semibold text-gray-500">Pegawai</th>
+                          <th className="text-left px-3 py-2 font-semibold text-gray-500">Tanggal</th>
+                          <th className="text-center px-3 py-2 font-semibold text-gray-500">Shift</th>
+                          <th className="text-center px-3 py-2 font-semibold text-gray-500">Jam</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {autoGenResult.slice(0, 100).map((s, i) => {
+                          const cfg = SHIFT_CONFIG[s.jenis_shift] ?? SHIFT_CONFIG['Non-Shift'];
+                          return (
+                            <tr key={i} className="hover:bg-gray-50">
+                              <td className="px-3 py-2">{s.nama_pegawai}</td>
+                              <td className="px-3 py-2 font-mono text-gray-500">{s.tanggal}</td>
+                              <td className="px-3 py-2 text-center">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${cfg.bg} ${cfg.text}`}>{s.jenis_shift}</span>
+                              </td>
+                              <td className="px-3 py-2 text-center text-gray-400">{s.jenis_shift !== 'Libur' ? `${s.jam_mulai}–${s.jam_selesai}` : '—'}</td>
+                            </tr>
+                          );
+                        })}
+                        {autoGenResult.length > 100 && (
+                          <tr><td colSpan={4} className="px-3 py-2 text-center text-gray-400">...dan {autoGenResult.length - 100} jadwal lainnya</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-[11px] text-gray-400">Shift Libur setelah Malam digenerate otomatis untuk memastikan istirahat. Maks. 3 malam berturut-turut per pegawai.</p>
+                  <div className="flex justify-end gap-3 pt-1">
+                    <button onClick={() => setAutoGenResult(null)} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Kembali</button>
+                    <button
+                      onClick={() => bulkSaveMut.mutate(autoGenResult)}
+                      disabled={bulkSaveMut.isPending}
+                      className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      {bulkSaveMut.isPending ? 'Menyimpan...' : `Simpan ${autoGenResult.length} Jadwal`}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

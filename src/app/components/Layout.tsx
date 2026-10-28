@@ -4,12 +4,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import http from '../lib/http';
 import {
   LayoutDashboard, Users, Clock, CalendarDays, Briefcase,
-  TrendingUp, Target, FileBarChart2, LogOut,
+  TrendingUp, Target, FileBarChart2, BarChart2, LogOut,
   Menu, Bell, ChevronDown, Search, Settings,
   Hospital, UserCircle, ChevronLeft, ShieldAlert, GraduationCap, Mail,
   ShieldCheck, HeartPulse, DollarSign, CalendarClock, Heart,
   FileSignature, Award, ArrowRightLeft, Users2, Scale, Network, Gauge,
-  ReceiptText, Star, UserPlus, Activity,
+  ReceiptText, Star, UserPlus, Activity, ClipboardList,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { useNotifications } from '../hooks';
@@ -45,6 +45,7 @@ const menuItems: MenuSection[] = [
     items: [
       { path: '/pegawai', label: 'Data Pegawai', icon: Users },
       { path: '/organisasi', label: 'Struktur Organisasi', icon: Network },
+      { path: '/wisn', label: 'Analisis Kebutuhan Tenaga (WISN)', icon: BarChart2, roles: ['admin', 'direktur'] },
       { path: '/mutasi', label: 'Mutasi & Rotasi', icon: ArrowRightLeft, roles: ['admin'] },
       { path: '/pensiun-tracker', label: 'Tracker Pensiun', icon: CalendarDays, roles: ['admin', 'direktur'] },
       { path: '/penghargaan', label: 'Penghargaan', icon: Award, roles: ['admin'] },
@@ -79,6 +80,7 @@ const menuItems: MenuSection[] = [
     section: 'KLINIS & LISENSI',
     items: [
       { path: '/credentialing', label: 'Credentialing & Lisensi', icon: ShieldCheck, roles: ['admin', 'kepala_unit'] },
+      { path: '/oppe', label: 'OPPE / FPPE', icon: ClipboardList, roles: ['admin', 'direktur', 'kepala_unit'] },
       { path: '/k3rs', label: 'K3RS & Kesehatan Kerja', icon: HeartPulse },
       { path: '/komite-rs', label: 'Komite Rumah Sakit', icon: Users2, roles: ['admin', 'direktur'] },
     ],
