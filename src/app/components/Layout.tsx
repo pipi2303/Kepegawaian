@@ -10,6 +10,7 @@ import {
   ShieldCheck, HeartPulse, DollarSign, CalendarClock, Heart,
   FileSignature, Award, ArrowRightLeft, Users2, Scale, Network, Gauge,
   ReceiptText, Star, UserPlus, Activity, ClipboardList,
+  ClipboardCheck, AlertOctagon,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { useNotifications } from '../hooks';
@@ -73,6 +74,8 @@ const menuItems: MenuSection[] = [
     items: [
       { path: '/skp', label: 'SKP & Penilaian Kinerja', icon: Target },
       { path: '/performance', label: 'Performance Management', icon: Gauge, roles: ['admin', 'direktur'] },
+      { path: '/remunerasi-analytics', label: 'Remunerasi Analytics', icon: TrendingUp, roles: ['admin', 'direktur'] },
+      { path: '/burnout', label: 'Burnout Early Warning', icon: AlertOctagon, roles: ['admin', 'direktur', 'kepala_unit'] },
       { path: '/diklat', label: 'Diklat & Kompetensi', icon: GraduationCap },
     ],
   },
@@ -81,6 +84,7 @@ const menuItems: MenuSection[] = [
     items: [
       { path: '/credentialing', label: 'Credentialing & Lisensi', icon: ShieldCheck, roles: ['admin', 'kepala_unit'] },
       { path: '/oppe', label: 'OPPE / FPPE', icon: ClipboardList, roles: ['admin', 'direktur', 'kepala_unit'] },
+      { path: '/kars-tracker', label: 'KARS Document Tracker', icon: ClipboardCheck, roles: ['admin', 'direktur'] },
       { path: '/k3rs', label: 'K3RS & Kesehatan Kerja', icon: HeartPulse },
       { path: '/komite-rs', label: 'Komite Rumah Sakit', icon: Users2, roles: ['admin', 'direktur'] },
     ],
@@ -95,6 +99,7 @@ const menuItems: MenuSection[] = [
       { path: '/bpjs', label: 'BPJS Kesehatan & Ketenagakerjaan', icon: Heart },
       { path: '/kontrak', label: 'Kontrak Kerja', icon: FileSignature },
       { path: '/rekrutmen', label: 'Rekrutmen PPPK/Honorer', icon: UserPlus, roles: ['admin', 'direktur'] },
+      { path: '/exit-interview', label: 'Exit Interview & Turnover', icon: LogOut, roles: ['admin', 'direktur'] },
     ],
   },
   {

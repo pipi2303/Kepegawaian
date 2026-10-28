@@ -37,6 +37,10 @@ const SuratKepegawaian   = lazy(() => import('./pages/SuratKepegawaian'));
 const Credentialing      = lazy(() => import('./pages/Credentialing'));
 const OPPE               = lazy(() => import('./pages/OPPE'));
 const WISN               = lazy(() => import('./pages/WISN'));
+const KarsTracker        = lazy(() => import('./pages/KarsTracker'));
+const ExitInterview      = lazy(() => import('./pages/ExitInterview'));
+const BurnoutDashboard   = lazy(() => import('./pages/BurnoutDashboard'));
+const RemunerasiAnalytics= lazy(() => import('./pages/RemunerasiAnalytics'));
 const K3RS               = lazy(() => import('./pages/K3RS'));
 const Penjadwalan        = lazy(() => import('./pages/Penjadwalan'));
 const BPJS               = lazy(() => import('./pages/BPJS'));
@@ -116,6 +120,22 @@ function buildRouter(): RouterType {
             {
               path: 'wisn',
               element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><WISN /></PageWrapper></ProtectedRoute>
+            },
+            {
+              path: 'kars-tracker',
+              element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><KarsTracker /></PageWrapper></ProtectedRoute>
+            },
+            {
+              path: 'exit-interview',
+              element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><ExitInterview /></PageWrapper></ProtectedRoute>
+            },
+            {
+              path: 'burnout',
+              element: <ProtectedRoute roles={['admin', 'direktur', 'kepala_unit']}><PageWrapper><BurnoutDashboard /></PageWrapper></ProtectedRoute>
+            },
+            {
+              path: 'remunerasi-analytics',
+              element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><RemunerasiAnalytics /></PageWrapper></ProtectedRoute>
             },
             { path: 'k3rs',                     element: <PageWrapper><K3RS /></PageWrapper> },
             {

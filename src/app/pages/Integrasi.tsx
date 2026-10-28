@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Globe, RefreshCw, AlertTriangle, CheckCircle, XCircle,
-  Search, Activity, ChevronLeft, ChevronRight,
+  Search, Activity, ChevronLeft, ChevronRight, Download, Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import http from '../lib/http';
@@ -71,6 +71,71 @@ function NotConfiguredWarning({ envKey }: { envKey: string }) {
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
+function SisdmkSection() {
+  const [preview, setPreview] = React.useState<any>(null);
+  const [loading, setLoading] = React.useState(false);
+
+  async function handlePreview() {
+    setLoading(true);
+    try {
+      const res = await http.get('/integrasi/sisdmk/preview');
+      setPreview(res.data.data);
+    } catch {
+      toast.error('Gagal memuat preview SISDMK');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleExport() {
+    window.open('/api/v1/integrasi/sisdmk/export', '_blank');
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-gray-500">
+        Export data SDM tenaga kesehatan dalam format CSV sesuai template SISDMK Kemenkes untuk diupload ke portal resmi.
+        Data mencakup: NIP, nama, jenis kelamin, pendidikan, jenis tenaga, unit kerja, status kepegawaian.
+      </p>
+      <div className="flex gap-3">
+        <button onClick={handlePreview} disabled={loading} className="flex items-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm px-4 py-2 rounded-lg disabled:opacity-50">
+          <Eye className="w-4 h-4" />{loading ? 'Memuat...' : 'Preview Data'}
+        </button>
+        <button onClick={handleExport} className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white text-sm px-4 py-2 rounded-lg">
+          <Download className="w-4 h-4" /> Export CSV
+        </button>
+      </div>
+      {preview && (
+        <div className="space-y-2">
+          <p className="text-xs text-gray-500 font-medium">Preview {preview.total} data pegawai aktif (10 pertama):</p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs border border-gray-100 rounded-xl overflow-hidden">
+              <thead className="bg-gray-50">
+                <tr>{['NIP','Nama','Jenis Kelamin','Jenis Tenaga','Unit Kerja','Status'].map(h => (
+                  <th key={h} className="text-left px-3 py-2 font-semibold text-gray-500">{h}</th>
+                ))}</tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {preview.preview.map((r: any, i: number) => (
+                  <tr key={i} className="hover:bg-gray-50">
+                    <td className="px-3 py-2 font-mono text-gray-500">{r.nip}</td>
+                    <td className="px-3 py-2 font-medium text-gray-800">{r.nama_lengkap}</td>
+                    <td className="px-3 py-2 text-gray-600">{r.jenis_kelamin}</td>
+                    <td className="px-3 py-2 text-gray-600">{r.jenis_tenaga}</td>
+                    <td className="px-3 py-2 text-gray-600">{r.unit_kerja}</td>
+                    <td className="px-3 py-2 text-gray-600">{r.status_kepegawaian}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-[11px] text-gray-400">{preview.note}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Integrasi() {
   const qc = useQueryClient();
 
@@ -234,6 +299,17 @@ export default function Integrasi() {
             </pre>
           )}
         </div>
+      </div>
+
+      {/* ── SISDMK Section ── */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+        <div>
+          <h2 className="font-semibold text-gray-900 text-lg flex items-center gap-2">
+            <Globe className="w-5 h-5 text-teal-600" /> SISDMK
+          </h2>
+          <p className="text-sm text-gray-500 mt-0.5">Sistem Informasi SDM Kesehatan — Kemenkes RI · sisdmk.kemkes.go.id</p>
+        </div>
+        <SisdmkSection />
       </div>
 
       {/* ── SIASN Section ── */}

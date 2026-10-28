@@ -156,7 +156,28 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::put('wisn/{wisn}',   [\App\Http\Controllers\WisnController::class, 'update']);
     Route::delete('wisn/{wisn}',[\App\Http\Controllers\WisnController::class, 'destroy']);
 
-    // 7. Audit Trail Log (dari DB nyata)
+    // 7. KARS Document Tracker
+    Route::get('kars',              [\App\Http\Controllers\KarsController::class, 'index']);
+    Route::put('kars/{kars}',       [\App\Http\Controllers\KarsController::class, 'update']);
+    Route::post('kars/bulk-update', [\App\Http\Controllers\KarsController::class, 'bulkUpdate']);
+
+    // 8. Exit Interview & Turnover
+    Route::get('exit-interview/summary',            [\App\Http\Controllers\ExitInterviewController::class, 'summary']);
+    Route::get('exit-interview',                    [\App\Http\Controllers\ExitInterviewController::class, 'index']);
+    Route::post('exit-interview',                   [\App\Http\Controllers\ExitInterviewController::class, 'store']);
+    Route::delete('exit-interview/{exitInterview}', [\App\Http\Controllers\ExitInterviewController::class, 'destroy']);
+
+    // 9. Burnout Early Warning
+    Route::get('burnout/dashboard', [\App\Http\Controllers\BurnoutController::class, 'dashboard']);
+
+    // 10. Remuneration Analytics
+    Route::get('remunerasi/analytics', [\App\Http\Controllers\RemunerasiAnalyticsController::class, 'index']);
+
+    // 11. SISDMK (via existing IntegrationController)
+    Route::get('integrasi/sisdmk/preview', [\App\Http\Controllers\IntegrationController::class, 'sisdmkPreview']);
+    Route::get('integrasi/sisdmk/export',  [\App\Http\Controllers\IntegrationController::class, 'sisdmkExport']);
+
+    // 12. Audit Trail Log (dari DB nyata)
     Route::get('activity-logs', function (\Illuminate\Http\Request $request) {
         $query = \App\Models\ActivityLog::with('pegawai:id,nip,nama')
             ->latest('created_at');
