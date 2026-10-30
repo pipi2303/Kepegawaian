@@ -10,7 +10,7 @@ import {
   ShieldCheck, HeartPulse, DollarSign, CalendarClock, Heart,
   FileSignature, Award, ArrowRightLeft, Users2, Scale, Network, Gauge,
   ReceiptText, Star, UserPlus, Activity, ClipboardList,
-  ClipboardCheck, AlertOctagon,
+  ClipboardCheck, AlertOctagon, Timer, Gift, BadgeCheck, LayoutDashboard as HRIcon,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { useNotifications } from '../hooks';
@@ -38,6 +38,7 @@ const menuItems: MenuSection[] = [
     section: 'UTAMA',
     items: [
       { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+      { path: '/hr-dashboard', label: 'HR Analytics Dashboard', icon: HRIcon, roles: ['admin', 'direktur'] },
     ],
   },
   {
@@ -47,6 +48,7 @@ const menuItems: MenuSection[] = [
       { path: '/pegawai', label: 'Data Pegawai', icon: Users },
       { path: '/organisasi', label: 'Struktur Organisasi', icon: Network },
       { path: '/wisn', label: 'Analisis Kebutuhan Tenaga (WISN)', icon: BarChart2, roles: ['admin', 'direktur'] },
+      { path: '/succession', label: 'Succession Planning', icon: Network, roles: ['admin', 'direktur'] },
       { path: '/mutasi', label: 'Mutasi & Rotasi', icon: ArrowRightLeft, roles: ['admin'] },
       { path: '/pensiun-tracker', label: 'Tracker Pensiun', icon: CalendarDays, roles: ['admin', 'direktur'] },
       { path: '/penghargaan', label: 'Penghargaan', icon: Award, roles: ['admin'] },
@@ -84,7 +86,8 @@ const menuItems: MenuSection[] = [
     items: [
       { path: '/credentialing', label: 'Credentialing & Lisensi', icon: ShieldCheck, roles: ['admin', 'kepala_unit'] },
       { path: '/oppe', label: 'OPPE / FPPE', icon: ClipboardList, roles: ['admin', 'direktur', 'kepala_unit'] },
-      { path: '/kars-tracker', label: 'KARS Document Tracker', icon: ClipboardCheck, roles: ['admin', 'direktur'] },
+      { path: '/dokumen-kompetensi', label: 'Dokumen BLS/ACLS/Kompetensi', icon: BadgeCheck, roles: ['admin', 'kepala_unit'] },
+      { path: '/kars-tracker', label: 'KARS / STARKES Tracker', icon: ClipboardCheck, roles: ['admin', 'direktur'] },
       { path: '/k3rs', label: 'K3RS & Kesehatan Kerja', icon: HeartPulse },
       { path: '/komite-rs', label: 'Komite Rumah Sakit', icon: Users2, roles: ['admin', 'direktur'] },
     ],
@@ -94,6 +97,8 @@ const menuItems: MenuSection[] = [
     roles: ['admin', 'direktur'],
     items: [
       { path: '/penggajian', label: 'Penggajian & Tunjangan', icon: DollarSign },
+      { path: '/thr', label: 'THR (Tunjangan Hari Raya)', icon: Gift },
+      { path: '/lembur', label: 'Lembur', icon: Timer },
       { path: '/tpp', label: 'TPP', icon: ReceiptText },
       { path: '/rbk', label: 'RBK', icon: Activity },
       { path: '/bpjs', label: 'BPJS Kesehatan & Ketenagakerjaan', icon: Heart },
@@ -122,7 +127,10 @@ const menuItems: MenuSection[] = [
     items: [
       { path: '/my/profile', label: 'Profil & Data Diri', icon: UserCircle },
       { path: '/my/cuti', label: 'Cuti Saya', icon: CalendarDays },
+      { path: '/my/lembur', label: 'Lembur Saya', icon: Timer },
       { path: '/my/payroll', label: 'Slip Gaji Saya', icon: ReceiptText },
+      { path: '/my/skp', label: 'SKP Saya', icon: Target },
+      { path: '/my/oppe', label: 'OPPE & Peer Review', icon: ClipboardList },
     ],
   },
 ];

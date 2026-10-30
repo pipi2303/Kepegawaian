@@ -41,6 +41,14 @@ const KarsTracker        = lazy(() => import('./pages/KarsTracker'));
 const ExitInterview      = lazy(() => import('./pages/ExitInterview'));
 const BurnoutDashboard   = lazy(() => import('./pages/BurnoutDashboard'));
 const RemunerasiAnalytics= lazy(() => import('./pages/RemunerasiAnalytics'));
+const Lembur             = lazy(() => import('./pages/Lembur'));
+const THR                = lazy(() => import('./pages/THR'));
+const DokumenKompetensi  = lazy(() => import('./pages/DokumenKompetensi'));
+const SuccessionPlanning = lazy(() => import('./pages/SuccessionPlanning'));
+const HRDashboard        = lazy(() => import('./pages/HRDashboard'));
+const MySKP              = lazy(() => import('./pages/MySKP'));
+const MyOPPE             = lazy(() => import('./pages/MyOPPE'));
+const MyLembur           = lazy(() => import('./pages/MyLembur'));
 const K3RS               = lazy(() => import('./pages/K3RS'));
 const Penjadwalan        = lazy(() => import('./pages/Penjadwalan'));
 const BPJS               = lazy(() => import('./pages/BPJS'));
@@ -138,6 +146,14 @@ function buildRouter(): RouterType {
               element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><RemunerasiAnalytics /></PageWrapper></ProtectedRoute>
             },
             { path: 'k3rs',                     element: <PageWrapper><K3RS /></PageWrapper> },
+            { path: 'lembur',                   element: <ProtectedRoute roles={['admin', 'direktur', 'kepala_unit']}><PageWrapper><Lembur /></PageWrapper></ProtectedRoute> },
+            { path: 'thr',                      element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><THR /></PageWrapper></ProtectedRoute> },
+            { path: 'dokumen-kompetensi',       element: <ProtectedRoute roles={['admin', 'kepala_unit']}><PageWrapper><DokumenKompetensi /></PageWrapper></ProtectedRoute> },
+            { path: 'succession',               element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><SuccessionPlanning /></PageWrapper></ProtectedRoute> },
+            { path: 'hr-dashboard',             element: <ProtectedRoute roles={['admin', 'direktur']}><PageWrapper><HRDashboard /></PageWrapper></ProtectedRoute> },
+            { path: 'my/skp',                   element: <PageWrapper><MySKP /></PageWrapper> },
+            { path: 'my/oppe',                  element: <PageWrapper><MyOPPE /></PageWrapper> },
+            { path: 'my/lembur',                element: <PageWrapper><MyLembur /></PageWrapper> },
             {
               path: 'penggajian',
               element: <ProtectedRoute roles={['admin', 'direktur']}><Penggajian /></ProtectedRoute>

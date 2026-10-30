@@ -391,6 +391,57 @@ export const jadwalApi = {
   autoGenerate: (d: any)               => http.post('/jadwal/auto-generate', d).then(r => r.data),
 };
 
+// LEMBUR
+export const lemburApi = {
+  summary:  (p?: any)             => http.get('/lembur/summary', { params: p }).then(r => r.data),
+  getAll:   (p?: any)             => http.get('/lembur', { params: p }).then(r => r.data),
+  create:   (d: any)              => http.post('/lembur', d).then(r => r.data),
+  approve:  (id: number, d: any)  => http.post(`/lembur/${id}/approve`, d).then(r => r.data),
+  remove:   (id: number)          => http.delete(`/lembur/${id}`).then(r => r.data),
+};
+
+// THR
+export const thrApi = {
+  getAll:        (p?: any)       => http.get('/thr', { params: p }).then(r => r.data),
+  generateBulk:  (d: any)       => http.post('/thr/generate-bulk', d).then(r => r.data),
+  approve:       (d: any)       => http.post('/thr/approve', d).then(r => r.data),
+  markDibayar:   (d: any)       => http.post('/thr/dibayar', d).then(r => r.data),
+};
+
+// DOKUMEN KOMPETENSI
+export const dokumenKompetensiApi = {
+  expiring: ()                    => http.get('/dokumen-kompetensi/expiring').then(r => r.data),
+  getAll:   (p?: any)             => http.get('/dokumen-kompetensi', { params: p }).then(r => r.data),
+  create:   (d: any)              => http.post('/dokumen-kompetensi', d).then(r => r.data),
+  update:   (id: number, d: any)  => http.put(`/dokumen-kompetensi/${id}`, d).then(r => r.data),
+  remove:   (id: number)          => http.delete(`/dokumen-kompetensi/${id}`).then(r => r.data),
+};
+
+// SUCCESSION PLANNING
+export const successionApi = {
+  getAll:          (p?: any)             => http.get('/succession', { params: p }).then(r => r.data),
+  create:          (d: any)              => http.post('/succession', d).then(r => r.data),
+  update:          (id: number, d: any)  => http.put(`/succession/${id}`, d).then(r => r.data),
+  remove:          (id: number)          => http.delete(`/succession/${id}`).then(r => r.data),
+  addKandidat:     (id: number, d: any)  => http.post(`/succession/${id}/kandidat`, d).then(r => r.data),
+  removeKandidat:  (id: number)          => http.delete(`/succession-kandidat/${id}`).then(r => r.data),
+};
+
+// HR ANALYTICS DASHBOARD
+export const hrDashboardApi = {
+  index: () => http.get('/hr-dashboard').then(r => r.data.data),
+};
+
+// SELF-SERVICE ENHANCEMENTS
+export const selfEnhancedApi = {
+  skp:              ()         => http.get('/self/skp').then(r => r.data),
+  oppe:             ()         => http.get('/self/oppe').then(r => r.data),
+  lembur:           (p?: any)  => http.get('/self/lembur', { params: p }).then(r => r.data),
+  submitLembur:     (d: any)   => http.post('/self/lembur', d).then(r => r.data),
+  peerReviewPending:()         => http.get('/self/peer-review/pending').then(r => r.data),
+  submitPeerReview: (id: number, d: any) => http.post(`/self/peer-review/${id}`, d).then(r => r.data),
+};
+
 // KOMITE RS
 export const komiteApi = {
   getAll:         ()                    => http.get('/komite').then(r => r.data),

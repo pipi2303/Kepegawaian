@@ -156,7 +156,43 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:60,1'])->group(functi
     Route::put('wisn/{wisn}',   [\App\Http\Controllers\WisnController::class, 'update']);
     Route::delete('wisn/{wisn}',[\App\Http\Controllers\WisnController::class, 'destroy']);
 
-    // 7. KARS Document Tracker
+    // 7. Lembur (Overtime)
+    Route::get('lembur/summary',     [\App\Http\Controllers\LemburController::class, 'summary']);
+    Route::get('lembur',             [\App\Http\Controllers\LemburController::class, 'index']);
+    Route::post('lembur',            [\App\Http\Controllers\LemburController::class, 'store']);
+    Route::post('lembur/{lembur}/approve', [\App\Http\Controllers\LemburController::class, 'approve']);
+    Route::delete('lembur/{lembur}', [\App\Http\Controllers\LemburController::class, 'destroy']);
+
+    // 8. THR (Tunjangan Hari Raya)
+    Route::get('thr',                [\App\Http\Controllers\THRController::class, 'index']);
+    Route::post('thr/generate-bulk', [\App\Http\Controllers\THRController::class, 'generateBulk']);
+    Route::post('thr/approve',       [\App\Http\Controllers\THRController::class, 'approve']);
+    Route::post('thr/dibayar',       [\App\Http\Controllers\THRController::class, 'markDibayar']);
+
+    // 9. OPPE Peer Review
+    Route::get('oppe/{oppe}/peer-review',          [\App\Http\Controllers\OppePeerReviewController::class, 'index']);
+    Route::post('oppe/{oppe}/peer-review/assign',  [\App\Http\Controllers\OppePeerReviewController::class, 'assign']);
+    Route::post('oppe-peer-review/{review}/submit',[\App\Http\Controllers\OppePeerReviewController::class, 'submit']);
+
+    // 10. Dokumen Kompetensi (BLS/ACLS/dll)
+    Route::get('dokumen-kompetensi/expiring',           [\App\Http\Controllers\DokumenKompetensiController::class, 'expiringSoon']);
+    Route::get('dokumen-kompetensi',                    [\App\Http\Controllers\DokumenKompetensiController::class, 'index']);
+    Route::post('dokumen-kompetensi',                   [\App\Http\Controllers\DokumenKompetensiController::class, 'store']);
+    Route::put('dokumen-kompetensi/{dokumenKompetensi}',[\App\Http\Controllers\DokumenKompetensiController::class, 'update']);
+    Route::delete('dokumen-kompetensi/{dokumenKompetensi}',[\App\Http\Controllers\DokumenKompetensiController::class, 'destroy']);
+
+    // 11. Succession Planning
+    Route::get('succession',                            [\App\Http\Controllers\SuccessionController::class, 'index']);
+    Route::post('succession',                           [\App\Http\Controllers\SuccessionController::class, 'store']);
+    Route::put('succession/{succession}',               [\App\Http\Controllers\SuccessionController::class, 'update']);
+    Route::delete('succession/{succession}',            [\App\Http\Controllers\SuccessionController::class, 'destroy']);
+    Route::post('succession/{succession}/kandidat',     [\App\Http\Controllers\SuccessionController::class, 'addKandidat']);
+    Route::delete('succession-kandidat/{kandidat}',     [\App\Http\Controllers\SuccessionController::class, 'removeKandidat']);
+
+    // 12. Executive HR Dashboard
+    Route::get('hr-dashboard', [\App\Http\Controllers\HRDashboardController::class, 'index']);
+
+    // 13. KARS Document Tracker
     Route::get('kars',              [\App\Http\Controllers\KarsController::class, 'index']);
     Route::put('kars/{kars}',       [\App\Http\Controllers\KarsController::class, 'update']);
     Route::post('kars/bulk-update', [\App\Http\Controllers\KarsController::class, 'bulkUpdate']);
